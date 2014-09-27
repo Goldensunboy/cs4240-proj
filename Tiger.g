@@ -83,14 +83,16 @@ statSeq :
 ;
 
 stat :
-	(value ':=' expr |
-	'if' expr 'then' statSeq ('else' statSeq)? 'endif' |
-	'while' expr 'do' statSeq 'enddo' |
-	'for' 'id' ':=' indexExpr 'to' indexExpr 'do' statSeq 'enddo' |
-	optPrefix 'id' '(' exprList ')' |
-	'break' |
-	'return' expr |
-	blockList) ';'
+	(
+		value ':=' (expr | 'id' '(' exprList ')') |
+		'if' expr 'then' statSeq ('else' statSeq)? 'endif' |
+		'while' expr 'do' statSeq 'enddo' |
+		'for' 'id' ':=' indexExpr 'to' indexExpr 'do' statSeq 'enddo' |
+		'id' '(' exprList ')' |
+		'break' |
+		'return' expr |
+		blockList
+	) ';'
 ; 
 
 optPrefix :
@@ -98,10 +100,8 @@ optPrefix :
 ;
 
 expr :
-	const |
-	value |
-	expr binaryOperator expr |
-	'(' expr ')'
+	(const | value | '(' expr ')')
+	(binaryOperator expr)*
 ; 
 
 const :
@@ -120,9 +120,8 @@ valueTail :
 ;
 
 indexExpr :
-	INTLIT |
-	'id' |
-	indexExpr indexOper indexExpr
+	(INTLIT | 'id')
+	(indexOper indexExpr)*
 ;
 
 indexOper :
@@ -164,6 +163,6 @@ INTLIT :
 ;
 
 FIXEDPTLIT :
-	INTLIT '.' ('0'..'9') ('0'..'9')? ('0'..'9')?
+	INTLIT '.' ('0'..'9') (('0'..'9')? '0'..'9')?
 ;
 
