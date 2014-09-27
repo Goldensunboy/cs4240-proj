@@ -1,66 +1,169 @@
-parser grammar Tiger;
+grammar Tiger;
 
-tiger-program : type-declaration-list funct-declaration-list main-function ;
+tigerProgram :
+	typeDeclarationList functDeclarationList mainFunction
+;
 
-funct-declaration-list : (funct-declaration funct-declaration-list)?;
+functDeclarationList :
+	(functDeclaration functDeclarationList)?
+;
 
-funct-declaration : ret-type 'function' 'id' '('param-list')' 'begin' block-list 'end' ';';
+functDeclaration :
+	retType 'function' 'id' '('paramList')' 'begin' blockList 'end' ';'
+;
 
-main-function : 'void' 'main' '(' ')' 'begin' block-list 'end' ';';
+mainFunction :
+	'void' 'main' '(' ')' 'begin' blockList 'end' ';'
+;
 
-ret-type : type-id | 'void';
+retType :
+	typeId | 'void'
+;
 
-type-id : base-type | 'id';
+typeId :
+	baseType | 'id'
+;
 
-base-type : 'int' | 'fixedpt';
+baseType :
+	'int' | 'fixedpt'
+;
 
-param : 'id' ':' type-id;
+param :
+	'id' ':' typeId
+;
 
-param-list : (param param-list-tail)?;
+paramList :
+	(param paramListTail)?
+;
 
-param-list-tail : (',' param param-list-tail)?;
+paramListTail :
+	(',' param paramListTail)?
+;
 
-block-list : (block block-tail)+; // block-list and block-tail are combined
+blockList :
+	block+ // block-list and block-tail are combined
+;
 
-block : 'begin' declaration-segment stat-seq 'end'';';
+block :
+	'begin' declarationSegment statSeq 'end' ';'
+;
 
-type-declaration-list : (type-declaration type-declaration-list)?;
+typeDeclarationList :
+	(typeDeclaration typeDeclarationList)?
+;
 
-var-declaration-list : (var-declaration var-declaration-list)?;
+varDeclarationList :
+	(varDeclaration varDeclarationList)?
+;
 
-type-declaration : 'type' 'id' '=' type ';';
+typeDeclaration :
+	'type' 'id' '=' type ';'
+;
 
-type : ('array' '[' INTLIT ']'('['INTLIT']')? 'of')? base-type;
+type :
+	('array' '[' INTLIT ']'
+		('['INTLIT']')? 'of')?
+	baseType
+;
 
-var-declaration : 'var' id-list ':' type-id optional-init ';';
+varDeclaration :
+	'var' idList ':' typeId optionalInit ';'
+;
 
-id-list : 'id' (',' id-list)?;
+idList :
+	'id' (',' idList)?
+;
 
-optional-init : (':=' const)?;
+optionalInit :
+	(':=' const)?
+;
 
-stat-seq : stat+;
+statSeq :
+	stat+
+;
 
-stat : (value ':=' expr | 'if' expr 'then' stat-seq ('else' stat-seq)? 'endif' | 'while' expr 'do' stat-seq 'enddo' | 'for' id ':=' index-expr 'to' index-expr 'do' stat-seq 'enddo' |  opt-prefix 'id' '(' expr-list ')' | 'break' | 'return' expr | block-list) ';'; 
+stat :
+	(value ':=' expr |
+	'if' expr 'then' statSeq ('else' statSeq)? 'endif' |
+	'while' expr 'do' statSeq 'enddo' |
+	'for' 'id' ':=' indexExpr 'to' indexExpr 'do' statSeq 'enddo' |
+	optPrefix 'id' '(' exprList ')' |
+	'break' |
+	'return' expr |
+	blockList) ';'
+; 
 
-opt-prefix : (value ':=')? ;
+optPrefix :
+	(value ':=')?
+;
 
-expr : const | value | expr binary-operator expr | '(' expr ')'; 
+expr :
+	const |
+	value |
+	expr binaryOperator expr |
+	'(' expr ')'
+; 
 
-const : FIXEDPTLIT | INTLIT;
+const :
+	FIXEDPTLIT |
+	INTLIT
+;
 
-value : 'id' value-tail;
+value :
+	'id' valueTail
+;
 
-value-tail : ('[' index-expr ']'('[' index-expr ']')?)?;
+valueTail :
+	('[' indexExpr ']'
+		('[' indexExpr ']')?
+	)?
+;
 
-index-expr : INTLIT | 'id' | index-expr index-oper index-expr;
+indexExpr :
+	INTLIT |
+	'id' |
+	indexExpr indexOper indexExpr
+;
 
-index-oper : '+' | '-' | '*';
+indexOper :
+	'+' |
+	'-' |
+	'*'
+;
 
-binary-operator : '+' | '-' | '*' | '/' | '=' | '<>' | '<' | '>'| '<=' | '>=' | '&' | '|'; 
+binaryOperator :
+	'+' |
+	'-' |
+	'*' |
+	'/' |
+	'=' |
+	'<>' |
+	'<=' |
+	'>=' |
+	'<' |
+	'>' |
+	'&' |
+	'|'
+; 
 
-declaration-segment : type-declaration-list var-declaration-list;
+declarationSegment :
+	typeDeclarationList varDeclarationList
+;
 
-expr-list : (expr expr-list-tail)?;
+exprList :
+	(expr exprListTail)?
+;
 
-expr-list-tail : (',' expr expr-list-tail)?;
+exprListTail :
+	(',' expr exprListTail)?
+;
+
+INTLIT :
+	'0' |
+	'1'..'9' ('0'..'9')*
+;
+
+FIXEDPTLIT :
+	INTLIT '.' ('0'..'9') ('0'..'9')? ('0'..'9')?
+;
 
