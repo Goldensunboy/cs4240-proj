@@ -17,3 +17,7 @@ hs_err_pid*
 Tiger.tokens
 TigerParser.java
 TigerLexer.java
+
+# folder
+bin/
+antlr-generated/
