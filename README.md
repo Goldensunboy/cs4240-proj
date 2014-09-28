@@ -8,7 +8,7 @@ Steps to setup ANTLR on Eclipse:
 
 2) Download http://www.antlr3.org/download/antlr-3.5.2-complete.jar and make a folder for it called "antlr" (IMPORTANT).
 
-3) Download https://www.eclipse.org/downloads/packages/release/indigo/sr2
+3) IMPORTANT: You need to have Eclipse Indigo. Download https://www.eclipse.org/downloads/packages/release/indigo/sr2
 
 4) Open Eclipse, go to "Help>Install New Software...". 
 
