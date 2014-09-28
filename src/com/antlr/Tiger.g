@@ -101,7 +101,7 @@ optPrefix :
 
 expr :
 	(const | value | '(' expr ')')
-	(binaryOperator expr)*
+	(binaryOperator (const | value | '(' expr ')'))*
 ; 
 
 const :
@@ -121,7 +121,7 @@ valueTail :
 
 indexExpr :
 	(INTLIT | 'id')
-	(indexOper indexExpr)*
+	(indexOper (INTLIT | 'id'))*
 ;
 
 indexOper :
@@ -165,4 +165,3 @@ INTLIT :
 FIXEDPTLIT :
 	INTLIT '.' ('0'..'9') (('0'..'9')? '0'..'9')?
 ;
-
