@@ -2,7 +2,7 @@ cs4240-proj
 ===========
 
 MIPS frontend
-Steps to setup ANTLR on Eclipse:
+Steps to setup ANTLR on Eclipse (Source: http://vimeo.com/8001326):
 
 1) Take a look at ANTLR IDE download guide to understand why we are doing certain things we do below
 
