@@ -9,27 +9,27 @@ functDeclarationList :
 ;
 
 functDeclaration :
-	retType 'function' 'id' '('paramList')' 'begin' blockList 'end' ';'
+	retType KEY_FUNCTION ID OP_LPAREN paramList OP_RPAREN KEY_BEGIN blockList KEY_END OP_SCOLON
 ;
 
 mainFunction :
-	'void' 'main' '(' ')' 'begin' blockList 'end' ';'
+	KEY_VOID KEY_MAIN OP_LPAREN OP_RPAREN KEY_BEGIN blockList KEY_END OP_SCOLON
 ;
 
 retType :
-	typeId | 'void'
+	typeId | KEY_VOID
 ;
 
 typeId :
-	baseType | 'id'
+	baseType | ID
 ;
 
 baseType :
-	'int' | 'fixedpt'
+	INTLIT | FIXEDPTLIT
 ;
 
 param :
-	'id' ':' typeId
+	ID OP_COLON typeId
 ;
 
 paramList :
@@ -37,7 +37,7 @@ paramList :
 ;
 
 paramListTail :
-	(',' param paramListTail)?
+	(OP_COMMA param paramListTail)?
 ;
 
 blockList :
@@ -45,7 +45,7 @@ blockList :
 ;
 
 block :
-	'begin' declarationSegment statSeq 'end' ';'
+	KEY_BEGIN declarationSegment statSeq KEY_END OP_SCOLON
 ;
 
 typeDeclarationList :
@@ -57,25 +57,25 @@ varDeclarationList :
 ;
 
 typeDeclaration :
-	'type' 'id' '=' type ';'
+	KEY_TYPE ID OP_EQUAL type OP_SCOLON
 ;
 
 type :
-	('array' '[' INTLIT ']'
-		('['INTLIT']')? 'of')?
+	(KEY_ARRAY OP_LBRACK INTLIT OP_RBRACK
+		(OP_LBRACK INTLIT OP_RBRACK)? KEY_OF)?
 	baseType
 ;
 
 varDeclaration :
-	'var' idList ':' typeId optionalInit ';'
+	KEY_VAR idList OP_COLON typeId optionalInit OP_SCOLON
 ;
 
 idList :
-	'id' (',' idList)?
+	ID (OP_COMMA idList)?
 ;
 
 optionalInit :
-	(':=' const)?
+	(OP_ASSIGN const)?
 ;
 
 statSeq :
@@ -84,24 +84,24 @@ statSeq :
 
 stat :
 	(
-		value ':=' (expr | 'id' '(' exprList ')') |
-		'if' expr 'then' statSeq ('else' statSeq)? 'endif' |
-		'while' expr 'do' statSeq 'enddo' |
-		'for' 'id' ':=' indexExpr 'to' indexExpr 'do' statSeq 'enddo' |
-		'id' '(' exprList ')' |
-		'break' |
-		'return' expr |
+		value OP_ASSIGN (expr | ID OP_LPAREN exprList OP_RPAREN) |
+		KEY_IF expr KEY_THEN statSeq (KEY_ELSE statSeq)? KEY_ENDIF |
+		KEY_WHILE expr KEY_DO statSeq KEY_ENDDO |
+		KEY_FOR ID OP_ASSIGN indexExpr KEY_TO indexExpr KEY_DO statSeq KEY_ENDDO |
+		ID OP_LPAREN exprList OP_RPAREN |
+		KEY_BREAK |
+		KEY_RETURN expr |
 		blockList
-	) ';'
+	) OP_SCOLON
 ; 
 
 optPrefix :
-	(value ':=')?
+	(value OP_ASSIGN)?
 ;
 
 expr :
-	(const | value | '(' expr ')')
-	(binaryOperator (const | value | '(' expr ')'))*
+	(const | value | OP_LPAREN expr OP_RPAREN)
+	(binaryOperator (const | value | OP_LPAREN expr OP_RPAREN))*
 ; 
 
 const :
@@ -110,39 +110,39 @@ const :
 ;
 
 value :
-	'id' valueTail
+	ID valueTail
 ;
 
 valueTail :
-	('[' indexExpr ']'
-		('[' indexExpr ']')?
+	(OP_LBRACK indexExpr OP_RBRACK
+		(OP_LBRACK indexExpr OP_RBRACK)?
 	)?
 ;
 
 indexExpr :
-	(INTLIT | 'id')
-	(indexOper (INTLIT | 'id'))*
+	(INTLIT | ID)
+	(indexOper (INTLIT | ID))*
 ;
 
 indexOper :
-	'+' |
-	'-' |
-	'*'
+	OP_PLUS  |
+	OP_MINUS |
+	OP_MULT
 ;
 
 binaryOperator :
-	'+' |
-	'-' |
-	'*' |
-	'/' |
-	'=' |
-	'<>' |
-	'<=' |
-	'>=' |
-	'<' |
-	'>' |
-	'&' |
-	'|'
+	OP_PLUS  |
+	OP_MINUS |
+	OP_MULT  |
+	OP_DIV   |
+	OP_EQUAL |
+	OP_NEQ   |
+	OP_LEQ   |
+	OP_GEQ   |
+	OP_LTHAN |
+	OP_GTHAN |
+	OP_AND   |
+	OP_OR
 ; 
 
 declarationSegment :
@@ -154,14 +154,87 @@ exprList :
 ;
 
 exprListTail :
-	(',' expr exprListTail)?
+	(OP_COMMA expr exprListTail)?
 ;
 
 INTLIT :
 	'0' |
-	'1'..'9' ('0'..'9')*
+	'1'..'9' DIGIT*
 ;
 
 FIXEDPTLIT :
-	INTLIT '.' ('0'..'9') (('0'..'9')? '0'..'9')?
+	INTLIT OP_PERIOD DIGIT (DIGIT? DIGIT)?
+;
+
+ID :
+  ALPHANUM (ALPHANUM | DIGIT | OP_UNDER)*
+;
+
+KEY_FUNCTION : 'function' ;
+KEY_BEGIN    : 'begin'    ;
+KEY_END      : 'end'      ;
+KEY_VOID     : 'void'     ;
+KEY_MAIN     : 'main'     ;
+KEY_TYPE     : 'type'     ;
+KEY_ARRAY    : 'array'    ;
+KEY_OF       : 'of'       ;
+KEY_INT      : 'int'      ;
+KEY_FIXEDPT  : 'fixedpt'  ;
+KEY_VAR      : 'var'      ;
+KEY_IF       : 'if'       ;
+KEY_THEN     : 'then'     ;
+KEY_ENDIF    : 'endif'    ;
+KEY_ELSE     : 'else'     ;
+KEY_WHILE    : 'while'    ;
+KEY_DO       : 'do'       ;
+KEY_ENDDO    : 'enddo'    ;
+KEY_FOR      : 'for'      ;
+KEY_TO       : 'to'       ;
+KEY_BREAK    : 'break'    ;
+KEY_RETURN   : 'return'   ;
+
+OP_LPAREN  : '('  ;
+OP_RPAREN  : ')'  ;
+OP_SCOLON  : ';'  ;
+OP_COLON   : ':'  ;
+OP_EQUAL   : '='  ;
+OP_COMMA   : ','  ;
+OP_ASSIGN  : ':=' ;
+OP_LBRACK  : '['  ;
+OP_RBRACK  : ']'  ;
+OP_PLUS    : '+'  ;
+OP_MINUS   : '-'  ;
+OP_MULT    : '*'  ;
+OP_DIV     : '/'  ;
+OP_NEQ     : '<>' ;
+OP_LEQ     : '<=' ;
+OP_GEQ     : '>=' ;
+OP_LTHAN   : '<'  ;
+OP_GTHAN   : '>'  ;
+OP_AND     : '&'  ;
+OP_OR      : '|'  ;
+OP_UNDER   : '_'  ;
+OP_PERIOD  : '.'  ;
+
+fragment
+DIGIT :
+  '0'..'9'
+;
+
+fragment
+ALPHANUM :
+  'a'..'z' |
+  'A'..'Z'
+;
+
+COMMENT :
+  '/*' ( options {greedy=false;} : . )* '*/' {$channel=HIDDEN;}
+;
+
+WS :
+  ( ' '
+  | '\t'
+  | '\r'
+  | '\n'
+  ) {$channel=HIDDEN;}
 ;
