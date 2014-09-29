@@ -146,28 +146,11 @@ binaryOperator :
 ; 
 
 declarationSegment :
-	typeDeclarationList varDeclarationList
+  typeDeclarationList varDeclarationList
 ;
 
 exprList :
-	(expr exprListTail)?
-;
-
-exprListTail :
-	(OP_COMMA expr exprListTail)?
-;
-
-INTLIT :
-	'0' |
-	'1'..'9' DIGIT*
-;
-
-FIXEDPTLIT :
-	INTLIT OP_PERIOD DIGIT (DIGIT? DIGIT)?
-;
-
-ID :
-  ALPHANUM (ALPHANUM | DIGIT | OP_UNDER)*
+  (expr exprListTail)?
 ;
 
 KEY_FUNCTION : 'function' ;
@@ -215,6 +198,25 @@ OP_AND     : '&'  ;
 OP_OR      : '|'  ;
 OP_UNDER   : '_'  ;
 OP_PERIOD  : '.'  ;
+
+
+exprListTail :
+	(OP_COMMA expr exprListTail)?
+;
+
+INTLIT :
+	'0' |
+	'1'..'9' DIGIT*
+;
+
+FIXEDPTLIT :
+	INTLIT OP_PERIOD DIGIT (DIGIT? DIGIT)?
+;
+
+ID :
+  ALPHANUM (ALPHANUM | DIGIT | OP_UNDER)*
+;
+
 
 fragment
 DIGIT :
