@@ -10,7 +10,7 @@ Steps to setup ANTLR on Eclipse (Source: http://vimeo.com/8001326):
 
 3) IMPORTANT: You need to have Eclipse Indigo. Download https://www.eclipse.org/downloads/packages/release/indigo/sr2
 
-4) Open Eclipse, go to "Help>Install New Software...". 
+4) Open Eclipse, go to "Help>Install New Software..." 
 
 5) Make sure below "Details" area ONLY these two options are selected (Otherwise you won't see the needed tools):
 	"Show only the latest versions of available software"
