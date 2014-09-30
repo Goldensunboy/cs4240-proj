@@ -75,7 +75,7 @@ idList :
 ;
 
 optionalInit :
-	(OP_ASSIGN const)?
+	(OP_ASSIGN constant)?
 ;
 
 statSeq :
@@ -100,11 +100,11 @@ optPrefix :
 ;
 
 expr :
-	(const | value | OP_LPAREN expr OP_RPAREN)
-	(binaryOperator (const | value | OP_LPAREN expr OP_RPAREN))*
+	(constant | value | OP_LPAREN expr OP_RPAREN)
+	(binaryOperator (constant | value | OP_LPAREN expr OP_RPAREN))*
 ; 
 
-const :
+constant :
 	FIXEDPTLIT |
 	INTLIT
 ;
@@ -153,6 +153,10 @@ exprList :
   (expr exprListTail)?
 ;
 
+exprListTail :
+  (OP_COMMA expr exprListTail)?
+;
+
 KEY_FUNCTION : 'function' ;
 KEY_BEGIN    : 'begin'    ;
 KEY_END      : 'end'      ;
@@ -199,10 +203,6 @@ OP_OR      : '|'  ;
 OP_UNDER   : '_'  ;
 OP_PERIOD  : '.'  ;
 
-
-exprListTail :
-	(OP_COMMA expr exprListTail)?
-;
 
 INTLIT :
 	'0' |
