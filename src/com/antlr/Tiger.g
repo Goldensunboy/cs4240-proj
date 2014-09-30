@@ -25,7 +25,7 @@ typeId :
 ;
 
 baseType :
-	INTLIT | FIXEDPTLIT
+	KEY_INT | KEY_FIXEDPT
 ;
 
 param :
@@ -206,7 +206,7 @@ OP_PERIOD  : '.'  ;
 
 INTLIT :
 	'0' |
-	'1'..'9' DIGIT*
+	(('1'..'9') (DIGIT)*)
 ;
 
 FIXEDPTLIT :
