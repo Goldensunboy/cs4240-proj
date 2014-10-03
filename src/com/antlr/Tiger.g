@@ -90,9 +90,9 @@ stat :
 		KEY_FOR ID OP_ASSIGN indexExpr KEY_TO indexExpr KEY_DO statSeq KEY_ENDDO |
 		ID OP_LPAREN exprList OP_RPAREN |
 		KEY_BREAK |
-		KEY_RETURN expr |
-		blockList
-	) OP_SCOLON
+		KEY_RETURN expr
+	)	OP_SCOLON |
+		block
 ; 
 
 optPrefix :
