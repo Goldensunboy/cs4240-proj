@@ -91,8 +91,7 @@ stat :
 		ID OP_LPAREN exprList OP_RPAREN |
 		KEY_BREAK |
 		KEY_RETURN expr
-	)	OP_SCOLON |
-		block
+	)	(OP_SCOLON | block)
 ; 
 
 optPrefix :
@@ -100,9 +99,64 @@ optPrefix :
 ;
 
 expr :
-	(constant | value | OP_LPAREN expr OP_RPAREN)
-	(binaryOperator (constant | value | OP_LPAREN expr OP_RPAREN))*
+  binOp01 
+;
+
+binOp01 :
+  (binOp02 OP_OR binOp01) |
+  binOp02
+;
+
+binOp02 :
+  (binOp03 OP_AND binOp02) |
+  binOp03
+;
+
+binOp03 :
+  (binOp04 OP_LEQ binOp03) |
+  binOp04
+;  
+
+binOp04 :
+  (binOp05 OP_GEQ binOp04) |
+  binOp05
 ; 
+
+binOp05 :
+  (binOp06 OP_LTHAN binOp05) |
+  binOp06
+; 
+
+binOp06 :
+  (binOp07 OP_GTHAN binOp06) |
+  binOp07
+; 
+
+binOp07 :
+  (binOp08 OP_NEQ binOp07) |
+  binOp08
+; 
+
+binOp08 :
+  (binOp09 OP_EQUAL binOp08) |
+  binOp09
+; 
+
+binOp09 :
+  (binOp10 OP_DIV binOp09) |
+  binOp10
+; 
+
+binOp10 :
+  (binOp11 OP_MULT binOp10) |
+  binOp11
+; 
+
+binOp11 :
+  constant |
+  value |
+  OP_LPAREN expr OP_RPAREN
+;
 
 constant :
 	FIXEDPTLIT |
