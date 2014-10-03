@@ -1,0 +1,11 @@
+void main() /*Print out all the elements in the array*/
+begin
+	begin
+		type ArrayInt = array [5] of int;
+		var myList : ArrayInt := 5;
+		
+		for i:=1 to 5 do
+			printi(myList[i]);
+		enddo;
+	end;;
+end;
