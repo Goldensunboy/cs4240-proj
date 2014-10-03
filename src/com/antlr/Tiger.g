@@ -100,9 +100,61 @@ optPrefix :
 ;
 
 expr :
-	(constant | value | OP_LPAREN expr OP_RPAREN)
-	(binaryOperator (constant | value | OP_LPAREN expr OP_RPAREN))*
-; 
+  binOp1 ((
+    OP_AND |
+    OP_OR
+  ) expr)?
+;
+
+//	(constant | value | OP_LPAREN expr OP_RPAREN)
+//	(binaryOperator (constant | value | OP_LPAREN expr OP_RPAREN))*
+//;
+
+binOp1 :
+  binOp2 ((
+    OP_LEQ |
+    OP_GEQ |
+    OP_LTHAN |
+    OP_GTHAN |
+    OP_NEQ |
+    OP_EQUAL
+  ) binOp1)?
+;
+
+binOp2 :
+  binOp3 ((
+    OP_MINUS |
+    OP_PLUS
+  ) binOp2)?
+;
+
+binOp3 :
+  binOp4 ((
+    OP_DIV |
+    OP_MULT
+  ) binOp3)?
+;
+
+binOp4 :
+  constant |
+  value |
+  OP_LPAREN expr OP_RPAREN
+;
+
+binaryOperator :
+  OP_PLUS  |
+  OP_MINUS |
+  OP_MULT  |
+  OP_DIV   |
+  OP_EQUAL |
+  OP_NEQ   |
+  OP_LEQ   |
+  OP_GEQ   |
+  OP_LTHAN |
+  OP_GTHAN |
+  OP_AND   |
+  OP_OR
+;
 
 constant :
 	FIXEDPTLIT |
@@ -129,21 +181,6 @@ indexOper :
 	OP_MINUS |
 	OP_MULT
 ;
-
-binaryOperator :
-	OP_PLUS  |
-	OP_MINUS |
-	OP_MULT  |
-	OP_DIV   |
-	OP_EQUAL |
-	OP_NEQ   |
-	OP_LEQ   |
-	OP_GEQ   |
-	OP_LTHAN |
-	OP_GTHAN |
-	OP_AND   |
-	OP_OR
-; 
 
 declarationSegment :
   typeDeclarationList varDeclarationList
