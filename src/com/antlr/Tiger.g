@@ -1,19 +1,21 @@
 grammar Tiger;
 
+//options { k = 1; backtrack = no; }
+
 tigerProgram :
-	typeDeclarationList functDeclarationList mainFunction
+	typeDeclarationList retType funcDeclarationList
 ;
 
-functDeclarationList :
-	(functDeclaration functDeclarationList)?
+funcDeclarationList :	
+	 funcDeclaration ((typeId funcDeclarationList) | (KEY_VOID (funcDeclarationList | mainFunction)))
 ;
 
-functDeclaration :
-	retType KEY_FUNCTION ID OP_LPAREN paramList OP_RPAREN KEY_BEGIN blockList KEY_END OP_SCOLON
+funcDeclaration :
+  KEY_FUNCTION ID OP_LPAREN paramList OP_RPAREN KEY_BEGIN blockList KEY_END OP_SCOLON
 ;
 
-mainFunction :
-	KEY_VOID KEY_MAIN OP_LPAREN OP_RPAREN KEY_BEGIN blockList KEY_END OP_SCOLON
+mainFunction:
+  KEY_MAIN OP_LPAREN OP_RPAREN KEY_BEGIN blockList KEY_END OP_SCOLON
 ;
 
 retType :
