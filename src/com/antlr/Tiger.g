@@ -1,6 +1,6 @@
 grammar Tiger;
 
-//options { k = 1; backtrack = no; }
+options { k = 1; backtrack = no; }
 
 tigerProgram :
 	typeDeclarationList retType funcDeclarationList
@@ -86,11 +86,10 @@ statSeq :
 
 stat :
 	(
-		value OP_ASSIGN (expr | ID OP_LPAREN exprList OP_RPAREN) |
+		ID (valueTail OP_ASSIGN expr_2 | OP_LPAREN exprList OP_RPAREN) |
 		KEY_IF expr KEY_THEN statSeq (KEY_ELSE statSeq)? KEY_ENDIF |
 		KEY_WHILE expr KEY_DO statSeq KEY_ENDDO |
 		KEY_FOR ID OP_ASSIGN indexExpr KEY_TO indexExpr KEY_DO statSeq KEY_ENDDO |
-		ID OP_LPAREN exprList OP_RPAREN |
 		KEY_BREAK |
 		KEY_RETURN expr
 	)	OP_SCOLON |
@@ -108,9 +107,53 @@ expr :
   ) expr)?
 ;
 
-//	(constant | value | OP_LPAREN expr OP_RPAREN)
-//	(binaryOperator (constant | value | OP_LPAREN expr OP_RPAREN))*
-//;
+// Special expr case for tiger function calls
+expr_2 :
+  ID (valueTail ((
+    OP_AND |
+    OP_OR
+  ) binOp4_2 expr_2)? | OP_LPAREN exprList OP_RPAREN) |
+  constant ((
+    OP_AND |
+    OP_OR
+  ) binOp4_2 expr_2)? |
+  OP_LPAREN expr OP_RPAREN
+  ((
+    OP_AND |
+    OP_OR
+  ) binOp4_2 expr_2)?
+;
+
+binOp1_2 :
+  ((
+    OP_LEQ |
+    OP_GEQ |
+    OP_LTHAN |
+    OP_GTHAN |
+    OP_NEQ |
+    OP_EQUAL
+  ) binOp4_2 binOp1_2)?
+;
+
+binOp2_2 :
+  ((
+    OP_MINUS |
+    OP_PLUS
+  ) binOp4_2 binOp2_2)?
+;
+
+binOp3_2 :
+  ((
+    OP_DIV |
+    OP_MULT
+  ) binOp4_2 binOp3)?
+;
+
+binOp4_2 :
+  constant |
+  value |
+  OP_LPAREN expr OP_RPAREN
+;
 
 binOp1 :
   binOp2 ((
