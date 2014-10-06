@@ -2,6 +2,21 @@ grammar Tiger;
 
 //options { k = 1; backtrack = no; }
 
+options
+{ 
+  output = AST;
+}
+
+@lexer::header
+{
+package com.antlr.generated;
+}
+
+@parser::header
+{
+package com.antlr.generated;
+}
+
 tigerProgram :
 	typeDeclarationList retType funcDeclarationList
 ;
