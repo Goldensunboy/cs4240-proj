@@ -7,9 +7,9 @@ begin
 		begin
 			for i := 1 to 100 do
 				/* for loop for dot product */
-				sum := sum + X[i] * Y[i];
-			enddo;
+				sum := sum + X[i] * Y[i]
+			endo;
 			printi(sum);
-		end;;
+		end;
 	end;
-end;
+end

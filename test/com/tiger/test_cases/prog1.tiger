@@ -75,7 +75,7 @@ void function funcName7()
 begin
 	begin
 		var a, b : int :=0;
-		while a != b do
+		while a <> b do
 			a := a + 1;
 		enddo;
 	end;
@@ -154,7 +154,7 @@ int function funcName11()
 begin
 	begin
 		var a, b : int :=0;
-		while a != b do
+		while a <> b do
 			a := a + 1;
 			return 6;
 		enddo;

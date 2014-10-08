@@ -13,6 +13,32 @@ package com.antlr.generated;
 package com.antlr.generated;
 }
 
+@lexer::members{
+  private boolean errorFlag = false;
+
+  public void reportError(RecognitionException re) {
+    errorFlag = true;
+    super.reportError(re);
+  }
+  
+  public boolean getErrorFlag() {
+    return errorFlag;
+  } 
+}
+
+@parser::members{
+  private boolean errorFlag = false;
+
+  public void reportError(RecognitionException re) {
+    errorFlag = true;
+    super.reportError(re);
+  } 
+  
+  public boolean getErrorFlag() {
+    return errorFlag;
+  } 
+}
+
 tigerProgram :
 	typeDeclarationList funcNext
 ;
