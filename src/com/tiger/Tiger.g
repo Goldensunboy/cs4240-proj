@@ -56,7 +56,7 @@ funcDeclaration :
 ;
 
 mainFunction:
-  KEY_MAIN OP_LPAREN OP_RPAREN KEY_BEGIN blockList KEY_END OP_SCOLON
+  KEY_MAIN OP_LPAREN OP_RPAREN KEY_BEGIN blockList KEY_END OP_SCOLON EOF
 ;
 
 retType :
