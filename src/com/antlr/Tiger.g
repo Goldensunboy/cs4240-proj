@@ -149,8 +149,11 @@ binOp3 :
 
 binOp4 :
   constant |
-  value |
-  OP_LPAREN expr OP_RPAREN
+  OP_LPAREN expr OP_RPAREN |
+  ID (
+    valueTail |
+    OP_LPAREN expr OP_RPAREN
+  )
 ;
 
 binaryOperator :
