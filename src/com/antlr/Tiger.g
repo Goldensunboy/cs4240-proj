@@ -1,11 +1,7 @@
 grammar Tiger;
 
-options { k = 1; backtrack = no; }
+options { k = 1; backtrack = no; output = AST; }
 
-options
-{ 
-  output = AST;
-}
 
 @lexer::header
 {
@@ -18,11 +14,15 @@ package com.antlr.generated;
 }
 
 tigerProgram :
-	typeDeclarationList retType funcDeclarationList
+	typeDeclarationList funcNext
 ;
 
-funcDeclarationList :	
-	 funcDeclaration ((typeId funcDeclarationList) | (KEY_VOID (funcDeclarationList | mainFunction)))
+funcCurrent :
+	 funcDeclaration funcNext
+;
+
+funcNext :
+  ((typeId funcCurrent) | (KEY_VOID (funcCurrent | mainFunction)))
 ;
 
 funcDeclaration :
