@@ -66,11 +66,11 @@ block :
 ;
 
 typeDeclarationList :
-	(typeDeclaration typeDeclarationList)?
+	typeDeclaration*
 ;
 
 varDeclarationList :
-	(varDeclaration varDeclarationList)?
+	varDeclaration*
 ;
 
 typeDeclaration :
