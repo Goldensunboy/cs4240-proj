@@ -41,6 +41,8 @@ import java.util.TreeMap;
   //TODO private Map<String, Object> compilerGeneratedTemps = new TreeMap<String, Object>();
   
   
+  
+  
   private boolean errorFlag = false;
 
   public void reportError(RecognitionException re) {
