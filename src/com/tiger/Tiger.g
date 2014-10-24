@@ -11,6 +11,9 @@ package com.antlr.generated;
 @parser::header
 {
 package com.antlr.generated;
+
+import java.util.Map;
+import java.util.TreeMap;
 }
 
 @lexer::members{
@@ -27,6 +30,17 @@ package com.antlr.generated;
 }
 
 @parser::members{
+  
+  private Map<String, String> variableNames = new TreeMap<String, String>();
+  private Map<String, Integer> constantsIntNames = new TreeMap<String, Integer>();
+  private Map<String, Double>  constantsFixPtNames = new TreeMap<String, Double>();
+  private Map<String, String> typeNames = new TreeMap<String, String>();
+  private Map<String, String> functionNames = new TreeMap<String, String>();
+  private Map<String, String> strLiteralNames = new TreeMap<String, String>();
+  private Map<String, String> srcTxtLabels= new TreeMap<String, String>();
+  //TODO private Map<String, Object> compilerGeneratedTemps = new TreeMap<String, Object>();
+  
+  
   private boolean errorFlag = false;
 
   public void reportError(RecognitionException re) {
@@ -38,6 +52,8 @@ package com.antlr.generated;
     return errorFlag;
   } 
 }
+
+
 
 tigerProgram :
 	typeDeclarationList funcNext
