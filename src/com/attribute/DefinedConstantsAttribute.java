@@ -1,6 +1,7 @@
 package com.attribute;
 
-public class DefinedConstantsAttribute {
+
+public class DefinedConstantsAttribute implements Attribute{
 	public enum Constants {
 		Int, 
 		FixPt

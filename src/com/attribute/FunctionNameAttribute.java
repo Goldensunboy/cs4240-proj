@@ -2,7 +2,7 @@ package com.attribute;
 
 import java.util.ArrayList;
 
-public class FunctionNameAttribute {
+public class FunctionNameAttribute implements Attribute{
 	
 	// Enums for return type and param types
 	public enum ReturnType {
