@@ -13,7 +13,12 @@ package com.antlr.generated;
 package com.antlr.generated;
 
 import java.util.Map;
+import java.util.Hashtable;
 import java.util.TreeMap;
+import com.attribute.Attribute;
+import com.attribute.VariableNameAttribute;
+import java.util.Map.Entry;
+import com.symbol_table.SymbolTableManager;
 }
 
 @lexer::members{
@@ -31,22 +36,29 @@ import java.util.TreeMap;
 
 @parser::members{
   
-  private Map<String, Attribute> variableNames = new TreeMap<String, VariableNameAttribute>();
-  private Map<String, Attribute> definedConstants = new TreeMap<String, DefinedConstantAttribute>();
-  private Map<String, Attribute> typeNames = new TreeMap<String, TypeAttribute>();
-  private Map<String, Attribute> functionNames = new TreeMap<String, FunctionNameAttribute>();
-  private Map<String, Attribute> stringConstantLiteralNames = new TreeMap<String, LiteralConstantAndStringAttribute>();
+  private SymbolTableManager symbolTableManager = new SymbolTableManager();
+  private Map<String, Attribute> attributeMap = new Hashtable<>();
+  // TODO private Map<String, Attribute> definedConstants = new TreeMap<String, DefinedConstantAttribute>();
+  // TODO private Map<String, Attribute> typeNames = new TreeMap<String, TypeAttribute>();
+  // TODO private Map<String, Attribute> functionNames = new TreeMap<String, FunctionNameAttribute>();
+  // TODO private Map<String, Attribute> stringConstantLiteralNames = new TreeMap<String, LiteralConstantAndStringAttribute>();
   // TODO private Map<String, Attribute> srcTxtLabels= new TreeMap<StringAttribute>();
   // TODO private Map<String, Object> compilerGeneratedTemps = new TreeMap<String, Object>();
 
-  private void putVariableNames(String variableName, String type, String declaringFunctionName) {
-    VariableNameAttribute variableNameAttribute = new VaribleNameAttribute(variableName, type declaringFunctionName);
-    variableNames.put(variableName, VariableNameAttribute);
+  private void putAttributeMap(List<String> variableNameList, String type, String declaringFunctionName) {
+    for (String variableName : variableNameList) {
+//        System.out.println("Variable Name: " + variableName + " Type: " + type + " Function: " + declaringFunctionName); //TODO debug, delete later
+        VariableNameAttribute variableNameAttribute = new VariableNameAttribute(variableName, type, declaringFunctionName);
+        attributeMap.put(variableName, variableNameAttribute);
+	  }
   }
 
-  private void putTypeNames(){
+  public void printAttributeMap() {
+    
+    for (Entry<String, Attribute> attr : attributeMap.entrySet())
+      System.out.println(attr.getKey());
   }
-  
+
   private boolean errorFlag = false;
 
   public void reportError(RecognitionException re) {
@@ -72,11 +84,12 @@ funcNext :
 ;
 
 funcDeclaration :
-  KEY_FUNCTION ID OP_LPAREN paramList OP_RPAREN KEY_BEGIN blockList KEY_END OP_SCOLON
+  KEY_FUNCTION a=ID OP_LPAREN paramList OP_RPAREN key_begin blockList[$a.text] key_end OP_SCOLON
 ;
 
-mainFunction:
-  KEY_MAIN OP_LPAREN OP_RPAREN KEY_BEGIN blockList KEY_END OP_SCOLON EOF
+mainFunction
+  :
+  a=KEY_MAIN OP_LPAREN OP_RPAREN key_begin blockList[$a.text] key_end OP_SCOLON EOF
 ;
 
 retType :
@@ -103,20 +116,20 @@ paramListTail :
 	(OP_COMMA param paramListTail)?
 ;
 
-blockList :
-	block+ // block-list and block-tail are combined
+blockList[String functionName] :
+	block[functionName]+ // block-list and block-tail are combined
 ;
 
-block :
-	KEY_BEGIN declarationSegment statSeq KEY_END OP_SCOLON
+block[String functionName] :
+	key_begin declarationSegment[functionName] statSeq key_end OP_SCOLON
 ;
 
 typeDeclarationList :
 	typeDeclaration*
 ;
 
-varDeclarationList :
-	varDeclaration*
+varDeclarationList[String functionName] :
+	varDeclaration[functionName]*
 ;
 
 typeDeclaration :
@@ -131,12 +144,19 @@ type :
 	baseType
 ;
 
-varDeclaration :
-	KEY_VAR idList OP_COLON typeId optionalInit OP_SCOLON
+varDeclaration[String functionName]
+scope {List<String> aggregatedMyIdList;}
+@init {$varDeclaration::aggregatedMyIdList = new ArrayList<>();}
+ :
+	KEY_VAR idList OP_COLON myTypeId=typeId optionalInit OP_SCOLON
+	{putAttributeMap($varDeclaration::aggregatedMyIdList, $myTypeId.text, $functionName);}
 ;
 
-idList :
-	ID (OP_COMMA idList)?
+idList: 
+  myId=ID (OP_COMMA idList)?
+	{
+	$varDeclaration::aggregatedMyIdList.add($myId.text);
+	}
 ;
 
 optionalInit :
@@ -156,7 +176,7 @@ stat :
 		KEY_BREAK |
 		KEY_RETURN expr
 	)	OP_SCOLON |
-		block
+		block[""]
 ; 
 
 optPrefix :
@@ -245,8 +265,8 @@ indexOper :
 	OP_MULT
 ;
 
-declarationSegment :
-  typeDeclarationList varDeclarationList
+declarationSegment[String functionName] :
+  typeDeclarationList varDeclarationList[functionName]
 ;
 
 exprList :
@@ -257,9 +277,24 @@ exprListTail :
   (OP_COMMA expr exprListTail)?
 ;
 
+key_begin
+  @init{
+  symbolTableManager.makeNewScope(attributeMap);
+  attributeMap.clear();
+  }
+  : 
+  'begin'    
+;
+
+key_end
+  @init{
+  symbolTableManager.goToEnclosingScope(attributeMap);
+  attributeMap.clear();
+  }
+  : 'end'
+;
+
 KEY_FUNCTION : 'function' ;
-KEY_BEGIN    : 'begin'    ;
-KEY_END      : 'end'      ;
 KEY_VOID     : 'void'     ;
 KEY_MAIN     : 'main'     ;
 KEY_TYPE     : 'type'     ;

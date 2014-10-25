@@ -14,7 +14,7 @@ public class TigerTest {
 		
 		System.out.println(System.getProperty("user.dir"));
 			
-		File folder = new File("test/com/tiger/test_cases");
+		File folder = new File("test/com/tiger/test_case");
 		for (File file : folder.listFiles()) {
 			System.out.println("Compiling: " + file.getName());
 			System.out.println("******************************");

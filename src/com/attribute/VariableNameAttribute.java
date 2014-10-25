@@ -6,6 +6,10 @@ public class VariableNameAttribute implements Attribute{
 	private String type;
 	private String declaringProcedure; 
 	
+	public VariableNameAttribute(String variableName, String type, String declaringFunctionName){
+		
+	}
+	
 	public String getVariableName() {
 		return variableName;
 	}
