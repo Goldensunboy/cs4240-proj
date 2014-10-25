@@ -2,14 +2,10 @@ void main()
 begin
 	begin
 		type ArrayInt = array [100] of int;
-		var X, Y, Z : ArrayInt := 10;
+		var x : int := 10;
 		begin
-			var i, sum : int:= 0;
-			for i := 1 to 100 do
-				/* for loop for dot product */
-				sum := sum + X[i] * Y[i];
-			enddo;
-			printi(sum);
+			var i : int:= 0;
+			x := i;
 		end;
 	end;
 end;

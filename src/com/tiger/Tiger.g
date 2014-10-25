@@ -233,7 +233,7 @@ binOp4 :
   OP_LPAREN expr OP_RPAREN |
   ID (
     valueTail |
-    OP_LPAREN expr OP_RPAREN
+    OP_LPAREN exprList OP_RPAREN
   )
 ;
 
