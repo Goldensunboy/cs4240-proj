@@ -7,13 +7,13 @@ import java.util.Map.Entry;
 import com.attribute.Attribute;
 
 public class Scope {
-	private int scopId;
+	private int scopeId;
 	private Scope enclosingScope;
 	private Map<String, Symbol> symbolMap = new LinkedHashMap<>();
 	
-	public Scope(Scope enclosingScope, int scopId){
+	public Scope(Scope enclosingScope, int scopeId){
 		this.enclosingScope = enclosingScope;
-		this.scopId = scopId;
+		this.scopeId = scopeId;
 	}
 	
 	/**
@@ -21,7 +21,7 @@ public class Scope {
 	 * @param attributeMap 
 	 * @return
 	 */
-	public Map<String, Symbol> putInScop(Map<String, Attribute> attributeMap) {
+	public Map<String, Symbol> putInScope(Map<String, Attribute> attributeMap) {
 		for(Entry<String, Attribute> attribute : attributeMap.entrySet()) {
 			symbolMap.put(attribute.getKey(), new Symbol(this, attribute.getValue()));
 		}
@@ -48,12 +48,15 @@ public class Scope {
 		this.enclosingScope = enclosingScope;
 	}
 
-	public int getScopId() {
-		return scopId;
+	public int getScopeId() {
+		return scopeId;
 	}
 
-	public void setScopId(int scopId) {
-		this.scopId = scopId;
+	public void setScopeId(int scopId) {
+		this.scopeId = scopId;
 	}
 	
+	public Map<String, Symbol> getSymbolMap() {
+		return symbolMap;
+	}
 }

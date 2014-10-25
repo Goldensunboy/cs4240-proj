@@ -19,6 +19,8 @@ import com.attribute.Attribute;
 import com.attribute.VariableNameAttribute;
 import java.util.Map.Entry;
 import com.symbol_table.SymbolTableManager;
+import com.symbol_table.Symbol;
+import com.symbol_table.Scope;
 }
 
 @lexer::members{
@@ -55,8 +57,19 @@ import com.symbol_table.SymbolTableManager;
 
   public void printAttributeMap() {
     
-    for (Entry<String, Attribute> attr : attributeMap.entrySet())
-      System.out.println(attr.getKey());
+    for (Entry<String, Symbol> attr : symbolTableManager.getSymboTable().entrySet())
+      System.out.println(attr.getKey() + " Scope ID: " + showAllReachableAttribute(attr.getValue().getScope()));
+  }
+
+  public String showAllReachableAttribute(Scope scope) {
+    String temp = "";
+    while (scope != null) {
+      for(Entry<String, Symbol> symbolEntry : scope.getSymbolMap().entrySet()) {
+        temp += symbolEntry.getKey() + ", ";
+      }
+      scope = scope.getEnclosingScope();
+    }
+    return temp;
   }
 
   private boolean errorFlag = false;

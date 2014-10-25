@@ -10,10 +10,14 @@ public class SymbolTableManager {
 	private int scopeId = 0;
 	private Map<String, Symbol> symboTable = new Hashtable<>();
 	
-	
+	/**
+	 * when looking at begin
+	 * @param attributeMaps
+	 * @return
+	 */
 	public Scope makeNewScope(Map<String, Attribute> attributeMaps) {
 		if(currentScope != null){
-			symboTable.putAll(currentScope.putInScop(attributeMaps));			
+			symboTable.putAll(currentScope.putInScope(attributeMaps));			
 		}
 
 		Scope newScope = new Scope(currentScope, scopeId++);
@@ -21,12 +25,18 @@ public class SymbolTableManager {
 		return currentScope;
 	}
 	
+	/**
+	 * when we look at end
+	 * @param attributeMaps
+	 * @return
+	 */
 	public Scope goToEnclosingScope(Map<String, Attribute> attributeMaps) {
-		symboTable.putAll(currentScope.putInScop(attributeMaps));
+		symboTable.putAll(currentScope.putInScope(attributeMaps));
 		
 		currentScope = currentScope.getEnclosingScope();
 		return currentScope;
 	}
+	
 	
 	public Map<String, Symbol> getSymboTable() {
 		return symboTable;
