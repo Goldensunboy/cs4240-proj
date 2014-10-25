@@ -4,7 +4,7 @@ public class VariableNameAttribute implements Attribute{
 	
 	private String variableName;
 	private String type;
-	private FunctionNameAttribute declaringProcedure; 
+	private String declaringProcedure; 
 	
 	public String getVariableName() {
 		return variableName;
@@ -18,10 +18,10 @@ public class VariableNameAttribute implements Attribute{
 	public void setType(String type) {
 		this.type = type;
 	}
-	public FunctionNameAttribute getDeclaringProcedure() {
+	public String getDeclaringProcedure() {
 		return declaringProcedure;
 	}
-	public void setDeclaringProcedure(FunctionNameAttribute declaringProcedure) {
+	public void setDeclaringProcedure(String declaringProcedure) {
 		this.declaringProcedure = declaringProcedure;
 	}
 }

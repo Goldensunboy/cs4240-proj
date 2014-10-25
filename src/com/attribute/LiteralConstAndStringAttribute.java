@@ -1,7 +1,7 @@
 package com.attribute;
 
 
-public class LiteralConstAndStringsAttribute implements Attribute{
+public class LiteralConstAndStringAttribute implements Attribute{
 
 	public enum VariableType{
 		INT_LIT, FIXPT_LIT, STRING

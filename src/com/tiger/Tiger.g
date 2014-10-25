@@ -31,17 +31,21 @@ import java.util.TreeMap;
 
 @parser::members{
   
-  private Map<String, String> variableNames = new TreeMap<String, String>();
-  private Map<String, Integer> constantsIntNames = new TreeMap<String, Integer>();
-  private Map<String, Double>  constantsFixPtNames = new TreeMap<String, Double>();
-  private Map<String, String> typeNames = new TreeMap<String, String>();
-  private Map<String, String> functionNames = new TreeMap<String, String>();
-  private Map<String, String> strLiteralNames = new TreeMap<String, String>();
-  private Map<String, String> srcTxtLabels= new TreeMap<String, String>();
-  //TODO private Map<String, Object> compilerGeneratedTemps = new TreeMap<String, Object>();
-  
-  
-  
+  private Map<String, Attribute> variableNames = new TreeMap<String, VariableNameAttribute>();
+  private Map<String, Attribute> definedConstants = new TreeMap<String, DefinedConstantAttribute>();
+  private Map<String, Attribute> typeNames = new TreeMap<String, TypeAttribute>();
+  private Map<String, Attribute> functionNames = new TreeMap<String, FunctionNameAttribute>();
+  private Map<String, Attribute> stringConstantLiteralNames = new TreeMap<String, LiteralConstantAndStringAttribute>();
+  // TODO private Map<String, Attribute> srcTxtLabels= new TreeMap<StringAttribute>();
+  // TODO private Map<String, Object> compilerGeneratedTemps = new TreeMap<String, Object>();
+
+  private void putVariableNames(String variableName, String type, String declaringFunctionName) {
+    VariableNameAttribute variableNameAttribute = new VaribleNameAttribute(variableName, type declaringFunctionName);
+    variableNames.put(variableName, VariableNameAttribute);
+  }
+
+  private void putTypeNames(){
+  }
   
   private boolean errorFlag = false;
 
@@ -54,8 +58,6 @@ import java.util.TreeMap;
     return errorFlag;
   } 
 }
-
-
 
 tigerProgram :
 	typeDeclarationList funcNext
@@ -118,7 +120,9 @@ varDeclarationList :
 ;
 
 typeDeclaration :
+  
 	KEY_TYPE ID OP_EQUAL type OP_SCOLON
+	
 ;
 
 type :
