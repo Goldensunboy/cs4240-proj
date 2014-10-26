@@ -1,6 +1,8 @@
 package com.symbol_table;
 
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -9,7 +11,7 @@ import com.attribute.Attribute;
 public class Scope {
 	private int scopeId;
 	private Scope enclosingScope;
-	private Map<String, Symbol> symbolMap = new LinkedHashMap<>();
+	private Map<String, List<Symbol>> symbolMap = new LinkedHashMap<>();
 	
 	public Scope(Scope enclosingScope, int scopeId){
 		this.enclosingScope = enclosingScope;
@@ -21,15 +23,20 @@ public class Scope {
 	 * @param attributeMap 
 	 * @return
 	 */
-	public Map<String, Symbol> putInScope(Map<String, Attribute> attributeMap) {
+	public Map<String, List<Symbol>> putInScope(Map<String, Attribute> attributeMap) {
 		for(Entry<String, Attribute> attribute : attributeMap.entrySet()) {
-			symbolMap.put(attribute.getKey(), new Symbol(this, attribute.getValue()));
+			List<Symbol> value = symbolMap.get(attribute.getKey());
+			if(value == null) {
+				value = new LinkedList<>();
+			}
+			value.add(new Symbol(this, attribute.getValue()));
+			symbolMap.put(attribute.getKey(), value);
 		}
 		return symbolMap;
 	}
 
-	public Symbol resolve(String attributeName) {
-		Symbol resolvedSymbol = symbolMap.get(attributeName);
+	public List<Symbol> resolve(String attributeName) {
+		List<Symbol> resolvedSymbol = symbolMap.get(attributeName);
 		if (resolvedSymbol == null) {
 			Scope runnerScope = enclosingScope;
 			while (runnerScope != null && resolvedSymbol == null) {
@@ -56,7 +63,7 @@ public class Scope {
 		this.scopeId = scopId;
 	}
 	
-	public Map<String, Symbol> getSymbolMap() {
+	public Map<String, List<Symbol>> getSymbolMap() {
 		return symbolMap;
 	}
 }
