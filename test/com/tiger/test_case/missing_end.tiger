@@ -1,11 +1,30 @@
+
+int function myFunc(a : int, b : string) 
+begin
+	begin
+		var z : int := 10;
+		z := 2;
+	end;
+end;
+
+int function myFunc2() 
+begin
+	begin
+		var z : int := 10;
+		z := 2;
+	end;
+end;
+
 void main()
 begin
 	begin
 		type ArrayInt = array [100] of int;
-		var x : int := 10;
+		var x, b : int := 10;
+		x := 2;
+		b :=3;
 		begin
 			var i : int:= 0;
-			x := i;
+			i := x + b;
 		end;
 	end;
 end;

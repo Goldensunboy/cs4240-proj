@@ -7,6 +7,7 @@ import com.attribute.Attribute;
 
 public class SymbolTableManager {
 	private Scope currentScope;
+	private Scope globalScope = new Scope(null, -1);
 	private int scopeId = 0;
 	private Map<String, Symbol> symboTable = new Hashtable<>();
 	
@@ -18,6 +19,8 @@ public class SymbolTableManager {
 	public Scope makeNewScope(Map<String, Attribute> attributeMaps) {
 		if(currentScope != null){
 			symboTable.putAll(currentScope.putInScope(attributeMaps));			
+		} else {
+			symboTable.putAll(globalScope.putInScope(attributeMaps));
 		}
 
 		Scope newScope = new Scope(currentScope, scopeId++);

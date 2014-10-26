@@ -12,15 +12,23 @@ package com.antlr.generated;
 {
 package com.antlr.generated;
 
+/***************myImport***************/
 import java.util.Map;
 import java.util.Hashtable;
 import java.util.TreeMap;
+import java.util.Map.Entry;
 import com.attribute.Attribute;
 import com.attribute.VariableNameAttribute;
-import java.util.Map.Entry;
 import com.symbol_table.SymbolTableManager;
 import com.symbol_table.Symbol;
 import com.symbol_table.Scope;
+import com.symbol_table.IdType;
+import com.symbol_table.NameSpaceManager;
+import com.attribute.FunctionNameAttribute;
+import com.attribute.FunctionNameAttribute.ParamType;
+import com.attribute.FunctionNameAttribute.ReturnType;
+/**************************************/
+
 }
 
 @lexer::members{
@@ -40,6 +48,7 @@ import com.symbol_table.Scope;
   
   private SymbolTableManager symbolTableManager = new SymbolTableManager();
   private Map<String, Attribute> attributeMap = new Hashtable<>();
+  private NameSpaceManager nameSpaceManager = new NameSpaceManager();
   // TODO private Map<String, Attribute> definedConstants = new TreeMap<String, DefinedConstantAttribute>();
   // TODO private Map<String, Attribute> typeNames = new TreeMap<String, TypeAttribute>();
   // TODO private Map<String, Attribute> functionNames = new TreeMap<String, FunctionNameAttribute>();
@@ -47,18 +56,23 @@ import com.symbol_table.Scope;
   // TODO private Map<String, Attribute> srcTxtLabels= new TreeMap<StringAttribute>();
   // TODO private Map<String, Object> compilerGeneratedTemps = new TreeMap<String, Object>();
 
-  private void putAttributeMap(List<String> variableNameList, String type, String declaringFunctionName) {
+  private void putVariableNameAttributeMap(List<String> variableNameList, String type, String declaringFunctionName) {
     for (String variableName : variableNameList) {
-//        System.out.println("Variable Name: " + variableName + " Type: " + type + " Function: " + declaringFunctionName); //TODO debug, delete later
         VariableNameAttribute variableNameAttribute = new VariableNameAttribute(variableName, type, declaringFunctionName);
         attributeMap.put(variableName, variableNameAttribute);
-	  }
+    }
   }
+  
+  private void putFunctionNameAttributeMap(String functionName, String returnType, List<String> parameters) {
+    FunctionNameAttribute functionNameAttribute = new FunctionNameAttribute(functionName, returnType, parameters);
+    attributeMap.put(functionName, functionNameAttribute);
+  }
+  
 
   public void printAttributeMap() {
     
     for (Entry<String, Symbol> attr : symbolTableManager.getSymboTable().entrySet())
-      System.out.println(attr.getKey() + " Scope ID: " + showAllReachableAttribute(attr.getValue().getScope()));
+      System.out.println(attr.getValue() + " :: " + showAllReachableAttribute(attr.getValue().getScope())); // TODO debug, delete me
   }
 
   public String showAllReachableAttribute(Scope scope) {
@@ -71,6 +85,10 @@ import com.symbol_table.Scope;
     }
     return temp;
   }
+  
+  public void printTheNameSpace() {
+    System.out.println(nameSpaceManager.toString());
+  }
 
   private boolean errorFlag = false;
 
@@ -81,7 +99,7 @@ import com.symbol_table.Scope;
   
   public boolean getErrorFlag() {
     return errorFlag;
-  } 
+  }
 }
 
 tigerProgram :
@@ -96,8 +114,12 @@ funcNext :
   ((typeId funcCurrent) | (KEY_VOID (funcCurrent | mainFunction)))
 ;
 
-funcDeclaration :
-  KEY_FUNCTION a=ID OP_LPAREN paramList OP_RPAREN key_begin blockList[$a.text] key_end OP_SCOLON
+funcDeclaration 
+scope{List<String> myParams;}
+@init{$funcDeclaration::myParams = new ArrayList<>();}
+:
+  KEY_FUNCTION myFunctionName=id[IdType.FUNCTION_NAME] OP_LPAREN paramList OP_RPAREN key_begin blockList[$myFunctionName.text] key_end OP_SCOLON
+  {putFunctionNameAttributeMap($myFunctionName.text, null /*ReturnType returnType*/, $funcDeclaration::myParams);}
 ;
 
 mainFunction
@@ -110,15 +132,16 @@ retType :
 ;
 
 typeId :
-	baseType | ID
+	baseType | id[IdType.NIY]
 ;
 
 baseType :
 	KEY_INT | KEY_FIXEDPT
 ;
 
-param :
-	ID OP_COLON typeId
+param:
+	id[IdType.NIY] OP_COLON typeId
+	{$funcDeclaration::myParams.add($typeId.text);}
 ;
 
 paramList :
@@ -147,7 +170,7 @@ varDeclarationList[String functionName] :
 
 typeDeclaration :
   
-	KEY_TYPE ID OP_EQUAL type OP_SCOLON
+	KEY_TYPE id[IdType.NIY] OP_EQUAL type OP_SCOLON
 	
 ;
 
@@ -161,12 +184,12 @@ varDeclaration[String functionName]
 scope {List<String> aggregatedMyIdList;}
 @init {$varDeclaration::aggregatedMyIdList = new ArrayList<>();}
  :
-	KEY_VAR idList OP_COLON myTypeId=typeId optionalInit OP_SCOLON
-	{putAttributeMap($varDeclaration::aggregatedMyIdList, $myTypeId.text, $functionName);}
+	KEY_VAR idList[IdType.VAR_NAME] OP_COLON myTypeId=typeId optionalInit OP_SCOLON
+	{putVariableNameAttributeMap($varDeclaration::aggregatedMyIdList, $myTypeId.text, $functionName);}
 ;
 
-idList: 
-  myId=ID (OP_COMMA idList)?
+idList[IdType idType] : 
+  myId=id[idType] (OP_COMMA idList[idType])?
 	{
 	$varDeclaration::aggregatedMyIdList.add($myId.text);
 	}
@@ -182,10 +205,10 @@ statSeq :
 
 stat :
 	(
-		ID (valueTail OP_ASSIGN expr | OP_LPAREN exprList OP_RPAREN) |
+		id[IdType.NIY] (valueTail OP_ASSIGN expr | OP_LPAREN exprList OP_RPAREN) |
 		KEY_IF expr KEY_THEN statSeq (KEY_ELSE statSeq)? KEY_ENDIF |
 		KEY_WHILE expr KEY_DO statSeq KEY_ENDDO |
-		KEY_FOR ID OP_ASSIGN indexExpr KEY_TO indexExpr KEY_DO statSeq KEY_ENDDO |
+		KEY_FOR id[IdType.NIY] OP_ASSIGN indexExpr KEY_TO indexExpr KEY_DO statSeq KEY_ENDDO |
 		KEY_BREAK |
 		KEY_RETURN expr
 	)	OP_SCOLON |
@@ -231,25 +254,10 @@ binOp3 :
 binOp4 :
   constant |
   OP_LPAREN expr OP_RPAREN |
-  ID (
+  id[IdType.NIY] (
     valueTail |
     OP_LPAREN exprList OP_RPAREN
   )
-;
-
-binaryOperator :
-  OP_PLUS  |
-  OP_MINUS |
-  OP_MULT  |
-  OP_DIV   |
-  OP_EQUAL |
-  OP_NEQ   |
-  OP_LEQ   |
-  OP_GEQ   |
-  OP_LTHAN |
-  OP_GTHAN |
-  OP_AND   |
-  OP_OR
 ;
 
 constant :
@@ -258,7 +266,7 @@ constant :
 ;
 
 value :
-	ID valueTail
+	id[IdType.NIY] valueTail
 ;
 
 valueTail :
@@ -268,8 +276,8 @@ valueTail :
 ;
 
 indexExpr :
-	(INTLIT | ID)
-	(indexOper (INTLIT | ID))*
+	(INTLIT | id[IdType.NIY])
+	(indexOper (INTLIT | id[IdType.NIY]))*
 ;
 
 indexOper :
@@ -359,6 +367,11 @@ INTLIT :
 
 FIXEDPTLIT :
 	INTLIT OP_PERIOD DIGIT (DIGIT? DIGIT)?
+;
+
+id[IdType idType] :
+  ID
+  {nameSpaceManager.manageNameSpace(idType, $ID.text);}
 ;
 
 ID :

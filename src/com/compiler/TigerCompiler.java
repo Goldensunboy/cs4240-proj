@@ -22,6 +22,7 @@ public class TigerCompiler{
 				System.out.println("Finished with parser error(s)");
 			} else {
 				parser.printAttributeMap();
+				parser.printTheNameSpace();
 				System.out.println("Successfully parsed");
 			}
 

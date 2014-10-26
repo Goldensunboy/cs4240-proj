@@ -1,24 +1,30 @@
 package com.attribute;
 
-import java.util.ArrayList;
+import java.util.List;
 
 public class FunctionNameAttribute implements Attribute{
 	
 	// Enums for return type and param types
 	public enum ReturnType {
-		Void,
-		Int,
-		FixPt
+		VOID,
+		INT,
+		FIX_PT
 	};
 	public enum ParamType {
-		Int,
-		FixPt
+		INT,
+		FIX_PT
 	};
 	
 	// Attributes for function name
 	private String functionName;
-	private ReturnType returnType;
-	private ArrayList<ParamType> params;
+	private String returnType;
+	private List<String> params;
+	
+	public FunctionNameAttribute(String functionName, String returnType, List<String> params) {
+		this.functionName = functionName;
+		this.returnType = returnType;
+		this.params = params;
+	}
 	
 	// Getters and setters. You know, because "encapsulation"...
 	public String getFunctionName() {
@@ -27,16 +33,29 @@ public class FunctionNameAttribute implements Attribute{
 	public void setFunctionName(String functionName) {
 		this.functionName = functionName;
 	}
-	public ReturnType getReturnType() {
+	public String getReturnType() {
 		return returnType;
 	}
-	public void setReturnType(ReturnType returnType) {
+	public void setReturnType(String returnType) {
 		this.returnType = returnType;
 	}
-	public ArrayList<ParamType> getParams() {
+	public List<String> getParams() {
 		return params;
 	}
-	public void setParams(ArrayList<ParamType> params) {
+	public void setParams(List<String> params) {
 		this.params = params;
+	}
+	
+	
+	public String toString() {
+		StringBuffer buffer = new StringBuffer();
+		buffer.append("Function Name: ");
+		buffer.append(functionName);
+		buffer.append(", Return Type: ");
+		buffer.append(returnType);
+		buffer.append(", Parameters: ");
+		for(String parameter : params)
+			buffer.append(parameter).append(", ");
+		return buffer.toString();
 	}
 }

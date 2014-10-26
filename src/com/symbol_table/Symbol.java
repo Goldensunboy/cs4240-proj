@@ -27,4 +27,7 @@ public class Symbol {
 		this.attribute = attribute;
 	}
 	
+	public String toString() {
+		return attribute.toString();
+	}
 }

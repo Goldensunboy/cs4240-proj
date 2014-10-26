@@ -1,0 +1,11 @@
+print
+printi
+flush
+getchar
+ord
+chr
+size
+substring
+concat
+not
+exit

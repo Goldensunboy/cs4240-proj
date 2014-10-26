@@ -7,7 +7,9 @@ public class VariableNameAttribute implements Attribute{
 	private String declaringProcedure; 
 	
 	public VariableNameAttribute(String variableName, String type, String declaringFunctionName){
-		
+		this.variableName = variableName;
+		this.type = type;
+		this.declaringProcedure = declaringFunctionName;
 	}
 	
 	public String getVariableName() {
@@ -27,5 +29,16 @@ public class VariableNameAttribute implements Attribute{
 	}
 	public void setDeclaringProcedure(String declaringProcedure) {
 		this.declaringProcedure = declaringProcedure;
+	}
+	
+	public String toString() {
+		StringBuffer buffer = new StringBuffer();
+		buffer.append("Variable Name: ");
+		buffer.append(variableName);
+		buffer.append(", Type: ");
+		buffer.append(type);
+		buffer.append(", Declaring Procedure: ");
+		buffer.append(declaringProcedure);
+		return buffer.toString();
 	}
 }
