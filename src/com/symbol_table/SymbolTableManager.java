@@ -57,4 +57,33 @@ public class SymbolTableManager {
 	public Map<String, List<Symbol>> getSymbolTable() {
 		return symbolTable;
 	}
+	
+	public Attribute getAttributeInCurrentScope(String attributeName, Map<String, Attribute> attributeMap)  {
+		Attribute retVal = attributeMap.get(attributeName); 
+		if(retVal != null){
+			return retVal;
+		}
+		
+		List<Symbol> symbolList = symbolTable.get(attributeName);
+		
+		for(Symbol symbol : symbolList) {
+			if(haveSameParentScope(symbol.getScope())) {
+				return symbol.getAttribute();
+			}
+		}
+		
+		return null;
+	}
+	
+	private boolean haveSameParentScope(Scope scope) {
+		Scope tempScope = currentScope;
+		
+		while (tempScope != null) {
+			if(tempScope.equals(scope)) {
+				return true;
+			}
+			tempScope = tempScope.getEnclosingScope();
+		}
+		return false;
+	}
 }
