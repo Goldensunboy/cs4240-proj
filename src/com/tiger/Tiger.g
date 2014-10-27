@@ -74,20 +74,24 @@ import com.compiler.TempVarFactory;
 
   public void printAttributeMap() {
     
-    for (Entry<String, Symbol> attr : symbolTableManager.getSymboTable().entrySet())
-      System.out.println(attr.getValue() + " :: " + showAllReachableAttribute(attr.getValue().getScope())); // TODO debug, delete me
+    for (Entry<String, List<Symbol>> attr : symbolTableManager.getSymbolTable().entrySet()){
+      for (Symbol symbol : attr.getValue() ) {
+        System.out.println(symbol + " :: Have access to: " + showAllReachableAttribute(symbol.getScope())); // TODO debug, delete me
+      }
+    }
   }
 
   public String showAllReachableAttribute(Scope scope) {
     String temp = "";
     while (scope != null) {
-      for(Entry<String, Symbol> symbolEntry : scope.getSymbolMap().entrySet()) {
-        temp += symbolEntry.getKey() + ", ";
+      for(Entry<String, List<Symbol>> symbolListEntry : scope.getSymbolMap().entrySet()) {
+        temp += symbolListEntry.getKey() + ", ";
       }
       scope = scope.getEnclosingScope();
     }
     return temp;
   }
+
   
   public void printTheNameSpace() {
     System.out.println(nameSpaceManager.toString());
@@ -172,7 +176,7 @@ blockList[String functionName] :
 ;
 
 block[String functionName] :
-	key_begin declarationSegment[functionName] statSeq key_end OP_SCOLON
+	key_begin declarationSegment[functionName] statSeq[functionName] key_end OP_SCOLON
 ;
 
 typeDeclarationList :
@@ -214,11 +218,11 @@ optionalInit :
 	(OP_ASSIGN constant)?
 ;
 
-statSeq :
-	stat+
+statSeq[String functionName] :
+	stat[functionName]+
 ;
 
-stat : 
+stat[String functionName] : 
 	(
 		s1=id[IdType.NIY]
 		(
@@ -233,18 +237,18 @@ stat :
 		    
 		  }
 		)
-		| KEY_IF expr KEY_THEN statSeq
+		| KEY_IF expr KEY_THEN statSeq[functionName]
 		(
-		  KEY_ELSE statSeq
+		  KEY_ELSE statSeq[functionName]
 		)?
 		KEY_ENDIF
-		| KEY_WHILE expr KEY_DO statSeq KEY_ENDDO
-		| KEY_FOR id[IdType.NIY] OP_ASSIGN indexExpr KEY_TO indexExpr KEY_DO statSeq KEY_ENDDO
+		| KEY_WHILE expr KEY_DO statSeq[functionName] KEY_ENDDO
+		| KEY_FOR id[IdType.NIY] OP_ASSIGN indexExpr KEY_TO indexExpr KEY_DO statSeq[functionName] KEY_ENDDO
 		| KEY_BREAK
 		| KEY_RETURN expr
 	)
 	OP_SCOLON
-	| block[""]
+	| block[functionName]
 ; 
 
 optPrefix :

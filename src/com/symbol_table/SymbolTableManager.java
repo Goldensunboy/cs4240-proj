@@ -1,7 +1,10 @@
 package com.symbol_table;
 
 import java.util.Hashtable;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import com.attribute.Attribute;
 
@@ -9,7 +12,7 @@ public class SymbolTableManager {
 	private Scope currentScope;
 	private Scope globalScope = new Scope(null, -1);
 	private int scopeId = 0;
-	private Map<String, Symbol> symboTable = new Hashtable<>();
+	private Map<String, List<Symbol>> symbolTable = new Hashtable<>();
 	
 	/**
 	 * when looking at begin
@@ -18,9 +21,9 @@ public class SymbolTableManager {
 	 */
 	public Scope makeNewScope(Map<String, Attribute> attributeMaps) {
 		if(currentScope != null){
-			symboTable.putAll(currentScope.putInScope(attributeMaps));			
+			symbolTable.putAll(currentScope.putInScope(attributeMaps));			
 		} else {
-			symboTable.putAll(globalScope.putInScope(attributeMaps));
+			symbolTable.putAll(globalScope.putInScope(attributeMaps));
 		}
 
 		Scope newScope = new Scope(currentScope, scopeId++);
@@ -34,14 +37,24 @@ public class SymbolTableManager {
 	 * @return
 	 */
 	public Scope goToEnclosingScope(Map<String, Attribute> attributeMaps) {
-		symboTable.putAll(currentScope.putInScope(attributeMaps));
+		if(attributeMaps.size() > 0) {			
+			Map<String, List<Symbol>> currentScopeMap = currentScope.putInScope(attributeMaps);
+			for(Entry<String, List<Symbol>> currentScopeSymbol : currentScopeMap.entrySet()) {
+				List<Symbol> symbolList = symbolTable.get(currentScopeSymbol.getKey());
+				if(symbolList == null){				
+					symbolList = new LinkedList<>();
+				}
+				symbolList.addAll(currentScopeSymbol.getValue());
+				symbolTable.put(currentScopeSymbol.getKey(), symbolList);
+			}
+		}
 		
 		currentScope = currentScope.getEnclosingScope();
 		return currentScope;
 	}
 	
 	
-	public Map<String, Symbol> getSymboTable() {
-		return symboTable;
+	public Map<String, List<Symbol>> getSymbolTable() {
+		return symbolTable;
 	}
 }
