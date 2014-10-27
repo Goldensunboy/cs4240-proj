@@ -16,4 +16,10 @@ public class DefinedConstantAttribute implements Attribute{
 	public void setConstant(Constants constant) {
 		this.constant = constant;
 	}
+
+	@Override
+	public String getType() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

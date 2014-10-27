@@ -58,4 +58,11 @@ public class FunctionNameAttribute implements Attribute{
 			buffer.append(parameter).append(", ");
 		return buffer.toString();
 	}
+
+	@Override
+	public String getType() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
 }
