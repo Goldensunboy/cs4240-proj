@@ -91,7 +91,11 @@ import com.compiler.TempVarFactory;
     }
     return temp;
   }
-
+  
+  public enum ReturnType {
+    INT,
+    FIXPT
+  }
   
   public void printTheNameSpace() {
     System.out.println(nameSpaceManager.toString());
@@ -230,6 +234,7 @@ stat[String functionName] :
 		  {
 		    // Assignment statement
 		    IRList.add("assign, " + $s1.exp + $s2.exp + ", " + $s3.exp);
+		    System.out.println("Type of " + $s3.text + ": " + ($s3.type == ReturnType.INT ? "int" : "fixpt"));
 		  }
 		  | OP_LPAREN exprList OP_RPAREN
 		  {
@@ -257,7 +262,7 @@ optPrefix :
 	)?
 ;
 
-expr returns [String exp]:
+expr returns [String exp, ReturnType type]:
   s1=binOp1
   (
     (
@@ -269,19 +274,25 @@ expr returns [String exp]:
   {
     if($s3.exp == null) {
       $exp = $s1.exp;
+      $type = $s1.type;
     } else {
       String temp = tvf.nextTemp();
       if(s2 != null) {
         IRList.add("and, " + $s1.exp + ", " + $s3.exp + ", " + temp);
       } else {
-        IRList.add("or, " + $s1.exp + ", " + $s3.exp + ", " + temp);
+        IRList.add("or, "  + $s1.exp + ", " + $s3.exp + ", " + temp);
       }
       $exp = temp;
+      if($s1.type == ReturnType.FIXPT || $s3.type == ReturnType.FIXPT) {
+        $type = ReturnType.FIXPT;
+      } else {
+        $type = ReturnType.INT;
+      }
     }
   }
 ;
 
-binOp1 returns [String exp]:
+binOp1 returns [String exp, ReturnType type]:
   s1=binOp2
   (
     (
@@ -297,6 +308,7 @@ binOp1 returns [String exp]:
   {
     if($s7.exp == null) {
       $exp = $s1.exp;
+      $type = $s1.type;
     } else {
       String temp = tvf.nextTemp();
       if(s2 != null) {
@@ -313,11 +325,16 @@ binOp1 returns [String exp]:
         IRList.add("equals, " + $s1.exp + ", " + $s7.exp + ", " + temp);
       }
       $exp = temp;
+      if($s1.type == ReturnType.FIXPT || $s7.type == ReturnType.FIXPT) {
+        $type = ReturnType.FIXPT;
+      } else {
+        $type = ReturnType.INT;
+      }
     }
   }
 ;
 
-binOp2 returns [String exp]:
+binOp2 returns [String exp, ReturnType type]:
   s1=binOp3
   (
     (
@@ -329,6 +346,7 @@ binOp2 returns [String exp]:
   {
     if($s3.exp == null) {
       $exp = $s1.exp;
+      $type = $s1.type;
     } else {
       String temp = tvf.nextTemp();
       if(s2 != null) {
@@ -337,11 +355,16 @@ binOp2 returns [String exp]:
         IRList.add("sub, " + $s1.exp + ", " + $s3.exp + ", " + temp);
       }
       $exp = temp;
+      if($s1.type == ReturnType.FIXPT || $s3.type == ReturnType.FIXPT) {
+        $type = ReturnType.FIXPT;
+      } else {
+        $type = ReturnType.INT;
+      }
     }
   }
 ;
 
-binOp3 returns [String exp]:
+binOp3 returns [String exp, ReturnType type]:
   s1=binOp4
   (
     (
@@ -353,6 +376,7 @@ binOp3 returns [String exp]:
   {
     if($s3.exp == null) {
       $exp = $s1.exp;
+      $type = $s1.type;
     } else {
       String temp = tvf.nextTemp();
       if(s2 != null) {
@@ -361,27 +385,36 @@ binOp3 returns [String exp]:
         IRList.add("mult, " + $s1.exp + ", " + $s3.exp + ", " + temp);
       }
       $exp = temp;
+      if($s1.type == ReturnType.FIXPT || $s3.type == ReturnType.FIXPT) {
+        $type = ReturnType.FIXPT;
+      } else {
+        $type = ReturnType.INT;
+      }
     }
   }
 ;
 
-binOp4 returns [String exp]:
-  s1=constant                   {$exp = $s1.exp;}
-  | OP_LPAREN s2=expr OP_RPAREN {$exp = $s2.exp;}
+binOp4 returns [String exp, ReturnType type]:
+  s1=constant                   {$exp = $s1.exp; $type = $s1.type;}
+  | OP_LPAREN s2=expr OP_RPAREN {$exp = $s2.exp; $type = $s2.type;}
   | s3=id[IdType.NIY]
   (
-    s4=valueTail                      {$exp = $s3.exp + $s4.exp;}
-    | OP_LPAREN s5=exprList OP_RPAREN {$exp = $s3.exp + $s5.exp;}
+    s4=valueTail                      {$exp = $s3.exp + $s4.exp; $type = $s3.type;}
+    | OP_LPAREN s5=exprList OP_RPAREN {$exp = $s3.exp + $s5.exp; $type = $s3.type;}
   )
 ;
 
-constant returns [String exp]:
-	FIXEDPTLIT {$exp = $FIXEDPTLIT.text;}
-	| INTLIT   {$exp = $INTLIT.text;}
+constant returns [String exp, ReturnType type]:
+	FIXEDPTLIT {$exp = $FIXEDPTLIT.text; $type = ReturnType.FIXPT;}
+	| INTLIT   {$exp = $INTLIT.text;     $type = ReturnType.INT;  }
 ;
 
-value returns [String exp]:
-	s1=id[IdType.NIY] s2=valueTail {$exp = $s1.exp + $s2.exp;}
+value returns [String exp, ReturnType type]:
+	s1=id[IdType.NIY] s2=valueTail
+	{
+	  $exp = $s1.exp + $s2.exp;
+	  // TODO get type from ID
+	}
 ;
 
 valueTail returns [String exp]:
@@ -443,8 +476,19 @@ indexExpr2 returns [String exp]:
 ;
 
 indexExpr3 returns [String exp]:
-  INTLIT           {$exp = $INTLIT.text;}
-  | id[IdType.NIY] {$exp = $id.exp;}
+  INTLIT {$exp = $INTLIT.text;}
+  | id[IdType.NIY]
+  {
+    $exp = $id.exp;
+    Attribute att = getAttributeInCurrentScope($id.exp, attributeMap);
+    if(att == null) {
+      // Variable hasn't been declared yet
+      throw new UndeclaredVariableException($id.exp);
+    } else if(!"int".equals(att.getType()) {
+      // Invalid type
+      throw new InvalidTypeExeption(att.getType());
+    }
+  }
 ;
 
 declarationSegment[String functionName] :
@@ -548,11 +592,12 @@ FIXEDPTLIT :
 	INTLIT OP_PERIOD DIGIT (DIGIT? DIGIT)?
 ;
 
-id[IdType idType] returns [String exp]:
+id[IdType idType] returns [String exp, ReturnType type]:
   ID
   {
     nameSpaceManager.manageNameSpace(idType, $ID.text);
     $exp = $ID.text;
+    // TODO return the type of the symbol
   }
 ;
 

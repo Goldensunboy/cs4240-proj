@@ -15,7 +15,7 @@ public class IRCodeTest {
 			
 		File folder = new File("test/com/tiger/test_case");
 		for (File file : folder.listFiles()) {
-			if(!file.getName().equals("single_expr.tiger")) {
+			if(!file.getName().equals("simple_code.tiger")) {
 				continue;
 			}
 			System.out.println("Compiling: " + file.getName());
