@@ -1,4 +1,4 @@
-package com.symbol_table;
+package com.exception;
 
 @SuppressWarnings("serial")
 public class NameSpaceConflictException extends RuntimeException{

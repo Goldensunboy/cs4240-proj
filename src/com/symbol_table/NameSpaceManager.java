@@ -6,6 +6,8 @@ import java.util.HashSet;
 import java.util.Scanner;
 import java.util.Set;
 
+import com.exception.NameSpaceConflictException;
+
 public class NameSpaceManager {
 	private Set<String> functionNames;
 	private Set<String> varNames;
