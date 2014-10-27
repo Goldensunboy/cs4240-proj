@@ -28,6 +28,8 @@ import com.attribute.FunctionNameAttribute;
 import com.attribute.FunctionNameAttribute.ParamType;
 import com.attribute.FunctionNameAttribute.ReturnType;
 import com.compiler.TempVarFactory;
+import com.exception.InvalidTypeException;
+import com.exception.UndeclaredVariableException;
 /**************************************/
 
 }
