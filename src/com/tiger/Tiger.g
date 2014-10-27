@@ -27,6 +27,7 @@ import com.symbol_table.NameSpaceManager;
 import com.attribute.FunctionNameAttribute;
 import com.attribute.FunctionNameAttribute.ParamType;
 import com.attribute.FunctionNameAttribute.ReturnType;
+import com.compiler.TempVarFactory;
 /**************************************/
 
 }
@@ -55,6 +56,8 @@ import com.attribute.FunctionNameAttribute.ReturnType;
   // TODO private Map<String, Attribute> stringConstantLiteralNames = new TreeMap<String, LiteralConstantAndStringAttribute>();
   // TODO private Map<String, Attribute> srcTxtLabels= new TreeMap<StringAttribute>();
   // TODO private Map<String, Object> compilerGeneratedTemps = new TreeMap<String, Object>();
+  private ArrayList<String> IRList = new ArrayList<String>();
+  private TempVarFactory tvf = new TempVarFactory();
 
   private void putVariableNameAttributeMap(List<String> variableNameList, String type, String declaringFunctionName) {
     for (String variableName : variableNameList) {
@@ -89,6 +92,14 @@ import com.attribute.FunctionNameAttribute.ReturnType;
   public void printTheNameSpace() {
     System.out.println(nameSpaceManager.toString());
   }
+  
+  public void printTheIRCode() {
+    System.out.println("IR code:\n**********");
+    for(String s : IRList) {
+      System.out.println(s);
+    }
+    System.out.println("**********");
+  }
 
   private boolean errorFlag = false;
 
@@ -99,6 +110,10 @@ import com.attribute.FunctionNameAttribute.ReturnType;
   
   public boolean getErrorFlag() {
     return errorFlag;
+  }
+  
+  public List<String> getIRList() {
+    return IRList;
   }
 }
 
@@ -205,97 +220,285 @@ statSeq :
 
 stat :
 	(
-		id[IdType.NIY] (valueTail OP_ASSIGN expr | OP_LPAREN exprList OP_RPAREN) |
-		KEY_IF expr KEY_THEN statSeq (KEY_ELSE statSeq)? KEY_ENDIF |
-		KEY_WHILE expr KEY_DO statSeq KEY_ENDDO |
-		KEY_FOR id[IdType.NIY] OP_ASSIGN indexExpr KEY_TO indexExpr KEY_DO statSeq KEY_ENDDO |
-		KEY_BREAK |
-		KEY_RETURN expr
-	)	OP_SCOLON |
-		block[""]
+	  (
+		  s1+=id[IdType.NIY] (s2+=valueTail OP_ASSIGN s3+=expr | OP_LPAREN s4+=exprList OP_RPAREN) |
+		  KEY_IF expr KEY_THEN statSeq (KEY_ELSE statSeq)? KEY_ENDIF |
+		  KEY_WHILE expr KEY_DO statSeq KEY_ENDDO |
+		  KEY_FOR id[IdType.NIY] OP_ASSIGN indexExpr KEY_TO indexExpr KEY_DO statSeq KEY_ENDDO |
+		  KEY_BREAK |
+		  KEY_RETURN expr
+	  )	OP_SCOLON |
+		  block[""]
+	)
+	{
+	  if($s1.get(0) != null) {
+	    if($s3.get(0) != null) {
+	      if($s2.get(0) == null) {
+	        // Assign statement (simple var)
+	        IRList.add("assign " + $s1.get(0).toString() + ", " + $s3.get(0).toString());
+	      } else {
+	        // Assign statement (array)
+	        System.out.println("s2: " + s2);
+	        System.out.println("empty: " + $s2.isEmpty());
+	        System.out.println("size: " + $s2.size());
+	        System.out.println("get(0): " + $s2.get(0));
+	        IRList.add("assign " + $s1.get(0).toString() + $s2.get(0).toString() + ", " + $s3.get(0).toString());
+	      }
+	    } else {
+	      // Function call
+	      //IRList.add(""
+	    }
+	  } else {
+	  
+	  }
+	}
 ; 
 
 optPrefix :
 	(value OP_ASSIGN)?
 ;
 
-expr :
-  binOp1 ((
-    OP_AND |
-    OP_OR
-  ) expr)?
-;
-
-binOp1 :
-  binOp2 ((
-    OP_LEQ |
-    OP_GEQ |
-    OP_LTHAN |
-    OP_GTHAN |
-    OP_NEQ |
-    OP_EQUAL
-  ) binOp1)?
-;
-
-binOp2 :
-  binOp3 ((
-    OP_MINUS |
-    OP_PLUS
-  ) binOp2)?
-;
-
-binOp3 :
-  binOp4 ((
-    OP_DIV |
-    OP_MULT
-  ) binOp3)?
-;
-
-binOp4 :
-  constant |
-  OP_LPAREN expr OP_RPAREN |
-  id[IdType.NIY] (
-    valueTail |
-    OP_LPAREN exprList OP_RPAREN
+expr returns [String exp]:
+  (
+    s1+=binOp1 ((
+      s2+=OP_AND |
+      s3+=OP_OR
+    ) s4+=expr)?
   )
+  {
+    if($s2 == null && $s3 == null) {
+      $exp = $s1.get(0).toString();
+    } else {
+      String temp = tvf.nextTemp();
+      if($s2 != null) {
+        IRList.add("and, " + $s1.get(0).toString() + ", " + $s4.get(0).toString() + ", " + temp);
+      } else {
+        IRList.add("or, "  + $s1.get(0).toString() + ", " + $s4.get(0).toString() + ", " + temp);
+      }
+    }
+  }
 ;
 
-constant :
-	FIXEDPTLIT |
-	INTLIT
+binOp1 returns [String exp]:
+  (
+    s1+=binOp2 ((
+      s2+=OP_LEQ |
+      s3+=OP_GEQ |
+      s4+=OP_LTHAN |
+      s5+=OP_GTHAN |
+      s6+=OP_NEQ |
+      s7+=OP_EQUAL
+    ) s8+=binOp1)?
+  )
+  {
+    if($s2 == null && $s3 == null && $s4 == null && $s5 == null && $s6 == null && $s7 == null) {
+      $exp = $s1.get(0).toString();
+    } else {
+      String temp = tvf.nextTemp();
+      if($s2 != null) {
+        IRList.add("leq, "   + $s1.get(0).toString() + ", " + $s8.get(0).toString() + ", " + temp);
+      } else if($s3 != null) {
+        IRList.add("geq, "   + $s1.get(0).toString() + ", " + $s8.get(0).toString() + ", " + temp);
+      } else if($s4 != null) {
+        IRList.add("lthan, " + $s1.get(0).toString() + ", " + $s8.get(0).toString() + ", " + temp);
+      } else if($s5 != null) {
+        IRList.add("gthan, " + $s1.get(0).toString() + ", " + $s8.get(0).toString() + ", " + temp);
+      } else if($s6 != null) {
+        IRList.add("neq, "   + $s1.get(0).toString() + ", " + $s8.get(0).toString() + ", " + temp);
+      } else {
+        IRList.add("equal, " + $s1.get(0).toString() + ", " + $s8.get(0).toString() + ", " + temp);
+      }
+      $exp = temp;
+    }
+  }
+;
+
+binOp2 returns [String exp]:
+  (
+    s1+=binOp3 ((
+      s2+=OP_MINUS |
+      s3+=OP_PLUS
+    ) s4+=binOp2)?
+  )
+  {
+    if($s2 == null && $s3 == null) {
+      $exp = $s1.get(0).toString();
+    } else {
+      String temp = tvf.nextTemp();
+      if($s2 != null) {
+        IRList.add("sub, " + $s1.get(0).toString() + ", " + $s4.get(0).toString() + ", " + temp);
+      } else {
+        IRList.add("add, " + $s1.get(0).toString() + ", " + $s4.get(0).toString() + ", " + temp);
+      }
+      $exp = temp;
+    }
+  }
+;
+
+binOp3 returns [String exp]:
+  (
+    s1+=binOp4 ((
+      s2+=OP_DIV |
+      s3+=OP_MULT
+    ) s4+=binOp3)?
+  )
+  {
+    if($s2 == null && $s3 == null) {
+      $exp = $s1.get(0).toString();
+    } else {
+      String temp = tvf.nextTemp();
+      if($s2 != null) {
+        IRList.add("div, "  + $s1.get(0).toString() + ", " + $s4.get(0).toString() + ", " + temp);
+      } else {
+        IRList.add("mult, " + $s1.get(0).toString() + ", " + $s4.get(0).toString() + ", " + temp);
+      }
+      $exp = temp;
+    }
+  }
+;
+
+binOp4 returns [String exp]:
+  (
+    s1+=constant |
+    OP_LPAREN s2+=expr OP_RPAREN |
+    s3+=id[IdType.NIY] (
+      s4+=valueTail |
+      OP_LPAREN s5+=exprList OP_RPAREN
+    )
+  )
+  {
+    if($s1 != null) {
+      $exp = $s1.get(0).toString();
+    } else if($s2 != null) {
+      $exp = $s2.get(0).toString();
+    } else if($s3 != null) {
+      if($s4 == null && $s5 == null) {
+        $exp = $s3.get(0).toString();
+      } else if($s4 != null) {
+        $exp = $s3.get(0).toString() + $s4.toString();
+      } else { 
+        $exp = $s3.get(0).toString() + "(" + $s5.get(0).toString() + ")";
+      }
+    }
+  }
+;
+
+constant returns [String exp]:
+	(
+	  s1=FIXEDPTLIT |
+	  s2=INTLIT
+	)
+	{
+	  if($s1 != null) {
+	    $exp = $s1.text;
+	  } else {
+	    $exp = $s2.text;
+	  }
+	}
 ;
 
 value :
 	id[IdType.NIY] valueTail
 ;
 
-valueTail :
-	(OP_LBRACK indexExpr OP_RBRACK
-		(OP_LBRACK indexExpr OP_RBRACK)?
-	)?
+valueTail returns [String exp]:
+	(
+	  (OP_LBRACK s1+=indexExpr OP_RBRACK
+		  (OP_LBRACK s2+=indexExpr OP_RBRACK)?
+	  )?
+	)
+	{
+	  if($s2 != null) {
+	    $exp = "[" + $s1.get(0).toString() + "][" + $s2.get(0).toString() + "]";
+	  } else if($s1 != null) {
+	    $exp = "[" + $s1.get(0).toString() + "]";
+	  } else {
+	    $exp = "";
+	  }
+	}
 ;
 
-indexExpr :
-	(INTLIT | id[IdType.NIY])
-	(indexOper (INTLIT | id[IdType.NIY]))*
+indexExpr returns [String exp]:
+  (
+    s1+=indexExpr2 ((
+      s2+=OP_MULT
+    ) s3+=indexExpr)?
+  )
+  {
+    if($s2.get(0) == null) {
+      $exp = $s1.get(0).toString();
+    } else {
+      String temp = tvf.nextTemp();
+      IRList.add("mult, " + $s1.get(0).toString() + ", " + $s3.get(0).toString() + ", " + temp);
+      $exp = temp;
+    }
+  }
 ;
 
-indexOper :
-	OP_PLUS  |
-	OP_MINUS |
-	OP_MULT
+indexExpr2 returns [String exp]:
+  (
+    s1+=indexExpr3 ((
+      s2+=OP_PLUS |
+      s3+=OP_MINUS
+    ) s4+=indexExpr2)?
+  )
+  {
+    if($s2.get(0) == null && $s3.get(0) == null) {
+      $exp = $s1.get(0).toString();
+    } else {
+      String temp = tvf.nextTemp();
+      if($s2.get(0) != null) {
+        IRList.add("add, " + $s1.get(0).toString() + ", " + $s4.get(0).toString() + ", " + temp);
+      } else {
+        IRList.add("sub, " + $s1.get(0).toString() + ", " + $s4.get(0).toString() + ", " + temp);
+      }
+      $exp = temp;
+    }
+  }
+;
+
+indexExpr3 returns [String exp]:
+  (
+    s1+=INTLIT |
+    s2+=id[IdType.NIY]
+  )
+  {
+    if($s1.get(0) != null) {
+      $exp = $s1.toString();
+    } else {
+      $exp = $s2.get(0).toString();
+    }
+  }
 ;
 
 declarationSegment[String functionName] :
   typeDeclarationList varDeclarationList[functionName]
 ;
 
-exprList :
-  (expr exprListTail)?
+exprList returns [String exp]:
+  (
+    (s1+=expr s2+=exprListTail)?
+  )
+  {
+    if($s1.get(0) != null) {
+      $exp = $s1.get(0).toString() + $s2.get(0).toString();
+    } else {
+      $exp = "";
+    }
+  }
 ;
 
-exprListTail :
-  (OP_COMMA expr exprListTail)?
+exprListTail returns [String exp]:
+  (
+    (OP_COMMA s1+=expr s2+=exprListTail)?
+  )
+  {
+    if($s1.get(0) != null) {
+      $exp = ", " + $s1.get(0).toString() + $s2.get(0).toString();
+    } else {
+      $exp = "";
+    }
+  }
 ;
 
 key_begin
@@ -369,9 +572,12 @@ FIXEDPTLIT :
 	INTLIT OP_PERIOD DIGIT (DIGIT? DIGIT)?
 ;
 
-id[IdType idType] :
+id[IdType idType] returns [String exp]:
   ID
-  {nameSpaceManager.manageNameSpace(idType, $ID.text);}
+  {
+    nameSpaceManager.manageNameSpace(idType, $ID.text);
+    $exp = $ID.text;
+  }
 ;
 
 ID :
