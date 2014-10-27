@@ -72,24 +72,21 @@ import com.attribute.FunctionNameAttribute.ReturnType;
   public void printAttributeMap() {
     
     for (Entry<String, List<Symbol>> attr : symbolTableManager.getSymbolTable().entrySet()){
-      System.out.println("********* " + attr);
       for (Symbol symbol : attr.getValue() ) {
-        System.out.println(symbol + " :: " + showAllReachableAttribute(symbol.getScope())); // TODO debug, delete me
+        System.out.println(symbol + " :: Have access to: " + showAllReachableAttribute(symbol.getScope())); // TODO debug, delete me
       }
     }
   }
 
   public String showAllReachableAttribute(Scope scope) {
-//    String temp = "";
-//    while (scope != null) {
-//      for(Entry<String, Symbol> symbolEntry : scope.getSymbolMap().entrySet()) {
-//        temp += symbolEntry.getKey() + ", ";
-//      }
-//      scope = scope.getEnclosingScope();
-//    }
-//    return temp;
-//  }
-    return "Not Implemented Yet";
+    String temp = "";
+    while (scope != null) {
+      for(Entry<String, List<Symbol>> symbolListEntry : scope.getSymbolMap().entrySet()) {
+        temp += symbolListEntry.getKey() + ", ";
+      }
+      scope = scope.getEnclosingScope();
+    }
+    return temp;
   }
 
   
@@ -198,7 +195,7 @@ scope {List<String> aggregatedMyIdList;}
 idList[IdType idType] : 
   myId=id[idType] (OP_COMMA idList[idType])?
 	{
-	if(idType == IdType.VAR_NAME) $varDeclaration::aggregatedMyIdList.add($myId.text);
+	$varDeclaration::aggregatedMyIdList.add($myId.text);
 	}
 ;
 

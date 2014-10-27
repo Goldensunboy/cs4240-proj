@@ -37,14 +37,16 @@ public class SymbolTableManager {
 	 * @return
 	 */
 	public Scope goToEnclosingScope(Map<String, Attribute> attributeMaps) {
-		Map<String, List<Symbol>> currentScopeMap = currentScope.putInScope(attributeMaps);
-		for(Entry<String, List<Symbol>> currentScopeSymbol : currentScopeMap.entrySet()) {
-			List<Symbol> symbolList = symbolTable.get(currentScopeSymbol.getKey());
-			if(symbolList == null){				
-				symbolList = new LinkedList<>();
+		if(attributeMaps.size() > 0) {			
+			Map<String, List<Symbol>> currentScopeMap = currentScope.putInScope(attributeMaps);
+			for(Entry<String, List<Symbol>> currentScopeSymbol : currentScopeMap.entrySet()) {
+				List<Symbol> symbolList = symbolTable.get(currentScopeSymbol.getKey());
+				if(symbolList == null){				
+					symbolList = new LinkedList<>();
+				}
+				symbolList.addAll(currentScopeSymbol.getValue());
+				symbolTable.put(currentScopeSymbol.getKey(), symbolList);
 			}
-			symbolList.addAll(currentScopeSymbol.getValue());
-			symbolTable.put(currentScopeSymbol.getKey(), symbolList);
 		}
 		
 		currentScope = currentScope.getEnclosingScope();
