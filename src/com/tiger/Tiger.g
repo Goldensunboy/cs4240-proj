@@ -220,93 +220,93 @@ statSeq :
 
 stat :
 	(
-	  (
-		  s1+=id[IdType.NIY] (s2+=valueTail OP_ASSIGN s3+=expr | OP_LPAREN s4+=exprList OP_RPAREN) |
-		  KEY_IF expr KEY_THEN statSeq (KEY_ELSE statSeq)? KEY_ENDIF |
-		  KEY_WHILE expr KEY_DO statSeq KEY_ENDDO |
-		  KEY_FOR id[IdType.NIY] OP_ASSIGN indexExpr KEY_TO indexExpr KEY_DO statSeq KEY_ENDDO |
-		  KEY_BREAK |
-		  KEY_RETURN expr
-	  )	OP_SCOLON |
-		  block[""]
+		s1=id[IdType.NIY]
+		(
+		  s2=valueTail OP_ASSIGN s3=expr
+		  {
+		    // Assignment statement
+		    IRList.add("assign, " + $s1.exp + $s2.exp + ", " + $s3.exp);
+		  }
+		  | OP_LPAREN exprList OP_RPAREN
+		  {
+		    // Function call
+		    
+		  }
+		)
+		| KEY_IF expr KEY_THEN statSeq
+		(
+		  KEY_ELSE statSeq
+		)?
+		KEY_ENDIF
+		| KEY_WHILE expr KEY_DO statSeq KEY_ENDDO
+		| KEY_FOR id[IdType.NIY] OP_ASSIGN indexExpr KEY_TO indexExpr KEY_DO statSeq KEY_ENDDO
+		| KEY_BREAK
+		| KEY_RETURN expr
 	)
-	{
-	  if($s1.get(0) != null) {
-	    if($s3.get(0) != null) {
-	      if($s2.get(0) == null) {
-	        // Assign statement (simple var)
-	        IRList.add("assign " + $s1.get(0).toString() + ", " + $s3.get(0).toString());
-	      } else {
-	        // Assign statement (array)
-	        System.out.println("s2: " + s2);
-	        System.out.println("empty: " + $s2.isEmpty());
-	        System.out.println("size: " + $s2.size());
-	        System.out.println("get(0): " + $s2.get(0));
-	        IRList.add("assign " + $s1.get(0).toString() + $s2.get(0).toString() + ", " + $s3.get(0).toString());
-	      }
-	    } else {
-	      // Function call
-	      //IRList.add(""
-	    }
-	  } else {
-	  
-	  }
-	}
+	OP_SCOLON
+	| block[""]
 ; 
 
 optPrefix :
-	(value OP_ASSIGN)?
+	(
+	  value OP_ASSIGN
+	)?
 ;
 
 expr returns [String exp]:
+  s1=binOp1
   (
-    s1+=binOp1 ((
-      s2+=OP_AND |
-      s3+=OP_OR
-    ) s4+=expr)?
-  )
+    (
+      s2=OP_AND
+      | OP_OR
+    )
+    s3=expr
+  )?
   {
-    if($s2 == null && $s3 == null) {
-      $exp = $s1.get(0).toString();
+    if($s3.exp == null) {
+      $exp = $s1.exp;
     } else {
       String temp = tvf.nextTemp();
-      if($s2 != null) {
-        IRList.add("and, " + $s1.get(0).toString() + ", " + $s4.get(0).toString() + ", " + temp);
+      if(s2 != null) {
+        IRList.add("and, " + $s1.exp + ", " + $s3.exp + ", " + temp);
       } else {
-        IRList.add("or, "  + $s1.get(0).toString() + ", " + $s4.get(0).toString() + ", " + temp);
+        IRList.add("or, " + $s1.exp + ", " + $s3.exp + ", " + temp);
       }
+      $exp = temp;
     }
   }
 ;
 
 binOp1 returns [String exp]:
+  s1=binOp2
   (
-    s1+=binOp2 ((
-      s2+=OP_LEQ |
-      s3+=OP_GEQ |
-      s4+=OP_LTHAN |
-      s5+=OP_GTHAN |
-      s6+=OP_NEQ |
-      s7+=OP_EQUAL
-    ) s8+=binOp1)?
-  )
+    (
+      s2=OP_LEQ
+      | s3=OP_GEQ
+      | s4=OP_LTHAN
+      | s5=OP_GTHAN
+      | s6=OP_NEQ
+      | OP_EQUAL
+    )
+    s7=binOp1
+  )?
   {
-    if($s2 == null && $s3 == null && $s4 == null && $s5 == null && $s6 == null && $s7 == null) {
-      $exp = $s1.get(0).toString();
+    if($s7.exp == null) {
+      $exp = $s1.exp;
     } else {
       String temp = tvf.nextTemp();
-      if($s2 != null) {
-        IRList.add("leq, "   + $s1.get(0).toString() + ", " + $s8.get(0).toString() + ", " + temp);
-      } else if($s3 != null) {
-        IRList.add("geq, "   + $s1.get(0).toString() + ", " + $s8.get(0).toString() + ", " + temp);
-      } else if($s4 != null) {
-        IRList.add("lthan, " + $s1.get(0).toString() + ", " + $s8.get(0).toString() + ", " + temp);
-      } else if($s5 != null) {
-        IRList.add("gthan, " + $s1.get(0).toString() + ", " + $s8.get(0).toString() + ", " + temp);
-      } else if($s6 != null) {
-        IRList.add("neq, "   + $s1.get(0).toString() + ", " + $s8.get(0).toString() + ", " + temp);
+      if(s2 != null) {
+        IRList.add("leq, "    + $s1.exp + ", " + $s7.exp + ", " + temp);
+      } else if(s3 != null) {
+        IRList.add("geq, "    + $s1.exp + ", " + $s7.exp + ", " + temp);
+      } else if(s4 != null) {
+        IRList.add("lthan, "  + $s1.exp + ", " + $s7.exp + ", " + temp);
+      } else if(s5 != null) {
+        IRList.add("gthan, "  + $s1.exp + ", " + $s7.exp + ", " + temp);
+      } else if(s6 != null) {
+        IRList.add("neq, "    + $s1.exp + ", " + $s7.exp + ", " + temp);
       } else {
-        IRList.add("equal, " + $s1.get(0).toString() + ", " + $s8.get(0).toString() + ", " + temp);
+        IRList.add("equals, " + $s1.exp + ", " + $s7.exp + ", " + temp);
       }
       $exp = temp;
     }
@@ -314,21 +314,23 @@ binOp1 returns [String exp]:
 ;
 
 binOp2 returns [String exp]:
+  s1=binOp3
   (
-    s1+=binOp3 ((
-      s2+=OP_MINUS |
-      s3+=OP_PLUS
-    ) s4+=binOp2)?
-  )
+    (
+      s2=OP_PLUS
+      | OP_MINUS
+    )
+    s3=binOp2
+  )?
   {
-    if($s2 == null && $s3 == null) {
-      $exp = $s1.get(0).toString();
+    if($s3.exp == null) {
+      $exp = $s1.exp;
     } else {
       String temp = tvf.nextTemp();
-      if($s2 != null) {
-        IRList.add("sub, " + $s1.get(0).toString() + ", " + $s4.get(0).toString() + ", " + temp);
+      if(s2 != null) {
+        IRList.add("add, " + $s1.exp + ", " + $s3.exp + ", " + temp);
       } else {
-        IRList.add("add, " + $s1.get(0).toString() + ", " + $s4.get(0).toString() + ", " + temp);
+        IRList.add("sub, " + $s1.exp + ", " + $s3.exp + ", " + temp);
       }
       $exp = temp;
     }
@@ -336,21 +338,23 @@ binOp2 returns [String exp]:
 ;
 
 binOp3 returns [String exp]:
+  s1=binOp4
   (
-    s1+=binOp4 ((
-      s2+=OP_DIV |
-      s3+=OP_MULT
-    ) s4+=binOp3)?
-  )
+    (
+      s2=OP_DIV
+      | OP_MULT
+    )
+    s3=binOp3
+  )?
   {
-    if($s2 == null && $s3 == null) {
-      $exp = $s1.get(0).toString();
+    if($s3.exp == null) {
+      $exp = $s1.exp;
     } else {
       String temp = tvf.nextTemp();
-      if($s2 != null) {
-        IRList.add("div, "  + $s1.get(0).toString() + ", " + $s4.get(0).toString() + ", " + temp);
+      if(s2 != null) {
+        IRList.add("div, "  + $s1.exp + ", " + $s3.exp + ", " + temp);
       } else {
-        IRList.add("mult, " + $s1.get(0).toString() + ", " + $s4.get(0).toString() + ", " + temp);
+        IRList.add("mult, " + $s1.exp + ", " + $s3.exp + ", " + temp);
       }
       $exp = temp;
     }
@@ -358,60 +362,36 @@ binOp3 returns [String exp]:
 ;
 
 binOp4 returns [String exp]:
+  s1=constant                   {$exp = $s1.exp;}
+  | OP_LPAREN s2=expr OP_RPAREN {$exp = $s2.exp;}
+  | s3=id[IdType.NIY]
   (
-    s1+=constant |
-    OP_LPAREN s2+=expr OP_RPAREN |
-    s3+=id[IdType.NIY] (
-      s4+=valueTail |
-      OP_LPAREN s5+=exprList OP_RPAREN
-    )
+    s4=valueTail                      {$exp = $s3.exp + $s4.exp;}
+    | OP_LPAREN s5=exprList OP_RPAREN {$exp = $s3.exp + $s5.exp;}
   )
-  {
-    if($s1 != null) {
-      $exp = $s1.get(0).toString();
-    } else if($s2 != null) {
-      $exp = $s2.get(0).toString();
-    } else if($s3 != null) {
-      if($s4 == null && $s5 == null) {
-        $exp = $s3.get(0).toString();
-      } else if($s4 != null) {
-        $exp = $s3.get(0).toString() + $s4.toString();
-      } else { 
-        $exp = $s3.get(0).toString() + "(" + $s5.get(0).toString() + ")";
-      }
-    }
-  }
 ;
 
 constant returns [String exp]:
-	(
-	  s1=FIXEDPTLIT |
-	  s2=INTLIT
-	)
-	{
-	  if($s1 != null) {
-	    $exp = $s1.text;
-	  } else {
-	    $exp = $s2.text;
-	  }
-	}
+	FIXEDPTLIT {$exp = $FIXEDPTLIT.text;}
+	| INTLIT   {$exp = $INTLIT.text;}
 ;
 
-value :
-	id[IdType.NIY] valueTail
+value returns [String exp]:
+	s1=id[IdType.NIY] s2=valueTail {$exp = $s1.exp + $s2.exp;}
 ;
 
 valueTail returns [String exp]:
 	(
-	  (OP_LBRACK s1+=indexExpr OP_RBRACK
-		  (OP_LBRACK s2+=indexExpr OP_RBRACK)?
-	  )?
-	)
+	  OP_LBRACK s1=indexExpr OP_RBRACK
+    (
+      OP_LBRACK s2=indexExpr OP_RBRACK
+    )?
+	)?
 	{
-	  if($s2 != null) {
-	    $exp = "[" + $s1.get(0).toString() + "][" + $s2.get(0).toString() + "]";
-	  } else if($s1 != null) {
-	    $exp = "[" + $s1.get(0).toString() + "]";
+	  if($s2.exp != null) {
+	    $exp = "[" + $s1.exp + "][" + $s2.exp + "]";
+	  } else if($s1.exp != null) {
+	    $exp = "[" + $s1.exp + "]";
 	  } else {
 	    $exp = "";
 	  }
@@ -419,38 +399,39 @@ valueTail returns [String exp]:
 ;
 
 indexExpr returns [String exp]:
+  s1=indexExpr2
   (
-    s1+=indexExpr2 ((
-      s2+=OP_MULT
-    ) s3+=indexExpr)?
-  )
+    OP_MULT s2=indexExpr
+  )?
   {
-    if($s2.get(0) == null) {
-      $exp = $s1.get(0).toString();
+    if($s2.exp == null) {
+      $exp = $s1.exp;
     } else {
       String temp = tvf.nextTemp();
-      IRList.add("mult, " + $s1.get(0).toString() + ", " + $s3.get(0).toString() + ", " + temp);
+      IRList.add("mult, " + $s1.exp + ", " + $s2.exp + ", " + temp);
       $exp = temp;
     }
   }
 ;
 
 indexExpr2 returns [String exp]:
+  s1=indexExpr3
   (
-    s1+=indexExpr3 ((
-      s2+=OP_PLUS |
-      s3+=OP_MINUS
-    ) s4+=indexExpr2)?
-  )
+    (
+      s2=OP_PLUS
+      | OP_MINUS
+    )
+    s3=indexExpr2
+  )?
   {
-    if($s2.get(0) == null && $s3.get(0) == null) {
-      $exp = $s1.get(0).toString();
+    if($s3.exp == null) {
+      $exp = $s1.exp;
     } else {
       String temp = tvf.nextTemp();
-      if($s2.get(0) != null) {
-        IRList.add("add, " + $s1.get(0).toString() + ", " + $s4.get(0).toString() + ", " + temp);
+      if(s2 != null) {
+        IRList.add("add, " + $s1.exp + ", " + $s3.exp + ", " + temp);
       } else {
-        IRList.add("sub, " + $s1.get(0).toString() + ", " + $s4.get(0).toString() + ", " + temp);
+        IRList.add("sub, " + $s1.exp + ", " + $s3.exp + ", " + temp);
       }
       $exp = temp;
     }
@@ -458,17 +439,8 @@ indexExpr2 returns [String exp]:
 ;
 
 indexExpr3 returns [String exp]:
-  (
-    s1+=INTLIT |
-    s2+=id[IdType.NIY]
-  )
-  {
-    if($s1.get(0) != null) {
-      $exp = $s1.toString();
-    } else {
-      $exp = $s2.get(0).toString();
-    }
-  }
+  INTLIT           {$exp = $INTLIT.text;}
+  | id[IdType.NIY] {$exp = $id.exp;}
 ;
 
 declarationSegment[String functionName] :
@@ -477,26 +449,26 @@ declarationSegment[String functionName] :
 
 exprList returns [String exp]:
   (
-    (s1+=expr s2+=exprListTail)?
-  )
+    s1=expr s2=exprListTail
+  )?
   {
-    if($s1.get(0) != null) {
-      $exp = $s1.get(0).toString() + $s2.get(0).toString();
-    } else {
+    if($s1.exp == null) {
       $exp = "";
+    } else {
+      $exp = $s1.exp + $s2.exp;
     }
   }
 ;
 
 exprListTail returns [String exp]:
   (
-    (OP_COMMA s1+=expr s2+=exprListTail)?
-  )
+    OP_COMMA s1=expr s2=exprListTail
+  )?
   {
-    if($s1.get(0) != null) {
-      $exp = ", " + $s1.get(0).toString() + $s2.get(0).toString();
-    } else {
+    if($s1.exp == null) {
       $exp = "";
+    } else {
+      $exp = ", " + $s1.exp + $s2.exp;
     }
   }
 ;
