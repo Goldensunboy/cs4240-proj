@@ -218,7 +218,7 @@ statSeq :
 	stat+
 ;
 
-stat :
+stat : 
 	(
 		s1=id[IdType.NIY]
 		(

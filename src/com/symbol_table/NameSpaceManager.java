@@ -53,7 +53,7 @@ public class NameSpaceManager {
 			break;
 			
 		case NIY:
-			System.out.println("Warning :: ID is not implemented yet");
+			//System.out.println("Warning :: ID is not implemented yet");
 			break;
 		default:
 			throw new RuntimeException("Not a valid IdType");
