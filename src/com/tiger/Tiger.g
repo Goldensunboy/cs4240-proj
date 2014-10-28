@@ -29,6 +29,7 @@ import com.attribute.FunctionNameAttribute.ParamType;
 import com.attribute.FunctionNameAttribute.ReturnType;
 import com.compiler.TempVarFactory;
 import com.exception.InvalidTypeException;
+import com.exception.UndeclaredFunctionException;
 import com.exception.UndeclaredVariableException;
 /**************************************/
 
@@ -50,7 +51,7 @@ import com.exception.UndeclaredVariableException;
 @parser::members{
   
   private SymbolTableManager symbolTableManager = new SymbolTableManager();
-  private Map<String, Attribute> attributeMap = new Hashtable<>();
+  private Map<String, Attribute> attributeMap = new Hashtable<String, Attribute>();
   private NameSpaceManager nameSpaceManager = new NameSpaceManager();
   // TODO private Map<String, Attribute> definedConstants = new TreeMap<String, DefinedConstantAttribute>();
   // TODO private Map<String, Attribute> typeNames = new TreeMap<String, TypeAttribute>();
@@ -96,7 +97,8 @@ import com.exception.UndeclaredVariableException;
   
   public enum ReturnType {
     INT,
-    FIXPT
+    FIXPT,
+    OTHER
   }
   
   public void printTheNameSpace() {
@@ -136,19 +138,42 @@ funcCurrent :
 ;
 
 funcNext :
-  ((typeId funcCurrent) | (KEY_VOID (funcCurrent | mainFunction)))
+  (
+    (
+      typeId funcCurrent
+    )
+    |
+    (
+      KEY_VOID
+      (
+        funcCurrent
+        | mainFunction
+      )
+    )
+  )
 ;
 
 funcDeclaration 
-scope{List<String> myParams;}
-@init{$funcDeclaration::myParams = new ArrayList<>();}
+scope
+{
+  List<String> myParams;
+}
+@init
+{
+  $funcDeclaration::myParams = new ArrayList<String>();
+}
 :
-  KEY_FUNCTION myFunctionName=id[IdType.FUNCTION_NAME] OP_LPAREN paramList OP_RPAREN key_begin blockList[$myFunctionName.text] key_end OP_SCOLON
-  {putFunctionNameAttributeMap($myFunctionName.text, null /*ReturnType returnType*/, $funcDeclaration::myParams);}
+  KEY_FUNCTION myFunctionName=id[IdType.FUNCTION_NAME]
+               OP_LPAREN paramList OP_RPAREN
+               key_begin blockList[$myFunctionName.text] key_end OP_SCOLON
+  {
+    putFunctionNameAttributeMap($myFunctionName.text,
+                                null /*ReturnType returnType*/,
+                                $funcDeclaration::myParams);
+  }
 ;
 
-mainFunction
-  :
+mainFunction :
   a=KEY_MAIN OP_LPAREN OP_RPAREN key_begin blockList[$a.text] key_end OP_SCOLON EOF
 ;
 
@@ -164,17 +189,23 @@ baseType :
 	KEY_INT | KEY_FIXEDPT
 ;
 
-param:
+param :
 	id[IdType.NIY] OP_COLON typeId
-	{$funcDeclaration::myParams.add($typeId.text);}
+	{
+	  $funcDeclaration::myParams.add($typeId.text);
+	}
 ;
 
 paramList :
-	(param paramListTail)?
+	(
+	  param paramListTail
+	)?
 ;
 
 paramListTail :
-	(OP_COMMA param paramListTail)?
+	(
+	  OP_COMMA param paramListTail
+	)?
 ;
 
 blockList[String functionName] :
@@ -200,28 +231,48 @@ typeDeclaration :
 ;
 
 type :
-	(KEY_ARRAY OP_LBRACK INTLIT OP_RBRACK
-		(OP_LBRACK INTLIT OP_RBRACK)? KEY_OF)?
+	(
+	  KEY_ARRAY OP_LBRACK INTLIT OP_RBRACK
+		(
+		  OP_LBRACK INTLIT OP_RBRACK
+		)?
+		KEY_OF
+	)?
 	baseType
 ;
 
 varDeclaration[String functionName]
-scope {List<String> aggregatedMyIdList;}
-@init {$varDeclaration::aggregatedMyIdList = new ArrayList<>();}
- :
+scope
+{
+  List<String> aggregatedMyIdList;
+}
+@init
+{
+  $varDeclaration::aggregatedMyIdList = new ArrayList<String>();
+}
+:
 	KEY_VAR idList[IdType.VAR_NAME] OP_COLON myTypeId=typeId optionalInit OP_SCOLON
-	{putVariableNameAttributeMap($varDeclaration::aggregatedMyIdList, $myTypeId.text, $functionName);}
+	{
+	  putVariableNameAttributeMap($varDeclaration::aggregatedMyIdList,
+	                              $myTypeId.text,
+	                              $functionName);
+	}
 ;
 
 idList[IdType idType] : 
-  myId=id[idType] (OP_COMMA idList[idType])?
+  myId=id[idType]
+  (
+    OP_COMMA idList[idType]
+  )?
 	{
-	$varDeclaration::aggregatedMyIdList.add($myId.text);
+	  $varDeclaration::aggregatedMyIdList.add($myId.text);
 	}
 ;
 
 optionalInit :
-	(OP_ASSIGN constant)?
+	(
+	  OP_ASSIGN constant
+	)?
 ;
 
 statSeq[String functionName] :
@@ -236,12 +287,33 @@ stat[String functionName] :
 		  {
 		    // Assignment statement
 		    IRList.add("assign, " + $s1.exp + $s2.exp + ", " + $s3.exp);
+		    // Verify that the assignment is valid
+		    Attribute att = symbolTableManager.getAttributeInCurrentScope($s1.text, attributeMap);
+		    if(att == null) {
+		      // Variable not declared yet
+		      throw new UndeclaredVariableException($s1.exp);
+		    } else if($s1.type == ReturnType.INT && $s3.type == ReturnType.FIXPT) {
+		      // Illegal assignment (fixpt to int)
+		      throw new InvalidTypeException($s3.type == ReturnType.FIXPT ? "fixpt" : "other");
+		    }
 		    System.out.println("Type of " + $s3.text + ": " + ($s3.type == ReturnType.INT ? "int" : "fixpt"));
 		  }
-		  | OP_LPAREN exprList OP_RPAREN
+		  | OP_LPAREN s4=exprList OP_RPAREN
 		  {
-		    // Function call
-		    
+		    // Lone function call
+		    if("".equals($s4.exp)) {
+		      // Parameterless
+		      IRList.add("call, " + $s1.exp);
+		    } else {
+		      // With params
+		      IRList.add("call, " + $s1.exp + ", " + $s4.exp);
+		    }
+		    // Verify that the function exists
+		    Attribute att = symbolTableManager.getAttributeInCurrentScope($s1.text, attributeMap);
+        if(att == null) {
+          // Function not declared yet
+          throw new UndeclaredFunctionException($s1.exp);
+        }
 		  }
 		)
 		| KEY_IF expr KEY_THEN statSeq[functionName]
@@ -404,6 +476,13 @@ binOp4 returns [String exp, ReturnType type]:
     s4=valueTail                      {$exp = $s3.exp + $s4.exp; $type = $s3.type;}
     | OP_LPAREN s5=exprList OP_RPAREN {$exp = $s3.exp + $s5.exp; $type = $s3.type;}
   )
+  {
+    Attribute att = symbolTableManager.getAttributeInCurrentScope($s3.exp, attributeMap);
+    if(att == null) {
+      // Variable not declared yet
+      throw new UndeclaredVariableException($s3.exp);
+    }
+  }
 ;
 
 constant returns [String exp, ReturnType type]:
@@ -482,13 +561,14 @@ indexExpr3 returns [String exp]:
   | id[IdType.NIY]
   {
     $exp = $id.exp;
-    Attribute att = getAttributeInCurrentScope($id.exp, attributeMap);
+    Attribute att = symbolTableManager.getAttributeInCurrentScope($id.exp, attributeMap);
     if(att == null) {
-      // Variable hasn't been declared yet
+      // Variable not declared yet
       throw new UndeclaredVariableException($id.exp);
-    } else if(!"int".equals(att.getType()) {
-      // Invalid type
-      throw new InvalidTypeExeption(att.getType());
+    }
+    if(!"int".equals($id.type)) {
+      // Invalid type (must be int)
+      throw new InvalidTypeException($id.type == ReturnType.FIXPT ? "fixpt" : "other");
     }
   }
 ;
@@ -599,7 +679,14 @@ id[IdType idType] returns [String exp, ReturnType type]:
   {
     nameSpaceManager.manageNameSpace(idType, $ID.text);
     $exp = $ID.text;
-    // TODO return the type of the symbol
+    Attribute att = symbolTableManager.getAttributeInCurrentScope($ID.text, attributeMap);
+    if(att != null) {
+      $type = "int".equals(att.getType())   ? ReturnType.INT   :
+              "fixpt".equals(att.getType()) ? ReturnType.FIXPT :
+                                              ReturnType.OTHER ;
+    } else {
+      $type = ReturnType.OTHER;
+    }
   }
 ;
 

@@ -1,7 +1,17 @@
+int function func()
+begin
+	begin
+		var n : int := 5;
+		n := 8 - 3;
+		return 6;
+	end;
+end;
+
 void main()
 begin
 	begin
 		var x : int := 10;
+		func();
 		x := 2 * 3 + 5;
 	end;
 end;

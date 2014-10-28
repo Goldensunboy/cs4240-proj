@@ -12,7 +12,7 @@ public class SymbolTableManager {
 	private Scope currentScope;
 	private Scope globalScope = new Scope(null, -1);
 	private int scopeId = 0;
-	private Map<String, List<Symbol>> symbolTable = new Hashtable<>();
+	private Map<String, List<Symbol>> symbolTable = new Hashtable<String, List<Symbol>>();
 	
 	/**
 	 * when looking at begin
@@ -65,6 +65,10 @@ public class SymbolTableManager {
 		}
 		
 		List<Symbol> symbolList = symbolTable.get(attributeName);
+		if(symbolList == null) {
+			// ID does not exist
+			return null;
+		}
 		
 		for(Symbol symbol : symbolList) {
 			if(haveSameParentScope(symbol.getScope())) {
