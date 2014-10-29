@@ -1,3 +1,12 @@
+int function func2(v : int, w : int)
+begin
+	begin
+		var n : int := 5;
+		n := 8 - 3;
+		return 6;
+	end;
+end;
+
 int function func()
 begin
 	begin
@@ -12,6 +21,7 @@ begin
 	begin
 		var x : int := 10;
 		func();
+		func2(56, 77);
 		x := 2 * 3 + 5;
 	end;
 end;

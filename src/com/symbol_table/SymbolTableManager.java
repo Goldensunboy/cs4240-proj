@@ -58,7 +58,13 @@ public class SymbolTableManager {
 		return symbolTable;
 	}
 	
-	public Attribute getAttributeInCurrentScope(String attributeName, Map<String, Attribute> attributeMap)  {
+	public Attribute getAttributeInGlobalScope(String attributeName) {
+		List<Symbol> symbolList = symbolTable.get(attributeName);
+		return symbolList == null ? null : symbolList.get(0).getAttribute();
+	}
+	
+	public Attribute getAttributeInCurrentScope(String attributeName, Map<String, Attribute> attributeMap) {
+		System.out.println("symTabl: " + symbolTable);
 		Attribute retVal = attributeMap.get(attributeName); 
 		if(retVal != null){
 			return retVal;

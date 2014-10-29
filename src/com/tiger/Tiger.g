@@ -53,12 +53,6 @@ import com.exception.UndeclaredVariableException;
   private SymbolTableManager symbolTableManager = new SymbolTableManager();
   private Map<String, Attribute> attributeMap = new Hashtable<String, Attribute>();
   private NameSpaceManager nameSpaceManager = new NameSpaceManager();
-  // TODO private Map<String, Attribute> definedConstants = new TreeMap<String, DefinedConstantAttribute>();
-  // TODO private Map<String, Attribute> typeNames = new TreeMap<String, TypeAttribute>();
-  // TODO private Map<String, Attribute> functionNames = new TreeMap<String, FunctionNameAttribute>();
-  // TODO private Map<String, Attribute> stringConstantLiteralNames = new TreeMap<String, LiteralConstantAndStringAttribute>();
-  // TODO private Map<String, Attribute> srcTxtLabels= new TreeMap<StringAttribute>();
-  // TODO private Map<String, Object> compilerGeneratedTemps = new TreeMap<String, Object>();
   private ArrayList<String> IRList = new ArrayList<String>();
   private TempVarFactory tvf = new TempVarFactory();
 
@@ -73,10 +67,8 @@ import com.exception.UndeclaredVariableException;
     FunctionNameAttribute functionNameAttribute = new FunctionNameAttribute(functionName, returnType, parameters);
     attributeMap.put(functionName, functionNameAttribute);
   }
-  
 
   public void printAttributeMap() {
-    
     for (Entry<String, List<Symbol>> attr : symbolTableManager.getSymbolTable().entrySet()){
       for (Symbol symbol : attr.getValue() ) {
         System.out.println(symbol + " :: Have access to: " + showAllReachableAttribute(symbol.getScope())); // TODO debug, delete me
@@ -98,6 +90,7 @@ import com.exception.UndeclaredVariableException;
   public enum ReturnType {
     INT,
     FIXPT,
+    VOID,
     OTHER
   }
   
@@ -138,18 +131,11 @@ funcCurrent :
 ;
 
 funcNext :
+  typeId funcCurrent
+  | KEY_VOID
   (
-    (
-      typeId funcCurrent
-    )
-    |
-    (
-      KEY_VOID
-      (
-        funcCurrent
-        | mainFunction
-      )
-    )
+    funcCurrent
+    | mainFunction
   )
 ;
 
@@ -164,13 +150,18 @@ scope
 }
 :
   KEY_FUNCTION myFunctionName=id[IdType.FUNCTION_NAME]
-               OP_LPAREN paramList OP_RPAREN
-               key_begin blockList[$myFunctionName.text] key_end OP_SCOLON
-  {
-    putFunctionNameAttributeMap($myFunctionName.text,
-                                null /*ReturnType returnType*/,
-                                $funcDeclaration::myParams);
-  }
+  OP_LPAREN paramList OP_RPAREN afterBegin[$myFunctionName.text]
+;
+
+afterBegin[String myFunctionName]
+@init
+{
+  putFunctionNameAttributeMap(myFunctionName,
+                              null /*ReturnType returnType*/,
+                              $funcDeclaration::myParams);
+}
+:
+  key_begin blockList[myFunctionName] key_end OP_SCOLON
 ;
 
 mainFunction :
@@ -178,15 +169,18 @@ mainFunction :
 ;
 
 retType :
-	typeId | KEY_VOID
+	typeId
+	| KEY_VOID
 ;
 
 typeId :
-	baseType | id[IdType.NIY]
+	baseType
+	| id[IdType.NIY]
 ;
 
 baseType :
-	KEY_INT | KEY_FIXEDPT
+	KEY_INT
+	| KEY_FIXEDPT
 ;
 
 param :
@@ -309,11 +303,13 @@ stat[String functionName] :
 		      IRList.add("call, " + $s1.exp + ", " + $s4.exp);
 		    }
 		    // Verify that the function exists
-		    Attribute att = symbolTableManager.getAttributeInCurrentScope($s1.text, attributeMap);
+		    Attribute att = symbolTableManager.getAttributeInGlobalScope($s1.exp);
         if(att == null) {
           // Function not declared yet
           throw new UndeclaredFunctionException($s1.exp);
         }
+        // Verify that the function params match with the type for the function
+        
 		  }
 		)
 		| KEY_IF expr KEY_THEN statSeq[functionName]
