@@ -88,6 +88,7 @@ import com.exception.UndeclaredVariableException;
     return temp;
   }
   
+
   public void printTheNameSpace() {
     System.out.println(nameSpaceManager.toString());
   }
@@ -335,12 +336,14 @@ stat[String functionName]
         }
 		  }
 		)
-		| KEY_IF expr KEY_THEN statSeq[functionName]
+		| KEY_IF myIfCond=expr {if(!$myIfCond.myIsBool) throw new InvalidTypeException("Line: " + (($myIfCond.start != null)? $myIfCond.start.getLine() : -1) +". if statement conditions must resolve to a boolean value.");} 
+		  KEY_THEN statSeq[functionName]
 		(
 		  KEY_ELSE statSeq[functionName]
 		)?
 		KEY_ENDIF
-		| KEY_WHILE expr KEY_DO statSeq[functionName] KEY_ENDDO
+		| KEY_WHILE myWhileCond=expr {if(!$myWhileCond.myIsBool) throw new InvalidTypeException("Line: " + (($myWhileCond.start != null)? $myWhileCond.start.getLine() : -1) +". while conditional statements must resolve to a boolean value.");} 
+		  KEY_DO statSeq[functionName] KEY_ENDDO
 		| KEY_FOR id[IdType.NIY] OP_ASSIGN indexExpr KEY_TO indexExpr KEY_DO statSeq[functionName] KEY_ENDDO
 		| KEY_BREAK
 		| KEY_RETURN myReturnValue=expr
@@ -355,12 +358,12 @@ optPrefix :
 	)?
 ;
 
-expr returns [String exp, ReturnType type]:
+expr returns [String exp, ReturnType type, boolean myIsBool]:
   s1=binOp1
   (
     (
-      s2=OP_AND
-      | OP_OR
+      s2=OP_OR
+      | OP_AND
     )
     s3=expr
   )?
@@ -368,12 +371,21 @@ expr returns [String exp, ReturnType type]:
     if($s3.exp == null) {
       $exp = $s1.exp;
       $type = $s1.type;
+      $myIsBool = $s1.myIsBool;
     } else {
+      if($s1.myIsBool == false || $s3.myIsBool == false){
+        if(s2 != null) {
+          throw new InvalidTypeException("Line: " + (($s1.start != null)? $s1.start.getLine() : -1) +". Cannot use '|' on non-boolean values.");
+        } else {
+          throw new InvalidTypeException("Line: " + (($s1.start != null)? $s1.start.getLine() : -1) +". Cannot use '&' on non-boolean values.");
+        }
+      }
+      $myIsBool = true;
       String temp = tvf.nextTemp();
       if(s2 != null) {
-        IRList.add("and, " + $s1.exp + ", " + $s3.exp + ", " + temp);
-      } else {
         IRList.add("or, "  + $s1.exp + ", " + $s3.exp + ", " + temp);
+      } else {
+        IRList.add("and, " + $s1.exp + ", " + $s3.exp + ", " + temp);
       }
       $exp = temp;
       if($s1.type == ReturnType.FIXPT || $s3.type == ReturnType.FIXPT) {
@@ -381,6 +393,7 @@ expr returns [String exp, ReturnType type]:
       } else {
         $type = ReturnType.INT;
       }
+      
     }
   }
 ;
@@ -415,7 +428,7 @@ funcExpr returns [String exp, ReturnType type]:
   }
 ;
 
-binOp1 returns [String exp, ReturnType type]:
+binOp1 returns [String exp, ReturnType type, boolean myIsBool]:
   s1=binOp2
   (
     (
@@ -432,7 +445,12 @@ binOp1 returns [String exp, ReturnType type]:
     if($s7.exp == null) {
       $exp = $s1.exp;
       $type = $s1.type;
+      $myIsBool = $s1.myIsBool;
     } else {
+      if($s1.myIsBool == true || $s7.myIsBool == true){
+        throw new InvalidTypeException("Line: " + (($s1.start != null)? $s1.start.getLine() : -1) +". Cannot compare using a boolean value.");
+      }
+      $myIsBool = true;
       String temp = tvf.nextTemp();
       if(s2 != null) {
         IRList.add("leq, "    + $s1.exp + ", " + $s7.exp + ", " + temp);
@@ -499,7 +517,7 @@ funcBinOp1 returns [String exp, ReturnType type]:
   }
 ;
 
-binOp2 returns [String exp, ReturnType type]:
+binOp2 returns [String exp, ReturnType type, boolean myIsBool]:
   s1=binOp3
   (
     (
@@ -512,7 +530,16 @@ binOp2 returns [String exp, ReturnType type]:
     if($s3.exp == null) {
       $exp = $s1.exp;
       $type = $s1.type;
+      $myIsBool = $s1.myIsBool;
     } else {
+      if($s1.myIsBool == true || $s3.myIsBool == true){
+        if(s2 != null) {
+          throw new InvalidTypeException("Line: " + (($s1.start != null)? $s1.start.getLine() : -1) +". Cannot add using a boolean value.");
+        } else {
+          throw new InvalidTypeException("Line: " + (($s1.start != null)? $s1.start.getLine() : -1) +". Cannot subtract using a boolean value.");
+        }
+      }
+      $myIsBool = false;
       String temp = tvf.nextTemp();
       if(s2 != null) {
         IRList.add("add, " + $s1.exp + ", " + $s3.exp + ", " + temp);
@@ -559,7 +586,7 @@ funcBinOp2 returns [String exp, ReturnType type]:
   }
 ;
 
-binOp3 returns [String exp, ReturnType type]:
+binOp3 returns [String exp, ReturnType type, boolean myIsBool]:
   s1=binOp4
   (
     (
@@ -572,7 +599,16 @@ binOp3 returns [String exp, ReturnType type]:
     if($s3.exp == null) {
       $exp = $s1.exp;
       $type = $s1.type;
+      $myIsBool = $s1.myIsBool;
     } else {
+      if($s1.myIsBool == true || $s3.myIsBool == true){
+        if(s2 != null) {
+          throw new InvalidTypeException("Line: " + (($s1.start != null)? $s1.start.getLine() : -1) +". Cannot divide using a boolean value.");
+        } else {
+          throw new InvalidTypeException("Line: " + (($s1.start != null)? $s1.start.getLine() : -1) +". Cannot multiply using a boolean value.");
+        }
+      }
+      $myIsBool = false;
       String temp = tvf.nextTemp();
       if(s2 != null) {
         IRList.add("div, "  + $s1.exp + ", " + $s3.exp + ", " + temp);
@@ -619,25 +655,26 @@ funcBinOp3 returns [String exp, ReturnType type]:
   }
 ;
 
-binOp4 returns [String exp, ReturnType type, boolean isFunction]
+
+binOp4 returns [String exp, ReturnType type, boolean myIsBool]
 @init
 {
   List<String> paramList = new ArrayList<String>();
 }
 :
-  s1=constant                   {$exp = $s1.exp; $type = $s1.type; $isFunction = false;}
-  | OP_LPAREN s2=expr OP_RPAREN {$exp = $s2.exp; $type = $s2.type; $isFunction = false;}
+s1=constant                   {$exp = $s1.exp; $type = $s1.type; $myIsBool = false;}
+  | OP_LPAREN s2=expr OP_RPAREN {$exp = $s2.exp; $type = $s2.type; $myIsBool = $expr.myIsBool;}
   | s3=id[IdType.NIY]
   (
-    s4=valueTail                                     {$exp = $s3.exp + $s4.exp; $type = $s3.type; $isFunction = false;}
-    | OP_LPAREN s5=funcExprList[paramList] OP_RPAREN {$exp = $s3.exp + "#" + $s5.exp; $type = $s3.type; $isFunction = true;}
+    s4=valueTail                                     {$exp = $s3.exp + $s4.exp; $type = $s3.type; $myIsBool = false;}
+    | OP_LPAREN s5=funcExprList[paramList] OP_RPAREN {$exp = $s3.exp + "#" + $s5.exp; $type = $s3.type; $myIsBool = false;}
   )
   {
     Attribute att = symbolTableManager.getAttributeInCurrentScope($s3.exp, attributeMap);
-    if(att == null && !$isFunction) {
+    if(att == null && $s5.exp == null) {
       // Variable not declared yet
       throw new UndeclaredVariableException("Use of undeclared variable: " + $s3.exp);
-    } else if($isFunction) {
+    } else if($s5.exp != null) {
       // Verify that the function exists
       att = symbolTableManager.getAttributeInGlobalScope($s3.exp);
       if(att == null) {
