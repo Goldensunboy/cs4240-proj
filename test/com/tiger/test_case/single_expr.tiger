@@ -28,8 +28,9 @@ void main()
 begin
 	begin
 		var x : int := 10;
+		var y : fixedpt := 98.45;
 		func();
-		x := func2(6, 5);
+		x := func2(5, 7.3);
 		func3();
 		x := 2 * 3 + 5;
 	end;

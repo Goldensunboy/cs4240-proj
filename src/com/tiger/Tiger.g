@@ -301,6 +301,7 @@ stat[String functionName]
 		        // (fixpt to int)
             throw new InvalidTypeException("Assignment of fixedpt function " + parts[0] + " to int variable " + $s1.exp);
 		      }
+		      IRList.add("callr, " + $s1.exp + ", " + parts[0] + ", " + parts[1]);
 		    }
 		  }
 		  | OP_LPAREN s4=exprList[paramList] OP_RPAREN
@@ -323,13 +324,21 @@ stat[String functionName]
         List<String> params = symbolTableManager.getFunctionParameters($s1.exp);
         if(params.size() != paramList.size()) {
           String expected = params.size() == 0 ? "[void]" : params.toString();
-          String found = paramList.size() == 0 ? "[void]" : paramList.toString();
+          List<String> foundList = new ArrayList<String>();
+          for(int i = params.size() - 1; i >= 0; --i) {
+            foundList.add(paramList.get(i));
+          }
+          String found = paramList.size() == 0 ? "[void]" : foundList.toString();
           throw new InvalidInvocationException("Invalid invocation of function: [" + $s1.exp + "] Expected: " + expected + " Found: " + found);
         }
         for(int i = 0; i < params.size(); ++i) {
           if("int".equals(params.get(i)) && "fixedpt".equals(paramList.get(params.size() - i - 1))) {
             String expected = params.size() == 0 ? "[void]" : params.toString();
-            String found = paramList.size() == 0 ? "[void]" : paramList.toString();
+            List<String> foundList = new ArrayList<String>();
+            for(int j = params.size() - 1; j >= 0; --j) {
+              foundList.add(paramList.get(j));
+            }
+            String found = paramList.size() == 0 ? "[void]" : foundList.toString();
             throw new InvalidInvocationException("Invalid invocation of function: [" + $s1.exp + "] Expected: " + expected + " Found: " + found);
           }
         }
@@ -648,13 +657,21 @@ binOp4 returns [String exp, ReturnType type, boolean isFunction]
       List<String> params = symbolTableManager.getFunctionParameters($s3.exp);
       if(params.size() != paramList.size()) {
         String expected = params.size() == 0 ? "[void]" : params.toString();
-        String found = paramList.size() == 0 ? "[void]" : paramList.toString();
+        List<String> foundList = new ArrayList<String>();
+        for(int i = params.size() - 1; i >= 0; --i) {
+          foundList.add(paramList.get(i));
+        }
+        String found = paramList.size() == 0 ? "[void]" : foundList.toString();
         throw new InvalidInvocationException("Invalid invocation of function: [" + $s3.exp + "] Expected: " + expected + " Found: " + found);
       }
       for(int i = 0; i < params.size(); ++i) {
         if("int".equals(params.get(i)) && "fixedpt".equals(paramList.get(params.size() - i - 1))) {
           String expected = params.size() == 0 ? "[void]" : params.toString();
-          String found = paramList.size() == 0 ? "[void]" : paramList.toString();
+          List<String> foundList = new ArrayList<String>();
+          for(int j = params.size() - 1; j >= 0; --j) {
+            foundList.add(paramList.get(j));
+          }
+          String found = paramList.size() == 0 ? "[void]" : foundList.toString();
           throw new InvalidInvocationException("Invalid invocation of function: [" + $s3.exp + "] Expected: " + expected + " Found: " + found);
         }
       }
