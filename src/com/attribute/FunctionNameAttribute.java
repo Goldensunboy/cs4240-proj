@@ -2,14 +2,11 @@ package com.attribute;
 
 import java.util.List;
 
+import com.compiler.ReturnType;
+
 public class FunctionNameAttribute implements Attribute{
 	
 	// Enums for return type and param types
-	public enum ReturnType {
-		VOID,
-		INT,
-		FIX_PT
-	};
 	public enum ParamType {
 		INT,
 		FIX_PT
@@ -17,10 +14,10 @@ public class FunctionNameAttribute implements Attribute{
 	
 	// Attributes for function name
 	private String functionName;
-	private String returnType;
+	private ReturnType returnType;
 	private List<String> params;
 	
-	public FunctionNameAttribute(String functionName, String returnType, List<String> params) {
+	public FunctionNameAttribute(String functionName, ReturnType returnType, List<String> params) {
 		this.functionName = functionName;
 		this.returnType = returnType;
 		this.params = params;
@@ -33,10 +30,10 @@ public class FunctionNameAttribute implements Attribute{
 	public void setFunctionName(String functionName) {
 		this.functionName = functionName;
 	}
-	public String getReturnType() {
+	public ReturnType getReturnType() {
 		return returnType;
 	}
-	public void setReturnType(String returnType) {
+	public void setReturnType(ReturnType returnType) {
 		this.returnType = returnType;
 	}
 	public List<String> getParams() {

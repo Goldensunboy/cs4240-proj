@@ -21,9 +21,9 @@ public class TigerCompiler{
 			} else if(parser.getErrorFlag()) {
 				System.out.println("Finished with parser error(s)");
 			} else {
-				//parser.printAttributeMap();
+				parser.printAttributeMap();
 				//parser.printTheNameSpace();
-				parser.printTheIRCode();
+//				parser.printTheIRCode();
 				System.out.println("Successfully parsed");
 			}
 
