@@ -295,7 +295,7 @@ stat[String functionName]
           IRList.add("assign, " + $s1.exp + $s2.exp + ", " + $s3.exp);
 		    } else {
 		      // Function assignment
-		      String[] parts = $s3.exp.split("#")
+		      String[] parts = $s3.exp.split("#");
 		      ReturnType rettype = symbolTableManager.getFunctionReturnType(parts[0]);
 		      if($s1.type == ReturnType.INT && rettype == ReturnType.FIXPT) {
 		        // (fixpt to int)
