@@ -26,8 +26,8 @@ import com.symbol_table.IdType;
 import com.symbol_table.NameSpaceManager;
 import com.attribute.FunctionNameAttribute;
 import com.attribute.FunctionNameAttribute.ParamType;
-import com.attribute.FunctionNameAttribute.ReturnType;
 import com.compiler.TempVarFactory;
+import com.compiler.ReturnType;
 import com.exception.InvalidTypeException;
 import com.exception.InvalidInvocationException;
 import com.exception.UndeclaredFunctionException;
@@ -64,7 +64,7 @@ import com.exception.UndeclaredVariableException;
     }
   }
   
-  private void putFunctionNameAttributeMap(String functionName, String returnType, List<String> parameters) {
+  private void putFunctionNameAttributeMap(String functionName, ReturnType returnType, List<String> parameters) {
     FunctionNameAttribute functionNameAttribute = new FunctionNameAttribute(functionName, returnType, parameters);
     attributeMap.put(functionName, functionNameAttribute);
   }
@@ -86,13 +86,6 @@ import com.exception.UndeclaredVariableException;
       scope = scope.getEnclosingScope();
     }
     return temp;
-  }
-  
-  public enum ReturnType {
-    INT,
-    FIXPT,
-    VOID,
-    OTHER
   }
   
   public void printTheNameSpace() {
@@ -127,20 +120,20 @@ tigerProgram :
 	typeDeclarationList funcNext
 ;
 
-funcCurrent :
-	 funcDeclaration funcNext
-;
-
-funcNext :
-  typeId funcCurrent
+funcNext:
+  typeId funcCurrent[$typeId.type]
   | KEY_VOID
   (
-    funcCurrent
-    | mainFunction
+    funcCurrent[ReturnType.VOID]
+    | mainFunction[ReturnType.VOID]
   )
 ;
 
-funcDeclaration 
+funcCurrent[ReturnType returnType] :
+	 funcDeclaration[returnType] funcNext
+;
+
+funcDeclaration[ReturnType returnType]
 scope
 {
   List<String> myParams;
@@ -151,21 +144,21 @@ scope
 }
 :
   KEY_FUNCTION myFunctionName=id[IdType.FUNCTION_NAME]
-  OP_LPAREN paramList OP_RPAREN afterBegin[$myFunctionName.text]
+  OP_LPAREN paramList OP_RPAREN afterBegin[$myFunctionName.text, returnType]
 ;
 
-afterBegin[String myFunctionName]
+afterBegin[String myFunctionName, ReturnType returnType]
 @init
 {
   putFunctionNameAttributeMap(myFunctionName,
-                              null /*ReturnType returnType*/,
+                              returnType,
                               $funcDeclaration::myParams);
 }
 :
   key_begin blockList[myFunctionName] key_end OP_SCOLON
 ;
 
-mainFunction :
+mainFunction [ReturnType returnType]:
   a=KEY_MAIN OP_LPAREN OP_RPAREN key_begin blockList[$a.text] key_end OP_SCOLON EOF
 ;
 
@@ -174,14 +167,16 @@ retType :
 	| KEY_VOID
 ;
 
-typeId :
-	baseType
-	| id[IdType.NIY]
+typeId returns[ReturnType type]:
+	baseType {$type=$baseType.type;}
+	| id[IdType.NIY] {$type=ReturnType.OTHER;}
+	
+	
 ;
 
-baseType :
-	KEY_INT
-	| KEY_FIXEDPT
+baseType returns[ReturnType type]:
+	KEY_INT {$type=ReturnType.INT;}
+	| KEY_FIXEDPT {$type=ReturnType.FIXPT;}
 ;
 
 param :
@@ -348,7 +343,7 @@ stat[String functionName]
 		| KEY_WHILE expr KEY_DO statSeq[functionName] KEY_ENDDO
 		| KEY_FOR id[IdType.NIY] OP_ASSIGN indexExpr KEY_TO indexExpr KEY_DO statSeq[functionName] KEY_ENDDO
 		| KEY_BREAK
-		| KEY_RETURN expr
+		| KEY_RETURN myReturnValue=expr
 	)
 	OP_SCOLON
 	| block[functionName]

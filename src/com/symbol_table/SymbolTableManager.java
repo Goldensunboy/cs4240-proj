@@ -8,6 +8,7 @@ import java.util.Map.Entry;
 
 import com.attribute.Attribute;
 import com.attribute.FunctionNameAttribute;
+import com.compiler.ReturnType;
 import com.exception.AttributeCastException;
 import com.exception.NameSpaceConflictException;
 
@@ -101,6 +102,16 @@ public class SymbolTableManager {
 	}
 	
 	public List<String> getFunctionParameters(String functionName) { 
+		FunctionNameAttribute functionNameAttribute = getFunctionAttribute(functionName);
+		return functionNameAttribute.getParams();
+	}
+
+	public ReturnType getFunctionReturnType(String functionName) {
+		FunctionNameAttribute functionNameAttribute = getFunctionAttribute(functionName);
+		return functionNameAttribute.getReturnType();
+	}
+
+	private FunctionNameAttribute getFunctionAttribute(String functionName) {
 		List<Symbol> symbolList = symbolTable.get(functionName);
 		if (symbolList.size() != 1) {
 			// SNH (Should Never Happen). Just a clue for us for debugging
@@ -113,8 +124,6 @@ public class SymbolTableManager {
 			throw new AttributeCastException("SNH: Couldn't cast to FunctionNameAttribute");
 		}
 		
-		return functionNameAttribute.getParams();
-		
+		return functionNameAttribute;
 	}
-	
 }
