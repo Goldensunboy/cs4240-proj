@@ -29,6 +29,7 @@ import com.attribute.FunctionNameAttribute.ParamType;
 import com.attribute.FunctionNameAttribute.ReturnType;
 import com.compiler.TempVarFactory;
 import com.exception.InvalidTypeException;
+import com.exception.InvalidInvocationException;
 import com.exception.UndeclaredFunctionException;
 import com.exception.UndeclaredVariableException;
 /**************************************/
@@ -273,7 +274,12 @@ statSeq[String functionName] :
 	stat[functionName]+
 ;
 
-stat[String functionName] : 
+stat[String functionName]
+@init
+{
+  List<String> paramList = new ArrayList<String>();
+}
+: 
 	(
 		s1=id[IdType.NIY]
 		(
@@ -290,9 +296,8 @@ stat[String functionName] :
 		      // Illegal assignment (fixpt to int)
 		      throw new InvalidTypeException($s3.type == ReturnType.FIXPT ? "fixpt" : "other");
 		    }
-		    System.out.println("Type of " + $s3.text + ": " + ($s3.type == ReturnType.INT ? "int" : "fixpt"));
 		  }
-		  | OP_LPAREN s4=exprList OP_RPAREN
+		  | OP_LPAREN s4=exprList[paramList] OP_RPAREN
 		  {
 		    // Lone function call
 		    if("".equals($s4.exp)) {
@@ -309,7 +314,19 @@ stat[String functionName] :
           throw new UndeclaredFunctionException($s1.exp);
         }
         // Verify that the function params match with the type for the function
-        
+        List<String> params = symbolTableManager.getFunctionParameters($s1.exp);
+        if(params.size() != paramList.size()) {
+          String expected = params.size() == 0 ? "[void]" : params.toString();
+          String found = paramList.size() == 0 ? "[void]" : paramList.toString();
+          throw new InvalidInvocationException("Function: " + $s1.exp + " Expected: " + expected + " Found: " + found);
+        }
+        for(int i = 0; i < params.size(); ++i) {
+          if("int".equals(params.get(i)) && "fixedpt".equals(paramList.get(params.size() - i - 1))) {
+            String expected = params.size() == 0 ? "[void]" : params.toString();
+            String found = paramList.size() == 0 ? "[void]" : paramList.toString();
+            throw new InvalidInvocationException("Function: " + $s1.exp + " Expected: " + expected + " Found: " + found);
+          }
+        }
 		  }
 		)
 		| KEY_IF expr KEY_THEN statSeq[functionName]
@@ -340,6 +357,36 @@ expr returns [String exp, ReturnType type]:
       | OP_OR
     )
     s3=expr
+  )?
+  {
+    if($s3.exp == null) {
+      $exp = $s1.exp;
+      $type = $s1.type;
+    } else {
+      String temp = tvf.nextTemp();
+      if(s2 != null) {
+        IRList.add("and, " + $s1.exp + ", " + $s3.exp + ", " + temp);
+      } else {
+        IRList.add("or, "  + $s1.exp + ", " + $s3.exp + ", " + temp);
+      }
+      $exp = temp;
+      if($s1.type == ReturnType.FIXPT || $s3.type == ReturnType.FIXPT) {
+        $type = ReturnType.FIXPT;
+      } else {
+        $type = ReturnType.INT;
+      }
+    }
+  }
+;
+
+funcExpr returns [String exp, ReturnType type]:
+  s1=funcBinOp1
+  (
+    (
+      s2=OP_AND
+      | OP_OR
+    )
+    s3=funcExpr
   )?
   {
     if($s3.exp == null) {
@@ -404,6 +451,48 @@ binOp1 returns [String exp, ReturnType type]:
   }
 ;
 
+funcBinOp1 returns [String exp, ReturnType type]:
+  s1=funcBinOp2
+  (
+    (
+      s2=OP_LEQ
+      | s3=OP_GEQ
+      | s4=OP_LTHAN
+      | s5=OP_GTHAN
+      | s6=OP_NEQ
+      | OP_EQUAL
+    )
+    s7=funcBinOp1
+  )?
+  {
+    if($s7.exp == null) {
+      $exp = $s1.exp;
+      $type = $s1.type;
+    } else {
+      String temp = tvf.nextTemp();
+      if(s2 != null) {
+        IRList.add("leq, "    + $s1.exp + ", " + $s7.exp + ", " + temp);
+      } else if(s3 != null) {
+        IRList.add("geq, "    + $s1.exp + ", " + $s7.exp + ", " + temp);
+      } else if(s4 != null) {
+        IRList.add("lthan, "  + $s1.exp + ", " + $s7.exp + ", " + temp);
+      } else if(s5 != null) {
+        IRList.add("gthan, "  + $s1.exp + ", " + $s7.exp + ", " + temp);
+      } else if(s6 != null) {
+        IRList.add("neq, "    + $s1.exp + ", " + $s7.exp + ", " + temp);
+      } else {
+        IRList.add("equals, " + $s1.exp + ", " + $s7.exp + ", " + temp);
+      }
+      $exp = temp;
+      if($s1.type == ReturnType.FIXPT || $s7.type == ReturnType.FIXPT) {
+        $type = ReturnType.FIXPT;
+      } else {
+        $type = ReturnType.INT;
+      }
+    }
+  }
+;
+
 binOp2 returns [String exp, ReturnType type]:
   s1=binOp3
   (
@@ -412,6 +501,36 @@ binOp2 returns [String exp, ReturnType type]:
       | OP_MINUS
     )
     s3=binOp2
+  )?
+  {
+    if($s3.exp == null) {
+      $exp = $s1.exp;
+      $type = $s1.type;
+    } else {
+      String temp = tvf.nextTemp();
+      if(s2 != null) {
+        IRList.add("add, " + $s1.exp + ", " + $s3.exp + ", " + temp);
+      } else {
+        IRList.add("sub, " + $s1.exp + ", " + $s3.exp + ", " + temp);
+      }
+      $exp = temp;
+      if($s1.type == ReturnType.FIXPT || $s3.type == ReturnType.FIXPT) {
+        $type = ReturnType.FIXPT;
+      } else {
+        $type = ReturnType.INT;
+      }
+    }
+  }
+;
+
+funcBinOp2 returns [String exp, ReturnType type]:
+  s1=funcBinOp3
+  (
+    (
+      s2=OP_PLUS
+      | OP_MINUS
+    )
+    s3=funcBinOp2
   )?
   {
     if($s3.exp == null) {
@@ -464,14 +583,65 @@ binOp3 returns [String exp, ReturnType type]:
   }
 ;
 
-binOp4 returns [String exp, ReturnType type]:
+funcBinOp3 returns [String exp, ReturnType type]:
+  s1=funcBinOp4
+  (
+    (
+      s2=OP_DIV
+      | OP_MULT
+    )
+    s3=funcBinOp3
+  )?
+  {
+    if($s3.exp == null) {
+      $exp = $s1.exp;
+      $type = $s1.type;
+    } else {
+      String temp = tvf.nextTemp();
+      if(s2 != null) {
+        IRList.add("div, "  + $s1.exp + ", " + $s3.exp + ", " + temp);
+      } else {
+        IRList.add("mult, " + $s1.exp + ", " + $s3.exp + ", " + temp);
+      }
+      $exp = temp;
+      if($s1.type == ReturnType.FIXPT || $s3.type == ReturnType.FIXPT) {
+        $type = ReturnType.FIXPT;
+      } else {
+        $type = ReturnType.INT;
+      }
+    }
+  }
+;
+
+binOp4 returns [String exp, ReturnType type]
+@init
+{
+  List<String> paramList = new ArrayList<String>();
+}
+:
   s1=constant                   {$exp = $s1.exp; $type = $s1.type;}
   | OP_LPAREN s2=expr OP_RPAREN {$exp = $s2.exp; $type = $s2.type;}
   | s3=id[IdType.NIY]
   (
-    s4=valueTail                      {$exp = $s3.exp + $s4.exp; $type = $s3.type;}
-    | OP_LPAREN s5=exprList OP_RPAREN {$exp = $s3.exp + $s5.exp; $type = $s3.type;}
+    s4=valueTail                                     {$exp = $s3.exp + $s4.exp; $type = $s3.type;}
+    | OP_LPAREN s5=funcExprList[paramList] OP_RPAREN {$exp = $s3.exp + $s5.exp; $type = $s3.type;}
   )
+  {
+    Attribute att = symbolTableManager.getAttributeInCurrentScope($s3.exp, attributeMap);
+    if(att == null) {
+      // Variable not declared yet
+      throw new UndeclaredVariableException($s3.exp);
+    }
+    if($s5.exp != null) {
+      // Does the function exist?
+    }
+  }
+;
+
+funcBinOp4 returns [String exp, ReturnType type]:
+  s1=constant                      {$exp = $s1.exp; $type = $s1.type;}
+  | OP_LPAREN s2=expr OP_RPAREN    {$exp = $s2.exp; $type = $s2.type;}
+  | s3=id[IdType.NIY] s4=valueTail {$exp = $s3.exp + $s4.exp; $type = $s3.type;}
   {
     Attribute att = symbolTableManager.getAttributeInCurrentScope($s3.exp, attributeMap);
     if(att == null) {
@@ -573,28 +743,58 @@ declarationSegment[String functionName] :
   typeDeclarationList varDeclarationList[functionName]
 ;
 
-exprList returns [String exp]:
+exprList[List<String> paramList] returns [String exp]:
   (
-    s1=expr s2=exprListTail
+    s1=expr s2=exprListTail[paramList]
   )?
   {
     if($s1.exp == null) {
       $exp = "";
     } else {
       $exp = $s1.exp + $s2.exp;
+      paramList.add($s1.type == ReturnType.INT ? "int" : "fixedpt");
     }
   }
 ;
 
-exprListTail returns [String exp]:
+funcExprList[List<String> paramList] returns [String exp]:
   (
-    OP_COMMA s1=expr s2=exprListTail
+    s1=funcExpr s2=funcExprListTail[paramList]
+  )?
+  {
+    if($s1.exp == null) {
+      $exp = "";
+    } else {
+      $exp = $s1.exp + $s2.exp;
+      paramList.add($s1.type == ReturnType.INT ? "int" : "fixedpt");
+    }
+  }
+;
+
+exprListTail[List<String> paramList] returns [String exp]:
+  (
+    OP_COMMA s1=expr s2=exprListTail[paramList]
   )?
   {
     if($s1.exp == null) {
       $exp = "";
     } else {
       $exp = ", " + $s1.exp + $s2.exp;
+      paramList.add($s1.type == ReturnType.INT ? "int" : "fixedpt");
+    }
+  }
+;
+
+funcExprListTail[List<String> paramList] returns [String exp]:
+  (
+    OP_COMMA s1=funcExpr s2=funcExprListTail[paramList]
+  )?
+  {
+    if($s1.exp == null) {
+      $exp = "";
+    } else {
+      $exp = ", " + $s1.exp + $s2.exp;
+      paramList.add($s1.type == ReturnType.INT ? "int" : "fixedpt");
     }
   }
 ;

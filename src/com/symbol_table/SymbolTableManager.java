@@ -67,7 +67,7 @@ public class SymbolTableManager {
 	}
 	
 	public Attribute getAttributeInCurrentScope(String attributeName, Map<String, Attribute> attributeMap) {
-		System.out.println("symTabl: " + symbolTable);
+		//System.out.println("symTabl: " + symbolTable);
 		Attribute retVal = attributeMap.get(attributeName); 
 		if(retVal != null){
 			return retVal;

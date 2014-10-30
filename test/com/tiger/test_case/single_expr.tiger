@@ -1,4 +1,4 @@
-int function func2(v : int, w : int)
+int function func2(v : int, w : fixedpt)
 begin
 	begin
 		var n : int := 5;
@@ -21,7 +21,7 @@ begin
 	begin
 		var x : int := 10;
 		func();
-		func2(56, 77);
+		func2(6, 5);
 		x := 2 * 3 + 5;
 	end;
 end;
