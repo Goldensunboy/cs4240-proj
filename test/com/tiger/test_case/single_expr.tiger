@@ -16,12 +16,21 @@ begin
 	end;
 end;
 
+void function func3()
+begin
+	begin
+		var u : int := 90;
+		u := u * 8;
+	end;
+end;
+
 void main()
 begin
 	begin
 		var x : int := 10;
 		func();
-		func2(6, 5);
+		x := func2(6, 5);
+		func3();
 		x := 2 * 3 + 5;
 	end;
 end;

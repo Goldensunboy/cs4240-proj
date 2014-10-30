@@ -285,16 +285,27 @@ stat[String functionName]
 		(
 		  s2=valueTail OP_ASSIGN s3=expr
 		  {
-		    // Assignment statement
-		    IRList.add("assign, " + $s1.exp + $s2.exp + ", " + $s3.exp);
 		    // Verify that the assignment is valid
-		    Attribute att = symbolTableManager.getAttributeInCurrentScope($s1.text, attributeMap);
-		    if(att == null) {
-		      // Variable not declared yet
-		      throw new UndeclaredVariableException($s1.exp);
-		    } else if($s1.type == ReturnType.INT && $s3.type == ReturnType.FIXPT) {
-		      // Illegal assignment (fixpt to int)
-		      throw new InvalidTypeException($s3.type == ReturnType.FIXPT ? "fixpt" : "other");
+		    Attribute att = symbolTableManager.getAttributeInCurrentScope($s1.exp, attributeMap);
+		    if(!$s3.exp.contains("#")) {
+		      // Expr assignment
+		      if(att == null) {
+		        // Variable not declared yet
+		        throw new UndeclaredVariableException("Assignment to undeclared variable: " + $s1.exp);
+		      } else if($s1.type == ReturnType.INT && $s3.type == ReturnType.FIXPT) {
+		        // Illegal assignment (fixpt to int)
+		        throw new InvalidTypeException("Assignment of fixedpt expression " + $s3.exp + " to int variable " + $s1.exp);
+		      }
+		      // Assignment statement
+          IRList.add("assign, " + $s1.exp + $s2.exp + ", " + $s3.exp);
+		    } else {
+		      // Function assignment
+		      String[] parts = $s3.exp.split("#")
+		      ReturnType rettype = symbolTableManager.getFunctionReturnType(parts[0]);
+		      if($s1.type == ReturnType.INT && rettype == ReturnType.FIXPT) {
+		        // (fixpt to int)
+            throw new InvalidTypeException("Assignment of fixedpt function " + parts[0] + " to int variable " + $s1.exp);
+		      }
 		    }
 		  }
 		  | OP_LPAREN s4=exprList[paramList] OP_RPAREN
@@ -311,20 +322,20 @@ stat[String functionName]
 		    Attribute att = symbolTableManager.getAttributeInGlobalScope($s1.exp);
         if(att == null) {
           // Function not declared yet
-          throw new UndeclaredFunctionException($s1.exp);
+          throw new UndeclaredFunctionException("Invocation of undeclared function: " + $s1.exp);
         }
         // Verify that the function params match with the type for the function
         List<String> params = symbolTableManager.getFunctionParameters($s1.exp);
         if(params.size() != paramList.size()) {
           String expected = params.size() == 0 ? "[void]" : params.toString();
           String found = paramList.size() == 0 ? "[void]" : paramList.toString();
-          throw new InvalidInvocationException("Function: " + $s1.exp + " Expected: " + expected + " Found: " + found);
+          throw new InvalidInvocationException("Invalid invocation of function: [" + $s1.exp + "] Expected: " + expected + " Found: " + found);
         }
         for(int i = 0; i < params.size(); ++i) {
           if("int".equals(params.get(i)) && "fixedpt".equals(paramList.get(params.size() - i - 1))) {
             String expected = params.size() == 0 ? "[void]" : params.toString();
             String found = paramList.size() == 0 ? "[void]" : paramList.toString();
-            throw new InvalidInvocationException("Function: " + $s1.exp + " Expected: " + expected + " Found: " + found);
+            throw new InvalidInvocationException("Invalid invocation of function: [" + $s1.exp + "] Expected: " + expected + " Found: " + found);
           }
         }
 		  }
@@ -613,27 +624,45 @@ funcBinOp3 returns [String exp, ReturnType type]:
   }
 ;
 
-binOp4 returns [String exp, ReturnType type]
+binOp4 returns [String exp, ReturnType type, boolean isFunction]
 @init
 {
   List<String> paramList = new ArrayList<String>();
 }
 :
-  s1=constant                   {$exp = $s1.exp; $type = $s1.type;}
-  | OP_LPAREN s2=expr OP_RPAREN {$exp = $s2.exp; $type = $s2.type;}
+  s1=constant                   {$exp = $s1.exp; $type = $s1.type; $isFunction = false;}
+  | OP_LPAREN s2=expr OP_RPAREN {$exp = $s2.exp; $type = $s2.type; $isFunction = false;}
   | s3=id[IdType.NIY]
   (
-    s4=valueTail                                     {$exp = $s3.exp + $s4.exp; $type = $s3.type;}
-    | OP_LPAREN s5=funcExprList[paramList] OP_RPAREN {$exp = $s3.exp + $s5.exp; $type = $s3.type;}
+    s4=valueTail                                     {$exp = $s3.exp + $s4.exp; $type = $s3.type; $isFunction = false;}
+    | OP_LPAREN s5=funcExprList[paramList] OP_RPAREN {$exp = $s3.exp + "#" + $s5.exp; $type = $s3.type; $isFunction = true;}
   )
   {
     Attribute att = symbolTableManager.getAttributeInCurrentScope($s3.exp, attributeMap);
-    if(att == null) {
+    if(att == null && !$isFunction) {
       // Variable not declared yet
-      throw new UndeclaredVariableException($s3.exp);
-    }
-    if($s5.exp != null) {
-      // Does the function exist?
+      throw new UndeclaredVariableException("Use of undeclared variable: " + $s3.exp);
+    } else if($isFunction) {
+      // Verify that the function exists
+      att = symbolTableManager.getAttributeInGlobalScope($s3.exp);
+      if(att == null) {
+        // Function not declared yet
+        throw new UndeclaredFunctionException("Invocation of undeclared function: " + $s3.exp);
+      }
+      // Verify that the function params match with the type for the function
+      List<String> params = symbolTableManager.getFunctionParameters($s3.exp);
+      if(params.size() != paramList.size()) {
+        String expected = params.size() == 0 ? "[void]" : params.toString();
+        String found = paramList.size() == 0 ? "[void]" : paramList.toString();
+        throw new InvalidInvocationException("Invalid invocation of function: [" + $s3.exp + "] Expected: " + expected + " Found: " + found);
+      }
+      for(int i = 0; i < params.size(); ++i) {
+        if("int".equals(params.get(i)) && "fixedpt".equals(paramList.get(params.size() - i - 1))) {
+          String expected = params.size() == 0 ? "[void]" : params.toString();
+          String found = paramList.size() == 0 ? "[void]" : paramList.toString();
+          throw new InvalidInvocationException("Invalid invocation of function: [" + $s3.exp + "] Expected: " + expected + " Found: " + found);
+        }
+      }
     }
   }
 ;
@@ -646,7 +675,7 @@ funcBinOp4 returns [String exp, ReturnType type]:
     Attribute att = symbolTableManager.getAttributeInCurrentScope($s3.exp, attributeMap);
     if(att == null) {
       // Variable not declared yet
-      throw new UndeclaredVariableException($s3.exp);
+      throw new UndeclaredVariableException("Use of undeclared variable: " + $s3.exp);
     }
   }
 ;
@@ -659,8 +688,8 @@ constant returns [String exp, ReturnType type]:
 value returns [String exp, ReturnType type]:
 	s1=id[IdType.NIY] s2=valueTail
 	{
-	  $exp = $s1.exp + $s2.exp;
-	  // TODO get type from ID
+	  $exp = $s1.exp + "#" + $s2.exp;
+	  $type = $id.type;
 	}
 ;
 
@@ -730,11 +759,11 @@ indexExpr3 returns [String exp]:
     Attribute att = symbolTableManager.getAttributeInCurrentScope($id.exp, attributeMap);
     if(att == null) {
       // Variable not declared yet
-      throw new UndeclaredVariableException($id.exp);
+      throw new UndeclaredVariableException("Use of undeclared variable: " + $id.exp);
     }
     if(!"int".equals($id.type)) {
       // Invalid type (must be int)
-      throw new InvalidTypeException($id.type == ReturnType.FIXPT ? "fixpt" : "other");
+      throw new InvalidTypeException("Use of fixedpt variable in array index expression: " + $id.exp);
     }
   }
 ;
