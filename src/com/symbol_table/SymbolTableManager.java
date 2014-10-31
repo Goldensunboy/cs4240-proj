@@ -10,18 +10,32 @@ import com.attribute.Attribute;
 import com.attribute.FunctionNameAttribute;
 import com.compiler.ReturnType;
 import com.exception.AttributeCastException;
+import com.exception.ErroneousParserImplementationException;
 import com.exception.NameSpaceConflictException;
 
+/**
+ * Manages scoping and any addition to the symbol table. 
+ * @author saman
+ *
+ */
 public class SymbolTableManager {
-	private Scope currentScope;
+	
+	// used for global types and function names
 	private Scope globalScope = new Scope(null, -1);
+	
+	private Scope currentScope;	
 	private int scopeId = 0;
+	
+	// the symbol table that holds all symbol names and their actual symbols in the code
 	private Map<String, List<Symbol>> symbolTable = new Hashtable<String, List<Symbol>>();
 	
 	/**
-	 * when looking at begin
-	 * @param attributeMaps
-	 * @return
+	 * Takes the temporary attributeMap in the TigerParser and insert all of its values
+	 * into the symbolTable
+	 * 
+	 * @param attributeMaps holds the attributes seen in the code before hitting a begin
+	 * key.   
+	 * @return the newly made scope 
 	 */
 	public Scope makeNewScope(Map<String, Attribute> attributeMaps) {
 		if(currentScope != null){
@@ -36,9 +50,11 @@ public class SymbolTableManager {
 	}
 	
 	/**
-	 * when we look at end
-	 * @param attributeMaps
-	 * @return
+	 * Takes the temporary attributeMap and inserts all of its values into the symbol table
+	 * 
+	 * @param attributeMaps a temporary map of attributes seen since the last begin
+	 * 
+	 * @return the enclosing scope of the current scope
 	 */
 	public Scope goToEnclosingScope(Map<String, Attribute> attributeMaps) {
 		if(attributeMaps.size() > 0) {			
@@ -62,13 +78,25 @@ public class SymbolTableManager {
 		return symbolTable;
 	}
 	
+	/**
+	 * Global scope is guaranteed to have a single attribute in it. This method
+	 * returns that single attribute
+	 */
 	public Attribute getAttributeInGlobalScope(String attributeName) {
 		List<Symbol> symbolList = symbolTable.get(attributeName);
 		return symbolList == null ? null : symbolList.get(0).getAttribute();
 	}
-	
+
+	/**
+	 * looks at the attributeMap and the symbol table to ensure the attribute requested with attributeName
+	 * is accessible in the current scope. If it's accessible the attribute will be returned, otherwise 
+	 * null will be returned 
+	 * 
+	 * @param attributeName 
+	 * @param attributeMap 
+	 * @return the attribute that has the attributeName which is accessible from the current scope.
+	 */
 	public Attribute getAttributeInCurrentScope(String attributeName, Map<String, Attribute> attributeMap) {
-		//System.out.println("symTabl: " + symbolTable);
 		Attribute retVal = attributeMap.get(attributeName); 
 		if(retVal != null){
 			return retVal;
@@ -89,6 +117,11 @@ public class SymbolTableManager {
 		return null;
 	}
 	
+	/**
+	 * Goes through the current scope's enclosing scopes until whether it returns true if any of those 
+	 * scope equal to the passed in scope, or return false otherwise.
+	 * @param scope the scope needed to be matched against the current scope and its enclosing scopes
+	 */
 	private boolean haveSameParentScope(Scope scope) {
 		Scope tempScope = currentScope;
 		
@@ -100,17 +133,27 @@ public class SymbolTableManager {
 		}
 		return false;
 	}
-	
+
+	/**
+	 * given the function name returns all the parameters 
+	 */
 	public List<String> getFunctionParameters(String functionName) { 
 		FunctionNameAttribute functionNameAttribute = getFunctionAttribute(functionName);
 		return functionNameAttribute.getParams();
 	}
 
+	/**
+	 * Given the function name returns the return type
+	 */
 	public ReturnType getFunctionReturnType(String functionName) {
 		FunctionNameAttribute functionNameAttribute = getFunctionAttribute(functionName);
 		return functionNameAttribute.getReturnType();
 	}
 
+	/**
+	 * Finds the function attribute in the symbol table and casts it to 
+	 * FunctionNameAttribute and returns it.
+	 */
 	private FunctionNameAttribute getFunctionAttribute(String functionName) {
 		List<Symbol> symbolList = symbolTable.get(functionName);
 		if (symbolList.size() != 1) {
@@ -125,5 +168,21 @@ public class SymbolTableManager {
 		}
 		
 		return functionNameAttribute;
+	}
+	
+	/**
+	 * Checks to see if the attribute corresponding to the attributeName is in 
+	 * a function scope
+	 */
+	public boolean isInFunctionScope() {
+		try {
+			return currentScope.getEnclosingScope().getEnclosingScope() == null;
+		} catch (NullPointerException e){
+			throw new ErroneousParserImplementationException("SNH: function should have at least two scopes");
+		}
+	}
+	
+	public Scope getCurrentScope() {
+		return currentScope;
 	}
 }

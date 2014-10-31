@@ -355,6 +355,9 @@ stat[String functionName]
 		| KEY_FOR id[IdType.NIY] OP_ASSIGN indexExpr KEY_TO indexExpr KEY_DO statSeq[functionName] KEY_ENDDO
 		| KEY_BREAK
 		| KEY_RETURN myReturnValue=expr
+		{
+		  
+		}
 	)
 	OP_SCOLON
 	| block[functionName]
@@ -876,6 +879,7 @@ funcExprListTail[List<String> paramList] returns [String exp]:
 
 key_begin
   @init{
+  System.out.println(attributeMap);
   symbolTableManager.makeNewScope(attributeMap);
   attributeMap.clear();
   }
