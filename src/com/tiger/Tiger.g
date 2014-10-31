@@ -286,10 +286,14 @@ stat[String functionName]
 		      // Expr assignment
 		      if(att == null) {
 		        // Variable not declared yet
-		        throw new UndeclaredVariableException("Assignment to undeclared variable: " + $s1.exp);
+		        throw new UndeclaredVariableException("Line " +
+		          (($s1.start != null)? $s1.start.getLine() : -1) +
+		          ": Assignment to undeclared variable: " + $s1.exp);
 		      } else if($s1.type == ReturnType.INT && $s3.type == ReturnType.FIXPT) {
 		        // Illegal assignment (fixpt to int)
-		        throw new InvalidTypeException("Assignment of fixedpt expression " + $s3.exp + " to int variable " + $s1.exp);
+		        throw new InvalidTypeException("Line " +
+		          (($s1.start != null)? $s1.start.getLine() : -1) +
+		          ": Assignment of fixedpt expression " + $s3.exp + " to int variable " + $s1.exp);
 		      }
 		      // Assignment statement
           IRList.add("assign, " + $s1.exp + $s2.exp + ", " + $s3.exp);
@@ -299,7 +303,9 @@ stat[String functionName]
 		      ReturnType rettype = symbolTableManager.getFunctionReturnType(parts[0]);
 		      if($s1.type == ReturnType.INT && rettype == ReturnType.FIXPT) {
 		        // (fixpt to int)
-            throw new InvalidTypeException("Assignment of fixedpt function " + parts[0] + " to int variable " + $s1.exp);
+            throw new InvalidTypeException("Line " +
+              (($s1.start != null)? $s1.start.getLine() : -1) +
+              ": Assignment of fixedpt function " + parts[0] + " to int variable " + $s1.exp);
 		      }
 		      IRList.add("callr, " + $s1.exp + ", " + parts[0] + ", " + parts[1]);
 		    }
@@ -318,7 +324,9 @@ stat[String functionName]
 		    Attribute att = symbolTableManager.getAttributeInGlobalScope($s1.exp);
         if(att == null) {
           // Function not declared yet
-          throw new UndeclaredFunctionException("Invocation of undeclared function: " + $s1.exp);
+          throw new UndeclaredFunctionException("Line " +
+            (($s1.start != null)? $s1.start.getLine() : -1) +
+            ": Invocation of undeclared function: " + $s1.exp);
         }
         // Verify that the function params match with the type for the function
         List<String> params = symbolTableManager.getFunctionParameters($s1.exp);
@@ -329,7 +337,9 @@ stat[String functionName]
             foundList.add(paramList.get(i));
           }
           String found = paramList.size() == 0 ? "[void]" : foundList.toString();
-          throw new InvalidInvocationException("Invalid invocation of function: [" + $s1.exp + "] Expected: " + expected + " Found: " + found);
+          throw new InvalidInvocationException("Line " +
+            (($s1.start != null)? $s1.start.getLine() : -1) +
+            ": Invalid invocation of function: [" + $s1.exp + "] Expected: " + expected + " Found: " + found);
         }
         for(int i = 0; i < params.size(); ++i) {
           if("int".equals(params.get(i)) && "fixedpt".equals(paramList.get(params.size() - i - 1))) {
@@ -339,12 +349,21 @@ stat[String functionName]
               foundList.add(paramList.get(j));
             }
             String found = paramList.size() == 0 ? "[void]" : foundList.toString();
-            throw new InvalidInvocationException("Invalid invocation of function: [" + $s1.exp + "] Expected: " + expected + " Found: " + found);
+            throw new InvalidInvocationException("Line " +
+              (($s1.start != null)? $s1.start.getLine() : -1) +
+              ": Invalid invocation of function: [" + $s1.exp + "] Expected: " + expected + " Found: " + found);
           }
         }
 		  }
 		)
-		| KEY_IF myIfCond=expr {if(!$myIfCond.myIsBool) throw new InvalidTypeException("Line: " + (($myIfCond.start != null)? $myIfCond.start.getLine() : -1) +". if statement conditions must resolve to a boolean value.");} 
+		| KEY_IF myIfCond=expr
+		  {
+		    if(!$myIfCond.myIsBool) {
+		      throw new InvalidTypeException("Line " +
+		        (($myIfCond.start != null)? $myIfCond.start.getLine() : -1) +
+		        ": if statement conditions must resolve to a boolean value.");
+		    } 
+		  }
       KEY_THEN statSeq[functionName]
     (
       KEY_ELSE statSeq[functionName]
@@ -354,6 +373,10 @@ stat[String functionName]
       KEY_DO statSeq[functionName] KEY_ENDDO
 		| KEY_FOR id[IdType.NIY] OP_ASSIGN indexExpr KEY_TO indexExpr KEY_DO statSeq[functionName] KEY_ENDDO
 		| KEY_BREAK
+		{
+		  // Cannot be in the function-level scope
+		  
+		}
 		| KEY_RETURN myReturnValue=expr
 	)
 	OP_SCOLON
@@ -366,7 +389,7 @@ optPrefix :
 	)?
 ;
 
-expr returns [String exp, ReturnType type, boolean myIsBool]:
+expr returns [String exp, ReturnType type, boolean myIsBool, boolean myIsFunc]:
   s1=binOp1
   (
     (
@@ -383,10 +406,18 @@ expr returns [String exp, ReturnType type, boolean myIsBool]:
     } else {
       if($s1.myIsBool == false || $s3.myIsBool == false){
         if(s2 != null) {
-          throw new InvalidTypeException("Line: " + (($s1.start != null)? $s1.start.getLine() : -1) +". Cannot use '|' on non-boolean values.");
+          throw new InvalidTypeException("Line " +
+            (($s1.start != null)? $s1.start.getLine() : -1) +
+            ": Cannot use '|' on non-boolean values.");
         } else {
-          throw new InvalidTypeException("Line: " + (($s1.start != null)? $s1.start.getLine() : -1) +". Cannot use '&' on non-boolean values.");
+          throw new InvalidTypeException("Line " +
+          (($s1.start != null)? $s1.start.getLine() : -1) +
+          ": Cannot use '&' on non-boolean values.");
         }
+      } else if($s1.myIsFunc || $s3.myIsFunc) {
+        throw new InvalidInvocationException("Line " +
+          (($s1.start != null)? $s1.start.getLine() : -1) +
+          ": Cannot perform operations on a function lvalue.");
       }
       $myIsBool = true;
       String temp = tvf.nextTemp();
@@ -435,7 +466,7 @@ funcExpr returns [String exp, ReturnType type]:
   }
 ;
 
-binOp1 returns [String exp, ReturnType type, boolean myIsBool]:
+binOp1 returns [String exp, ReturnType type, boolean myIsBool, boolean myIsFunc]:
   s1=binOp2
   (
     (
@@ -453,11 +484,19 @@ binOp1 returns [String exp, ReturnType type, boolean myIsBool]:
       $exp = $s1.exp;
       $type = $s1.type;
       $myIsBool = $s1.myIsBool;
+      $myIsFunc = $s1.myIsFunc;
     } else {
       if($s1.myIsBool == true || $s7.myIsBool == true){
-        throw new InvalidTypeException("Line: " + (($s1.start != null)? $s1.start.getLine() : -1) +". Cannot compare using a boolean value.");
+        throw new InvalidTypeException("Line " +
+          (($s1.start != null)? $s1.start.getLine() : -1) +
+          ": Cannot compare using a boolean value.");
+      } else if($s1.myIsFunc || $s7.myIsFunc) {
+        throw new InvalidInvocationException("Line " +
+          (($s1.start != null)? $s1.start.getLine() : -1) +
+          ": Cannot perform operations on a function lvalue.");
       }
       $myIsBool = true;
+      $myIsFunc = false;
       String temp = tvf.nextTemp();
       if(s2 != null) {
         IRList.add("leq, "    + $s1.exp + ", " + $s7.exp + ", " + temp);
@@ -524,7 +563,7 @@ funcBinOp1 returns [String exp, ReturnType type]:
   }
 ;
 
-binOp2 returns [String exp, ReturnType type, boolean myIsBool]:
+binOp2 returns [String exp, ReturnType type, boolean myIsBool, boolean myIsFunc]:
   s1=binOp3
   (
     (
@@ -538,15 +577,25 @@ binOp2 returns [String exp, ReturnType type, boolean myIsBool]:
       $exp = $s1.exp;
       $type = $s1.type;
       $myIsBool = $s1.myIsBool;
+      $myIsFunc = $s1.myIsFunc;
     } else {
       if($s1.myIsBool == true || $s3.myIsBool == true){
         if(s2 != null) {
-          throw new InvalidTypeException("Line: " + (($s1.start != null)? $s1.start.getLine() : -1) +". Cannot add using a boolean value.");
+          throw new InvalidTypeException("Line " +
+            (($s1.start != null)? $s1.start.getLine() : -1) +
+            ": Cannot add using a boolean value.");
         } else {
-          throw new InvalidTypeException("Line: " + (($s1.start != null)? $s1.start.getLine() : -1) +". Cannot subtract using a boolean value.");
+          throw new InvalidTypeException("Line " +
+            (($s1.start != null)? $s1.start.getLine() : -1) +
+            ": Cannot subtract using a boolean value.");
         }
+      } else if($s1.myIsFunc || $s3.myIsFunc) {
+        throw new InvalidInvocationException("Line " +
+          (($s1.start != null)? $s1.start.getLine() : -1) +
+          ": Cannot perform operations on a function rvalue.");
       }
       $myIsBool = false;
+      $myIsFunc = false;
       String temp = tvf.nextTemp();
       if(s2 != null) {
         IRList.add("add, " + $s1.exp + ", " + $s3.exp + ", " + temp);
@@ -593,7 +642,7 @@ funcBinOp2 returns [String exp, ReturnType type]:
   }
 ;
 
-binOp3 returns [String exp, ReturnType type, boolean myIsBool]:
+binOp3 returns [String exp, ReturnType type, boolean myIsBool, boolean myIsFunc]:
   s1=binOp4
   (
     (
@@ -607,15 +656,25 @@ binOp3 returns [String exp, ReturnType type, boolean myIsBool]:
       $exp = $s1.exp;
       $type = $s1.type;
       $myIsBool = $s1.myIsBool;
+      $myIsFunc = $s1.myIsFunc;
     } else {
-      if($s1.myIsBool == true || $s3.myIsBool == true){
+      if($s1.myIsBool || $s3.myIsBool){
         if(s2 != null) {
-          throw new InvalidTypeException("Line: " + (($s1.start != null)? $s1.start.getLine() : -1) +". Cannot divide using a boolean value.");
+          throw new InvalidTypeException("Line " +
+            (($s1.start != null)? $s1.start.getLine() : -1) +
+            ": Cannot divide using a boolean value.");
         } else {
-          throw new InvalidTypeException("Line: " + (($s1.start != null)? $s1.start.getLine() : -1) +". Cannot multiply using a boolean value.");
+          throw new InvalidTypeException("Line " +
+            (($s1.start != null)? $s1.start.getLine() : -1) +
+            ": Cannot multiply using a boolean value.");
         }
+      } else if($s1.myIsFunc || $s3.myIsFunc) {
+        throw new InvalidInvocationException("Line " +
+          (($s1.start != null)? $s1.start.getLine() : -1) +
+          ": Cannot perform operations on a function rvalue.");
       }
       $myIsBool = false;
+      $myIsFunc = false;
       String temp = tvf.nextTemp();
       if(s2 != null) {
         IRList.add("div, "  + $s1.exp + ", " + $s3.exp + ", " + temp);
@@ -662,30 +721,36 @@ funcBinOp3 returns [String exp, ReturnType type]:
   }
 ;
 
-binOp4 returns [String exp, ReturnType type, boolean myIsBool]
+binOp4 returns [String exp, ReturnType type, boolean myIsBool, boolean myIsFunc]
 @init
 {
   List<String> paramList = new ArrayList<String>();
+  $myIsBool = false;
+  $myIsFunc = false;
 }
 :
-  s1=constant                   {$exp = $s1.exp; $type = $s1.type; $myIsBool = false;}
+  s1=constant                   {$exp = $s1.exp; $type = $s1.type;}
   | OP_LPAREN s2=expr OP_RPAREN {$exp = $s2.exp; $type = $s2.type; $myIsBool = $expr.myIsBool;}
   | s3=id[IdType.NIY]
   (
-    s4=valueTail                                     {$exp = $s3.exp + $s4.exp; $type = $s3.type; $myIsBool = false;}
-    | OP_LPAREN s5=funcExprList[paramList] OP_RPAREN {$exp = $s3.exp + "#" + $s5.exp; $type = $s3.type; $myIsBool = false;}
+    s4=valueTail                                     {$exp = $s3.exp + $s4.exp; $type = $s3.type;}
+    | OP_LPAREN s5=funcExprList[paramList] OP_RPAREN {$exp = $s3.exp + "#" + $s5.exp; $type = $s3.type; $myIsFunc = true;}
   )
   {
     Attribute att = symbolTableManager.getAttributeInCurrentScope($s3.exp, attributeMap);
     if(att == null && $s5.exp == null) {
       // Variable not declared yet
-      throw new UndeclaredVariableException("Use of undeclared variable: " + $s3.exp);
+      throw new UndeclaredVariableException("Line " +
+        (($s1.start != null)? $s1.start.getLine() : -1) +
+        ": Use of undeclared variable: " + $s3.exp);
     } else if($s5.exp != null) {
       // Verify that the function exists
       att = symbolTableManager.getAttributeInGlobalScope($s3.exp);
       if(att == null) {
         // Function not declared yet
-        throw new UndeclaredFunctionException("Invocation of undeclared function: " + $s3.exp);
+        throw new UndeclaredFunctionException("Line " +
+          (($s1.start != null)? $s1.start.getLine() : -1) +
+          ": Invocation of undeclared function: " + $s3.exp);
       }
       // Verify that the function params match with the type for the function
       List<String> params = symbolTableManager.getFunctionParameters($s3.exp);
@@ -696,7 +761,9 @@ binOp4 returns [String exp, ReturnType type, boolean myIsBool]
           foundList.add(paramList.get(i));
         }
         String found = paramList.size() == 0 ? "[void]" : foundList.toString();
-        throw new InvalidInvocationException("Invalid invocation of function: [" + $s3.exp + "] Expected: " + expected + " Found: " + found);
+        throw new InvalidInvocationException("Line " +
+          (($s1.start != null)? $s1.start.getLine() : -1) +
+          ": Invalid invocation of function: [" + $s3.exp + "] Expected: " + expected + " Found: " + found);
       }
       for(int i = 0; i < params.size(); ++i) {
         if("int".equals(params.get(i)) && "fixedpt".equals(paramList.get(params.size() - i - 1))) {
@@ -706,7 +773,9 @@ binOp4 returns [String exp, ReturnType type, boolean myIsBool]
             foundList.add(paramList.get(j));
           }
           String found = paramList.size() == 0 ? "[void]" : foundList.toString();
-          throw new InvalidInvocationException("Invalid invocation of function: [" + $s3.exp + "] Expected: " + expected + " Found: " + found);
+          throw new InvalidInvocationException("Line " +
+            (($s1.start != null)? $s1.start.getLine() : -1) +
+            ": Invalid invocation of function: [" + $s3.exp + "] Expected: " + expected + " Found: " + found);
         }
       }
     }
@@ -721,7 +790,9 @@ funcBinOp4 returns [String exp, ReturnType type]:
     Attribute att = symbolTableManager.getAttributeInCurrentScope($s3.exp, attributeMap);
     if(att == null) {
       // Variable not declared yet
-      throw new UndeclaredVariableException("Use of undeclared variable: " + $s3.exp);
+      throw new UndeclaredVariableException("Line " +
+        (($s1.start != null)? $s1.start.getLine() : -1) + 
+        ": Use of undeclared variable: " + $s3.exp);
     }
   }
 ;
@@ -805,11 +876,15 @@ indexExpr3 returns [String exp]:
     Attribute att = symbolTableManager.getAttributeInCurrentScope($id.exp, attributeMap);
     if(att == null) {
       // Variable not declared yet
-      throw new UndeclaredVariableException("Use of undeclared variable: " + $id.exp);
+      throw new UndeclaredVariableException("Line " +
+        (($id.start != null)? $id.start.getLine() : -1) +
+        ": Use of undeclared variable: " + $id.exp);
     }
     if(!"int".equals($id.type)) {
       // Invalid type (must be int)
-      throw new InvalidTypeException("Use of fixedpt variable in array index expression: " + $id.exp);
+      throw new InvalidTypeException("Line " +
+        (($id.start != null)? $id.start.getLine() : -1) +
+        ": Use of fixedpt variable in array index expression: " + $id.exp);
     }
   }
 ;
