@@ -1,9 +1,9 @@
-int function func2(v : int, w : fixedpt)
+fixedpt function func2(v : int, w : fixedpt)
 begin
 	begin
 		var n : int := 5;
 		n := 8 - 3;
-		return 6;
+		return 6.7;
 	end;
 end;
 
@@ -30,7 +30,7 @@ begin
 		var x : int := 10;
 		var y : fixedpt := 98.45;
 		func();
-		x := func2(5, 7.3);
+		x := func2();
 		func3();
 		x := 2 * 3 + 5;
 	end;
