@@ -1,18 +1,26 @@
-
-fixedpt function myFunc(a : int, b : string) 
+int function funcName16()
 begin
 	begin
-		var z : fixedpt := 10.0;
-		return z;
-	end;
-end;
-
-int function myFunc2() 
-begin
-	begin
-		var z : int := 10;
-		z := 2;
-		return 1;
+		var a, b : int :=0;
+		if a = b then
+			a := 1;
+			/*return a;*/
+			if a = b then
+				if a = b then
+					return 5;
+				else 
+					if a = b then
+						return 1;
+					endif;
+					return 0;
+				endif;
+			else
+				a := 1;	
+				return a;		
+			endif;
+		else
+			return b;
+		endif;
 	end;
 end;
 

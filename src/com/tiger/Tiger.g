@@ -188,7 +188,14 @@ afterBegin[String myFunctionName, ReturnType returnType]
 ;
 
 mainFunction [ReturnType returnType]:
-  a=KEY_MAIN OP_LPAREN OP_RPAREN key_begin blockList[$a.text] key_end OP_SCOLON EOF
+  a=KEY_MAIN OP_LPAREN OP_RPAREN 
+  {
+	  putFunctionNameAttributeMap($KEY_MAIN.text,
+	                              ReturnType.VOID,
+	                              new ArrayList<String>());
+	  enclosingFunctionName = $KEY_MAIN.text;
+  }
+  key_begin blockList[$a.text] key_end OP_SCOLON EOF
 ;
 
 retType :
