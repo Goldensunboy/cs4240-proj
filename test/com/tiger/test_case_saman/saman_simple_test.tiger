@@ -1,10 +1,9 @@
 
-int function myFunc(a : int, b : string) 
+fixedpt function myFunc(a : int, b : string) 
 begin
 	begin
-		var z : int := 10;
-		z := 2;
-		return 2.1;
+		var z : fixedpt := 10.0;
+		return z;
 	end;
 end;
 
@@ -13,6 +12,7 @@ begin
 	begin
 		var z : int := 10;
 		z := 2;
+		return 1;
 	end;
 end;
 

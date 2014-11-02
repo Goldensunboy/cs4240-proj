@@ -122,6 +122,16 @@ import com.exception.TypeMismatchException;
   private int getLineNumber(ParserRuleReturnScope token) {
     return token.start.getLine();
   }
+  
+  private void makeNewScope() {
+	  symbolTableManager.makeNewScope(attributeMap, enclosingFunctionName);
+	  attributeMap.clear();
+  }
+  
+  private void goToEnclosingScope() {
+    symbolTableManager.goToEnclosingScope(attributeMap);
+    attributeMap.clear();
+  }
 }
 
 tigerProgram :
@@ -164,7 +174,17 @@ afterBegin[String myFunctionName, ReturnType returnType]
   enclosingFunctionName = myFunctionName;
 }
 :
-  key_begin blockList[myFunctionName] key_end OP_SCOLON
+  key_begin blockList[myFunctionName] 
+  {
+    if(!symbolTableManager.returnStatementSatisfied(myFunctionName)) {
+      String customMessage = "Mismatch return statement for function " + myFunctionName;
+      ReturnType expectedReturnType = symbolTableManager.getReturnType();
+      ReturnType actualReturnType = symbolTableManager.getCurrentScopeReturnType();
+      exceptionHandler.handleException(null, customMessage, expectedReturnType.getName(), 
+                                       actualReturnType.getName(), TypeMismatchException.class);
+    }
+  }
+  key_end OP_SCOLON
 ;
 
 mainFunction [ReturnType returnType]:
@@ -274,11 +294,12 @@ optionalInit :
 	)?
 ;
 
-statSeq[String functionName] :
+statSeq[String functionName] 
+:
 	stat[functionName]+
 ;
 
-stat[String functionName]
+stat[String functionName] returns [ReturnType statReturnType]
 @init
 {
   List<String> paramList = new ArrayList<String>();
@@ -365,19 +386,42 @@ stat[String functionName]
         }
 		  }
 		)
-		| KEY_IF myIfCond=expr
+		| KEY_IF 
+		{
+		  ReturnType ifReturnType=ReturnType.VOID, elseReturnType=ReturnType.VOID;
+		  makeNewScope();
+		}
+		myIfCond=expr
 		  {
 		    if(!$myIfCond.myIsBool) {
-		      throw new InvalidTypeException("Line " +
-		        (($myIfCond.start != null)? $myIfCond.start.getLine() : -1) +
-		        ": if statement conditions must resolve to a boolean value.");
+			    int lineNumber = getLineNumber(myReturnValue);
+			    String customMessage = "If statement conditions must resolve to a boolean value";
+	        exceptionHandler.handleException(lineNumber, customMessage, null, 
+                                          null,InvalidTypeException.class);
 		    } 
 		  }
       KEY_THEN statSeq[functionName]
+      {
+        ifReturnType = symbolTableManager.getCurrentScopeReturnType();
+      }
     (
-      KEY_ELSE statSeq[functionName]
+      {
+        goToEnclosingScope();
+      }
+      KEY_ELSE 
+      {
+        makeNewScope();
+      }
+      statSeq[functionName]
+      {
+        elseReturnType = symbolTableManager.getCurrentScopeReturnType();
+      }
     )?
     KEY_ENDIF
+    {
+      goToEnclosingScope();
+      symbolTableManager.setCurrentScopeReturnType(ifReturnType == elseReturnType? ifReturnType : ReturnType.VOID);
+    }
 		| KEY_WHILE myWhileCond=expr {if(!$myWhileCond.myIsBool) throw new InvalidTypeException("Line: " + (($myWhileCond.start != null)? $myWhileCond.start.getLine() : -1) +". while conditional statements must resolve to a boolean value.");} 
       KEY_DO statSeq[functionName] KEY_ENDDO
 		| KEY_FOR id[IdType.NIY] OP_ASSIGN indexExpr KEY_TO indexExpr KEY_DO statSeq[functionName] KEY_ENDDO
@@ -388,12 +432,17 @@ stat[String functionName]
 		}
 		| KEY_RETURN myReturnValue=expr
 		{
-		  ReturnType returnType = symbolTableManager.getReturnType();
-		  if($myReturnValue.type != returnType) {
+		  ReturnType expectedReturnType = symbolTableManager.getReturnType();
+		  ReturnType actualReturnType = $myReturnValue.type;
+		  if(actualReturnType != expectedReturnType) {
 		    int lineNumber = getLineNumber(myReturnValue);
-		    exceptionHandler.handleException(lineNumber, "Type doesn't match the expected return type", 
-		                                      returnType.getName(), $myReturnValue.type.getName(), 
+		    String customMessage = "Type doesn't match the expected return type";
+		    exceptionHandler.handleException(lineNumber, customMessage, 
+		                                      expectedReturnType.getName(), 
+		                                      actualReturnType.getName(), 
 		                                      TypeMismatchException.class);
+		  } else {
+		    symbolTableManager.setCurrentScopeReturnType(actualReturnType);
 		  }
 		}
 	)
@@ -888,21 +937,23 @@ indexExpr2 returns [String exp]:
 
 indexExpr3 returns [String exp]:
   INTLIT {$exp = $INTLIT.text;}
-  | id[IdType.NIY]
+  | myId=id[IdType.NIY]
   {
     $exp = $id.exp;
     Attribute att = symbolTableManager.getAttributeInCurrentScope($id.exp, attributeMap);
     if(att == null) {
       // Variable not declared yet
-      throw new UndeclaredVariableException("Line " +
-        (($id.start != null)? $id.start.getLine() : -1) +
-        ": Use of undeclared variable: " + $id.exp);
+      int lineNumber = getLineNumber(myId);
+      String customMessage = "Use of undeclared variable: \"" + $id.exp + "\""; 
+      exceptionHandler.handleException(lineNumber, customMessage, null, null, 
+                                       UndeclaredVariableException.class);
     }
     if(!"int".equals($id.type)) {
       // Invalid type (must be int)
-      throw new InvalidTypeException("Line " +
-        (($id.start != null)? $id.start.getLine() : -1) +
-        ": Use of fixedpt variable in array index expression: " + $id.exp);
+      int lineNumber = getLineNumber(myId);
+      String customMessage = "Use of fixedpt variable in array index expression: \"" + $id.exp + "\""; 
+      exceptionHandler.handleException(lineNumber, customMessage, null, null, 
+                                       InvalidTypeException.class);
     }
   }
 ;
@@ -969,8 +1020,7 @@ funcExprListTail[List<String> paramList] returns [String exp]:
 
 key_begin
   @init{
-  symbolTableManager.makeNewScope(attributeMap, enclosingFunctionName);
-  attributeMap.clear();
+    makeNewScope();
   }
   : 
   'begin'    
@@ -978,8 +1028,7 @@ key_begin
 
 key_end
   @init{
-  symbolTableManager.goToEnclosingScope(attributeMap);
-  attributeMap.clear();
+    goToEnclosingScope();
   }
   : 'end'
 ;
@@ -1046,7 +1095,7 @@ id[IdType idType] returns [String exp, ReturnType type]:
     Attribute att = symbolTableManager.getAttributeInCurrentScope($ID.text, attributeMap);
     if(att != null) {
       $type = "int".equals(att.getType())   ? ReturnType.INT   :
-              "fixpt".equals(att.getType()) ? ReturnType.FIXPT :
+              "fixedpt".equals(att.getType()) ? ReturnType.FIXPT :
                                               ReturnType.OTHER ;
     } else {
       $type = ReturnType.OTHER;

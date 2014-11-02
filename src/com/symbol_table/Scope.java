@@ -7,17 +7,20 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.attribute.Attribute;
+import com.compiler.ReturnType;
 
 public class Scope {
 	private String enclosingFunctionName;
 	private int scopeId;
 	private Scope enclosingScope;
 	private Map<String, List<Symbol>> symbolMap = new LinkedHashMap<>();
+	private ReturnType returnType;
 	
 	public Scope(Scope enclosingScope, int scopeId, String enclosingFunctionName){
 		this.enclosingScope = enclosingScope;
 		this.scopeId = scopeId;
-		this.setEnclosingFunctionName(enclosingFunctionName);
+		this.enclosingFunctionName = enclosingFunctionName;
+		returnType = ReturnType.VOID;
 	}
 	
 	/**
@@ -75,5 +78,13 @@ public class Scope {
 
 	public void setEnclosingFunctionName(String enclosingFunctionName) {
 		this.enclosingFunctionName = enclosingFunctionName;
+	}
+
+	public ReturnType getReturnType() {
+		return returnType;
+	}
+
+	public void setReturnType(ReturnType returnType) {
+		this.returnType = returnType;
 	}
 }

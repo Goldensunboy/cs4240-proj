@@ -29,8 +29,7 @@ public class ExceptionHandler {
 		Constructor<? extends RuntimeException> constructor = getConstructor(exceptionClass);
 		try {
 			StringBuilder errorMessage = new StringBuilder();
-			errorMessage.append(lineNumber == null ? "" : "Line " + lineNumber);
-			errorMessage.append(" :: ");
+			errorMessage.append(lineNumber == null ? "" : "Line " + lineNumber + " :: ");
 			errorMessage.append(customMessage == null ? exceptionClass.getAnnotation(DefaultErrorMessage.class).value() : customMessage);
 			errorMessage.append(".");
 			

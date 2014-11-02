@@ -69,7 +69,13 @@ public class SymbolTableManager {
 			}
 		}
 		
+		ReturnType returnType = currentScope.getReturnType();
+		
 		currentScope = currentScope.getEnclosingScope();
+		if (currentScope != null) {			
+			currentScope.setReturnType(returnType);
+		}
+		
 		return currentScope;
 	}
 	
@@ -193,5 +199,18 @@ public class SymbolTableManager {
 		String functionName = currentScope.getEnclosingFunctionName();
 		FunctionNameAttribute functionNameAttribute = getFunctionAttribute(functionName);
 		return functionNameAttribute.getReturnType();
+	}
+	
+	public ReturnType getCurrentScopeReturnType() {
+		return currentScope.getReturnType();
+	}
+	
+	public boolean returnStatementSatisfied(String functionName) {
+		ReturnType returnType = getReturnType();
+		return returnType == currentScope.getReturnType();
+	}
+	
+	public void setCurrentScopeReturnType(ReturnType returnType) {
+		currentScope.setReturnType(returnType);
 	}
 }
