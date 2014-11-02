@@ -6,30 +6,59 @@ import org.antlr.runtime.TokenStream;
 
 import com.antlr.generated.TigerLexer;
 import com.antlr.generated.TigerParser;
+import com.exception.ParserCreationException;
 
 public class TigerCompiler{
+	private TigerParser parser;
+	private CompilerErrorReport errorReport = CompilerErrorReport.NO_ERROR;
 	public void compile(String expression) {
 		ANTLRStringStream input = new ANTLRStringStream(expression);
 		TigerLexer lexer = new TigerLexer(input);
 		TokenStream tokens = new CommonTokenStream(lexer);
 
-		TigerParser parser = new TigerParser(tokens);
+		parser = new TigerParser(tokens);
 		try {
 			parser.tigerProgram();
 			if (lexer.getErrorFlag()){
-				System.out.println("Finished with lexer error(s)");
+				errorReport = CompilerErrorReport.LEXER_ERROR;
 			} else if(parser.getErrorFlag()) {
-				System.out.println("Finished with parser error(s)");
-			} else {
-				//parser.printAttributeMap();
-				//parser.printTheNameSpace();
-				parser.printTheIRCode();
-				System.out.println("Successfully parsed");
+				errorReport = CompilerErrorReport.PARSER_ERROR;
 			}
-
+			
 		} catch (RecognitionException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			throw new ParserCreationException(e.getMessage());
 		}
+	}
+	
+	public TigerParser getTigerParser() {
+		return parser;
+	}
+	
+	public CompilerErrorReport getErrorReport() {
+		return errorReport;
+	}
+	
+	public enum CompilerErrorReport {
+		LEXER_ERROR("Finished with lexer error(s)", true),
+		PARSER_ERROR("Finished with parser error(s)", true),
+		NO_ERROR("Successfully parsed", false);
+		
+		private String errorMessage; 
+		private boolean hasError;
+		CompilerErrorReport(String errorMessage, boolean hasError) {
+			this.errorMessage = errorMessage;
+			this.hasError = hasError;
+		}
+		
+		public String getErrorReportMessage() {
+			return errorMessage;
+		}
+		
+		public boolean hasError() {
+			return hasError;
+		}
+		
 	}
 }

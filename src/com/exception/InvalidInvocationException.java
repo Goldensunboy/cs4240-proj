@@ -1,7 +1,9 @@
 package com.exception;
 
 @SuppressWarnings("serial")
-public class InvalidInvocationException extends RuntimeException{
+@DefaultErrorMessage("Invalid invocation")
+public class InvalidInvocationException extends RuntimeException{	
+	
 	public InvalidInvocationException(String msg) {
 		super(msg);
 	}

@@ -9,13 +9,15 @@ import java.util.Map.Entry;
 import com.attribute.Attribute;
 
 public class Scope {
+	private String enclosingFunctionName;
 	private int scopeId;
 	private Scope enclosingScope;
 	private Map<String, List<Symbol>> symbolMap = new LinkedHashMap<>();
 	
-	public Scope(Scope enclosingScope, int scopeId){
+	public Scope(Scope enclosingScope, int scopeId, String enclosingFunctionName){
 		this.enclosingScope = enclosingScope;
 		this.scopeId = scopeId;
+		this.setEnclosingFunctionName(enclosingFunctionName);
 	}
 	
 	/**
@@ -65,5 +67,13 @@ public class Scope {
 	
 	public Map<String, List<Symbol>> getSymbolMap() {
 		return symbolMap;
+	}
+
+	public String getEnclosingFunctionName() {
+		return enclosingFunctionName;
+	}
+
+	public void setEnclosingFunctionName(String enclosingFunctionName) {
+		this.enclosingFunctionName = enclosingFunctionName;
 	}
 }

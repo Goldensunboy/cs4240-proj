@@ -32,6 +32,8 @@ import com.exception.InvalidTypeException;
 import com.exception.InvalidInvocationException;
 import com.exception.UndeclaredFunctionException;
 import com.exception.UndeclaredVariableException;
+import com.exception.ExceptionHandler;
+import com.exception.TypeMismatchException;
 /**************************************/
 
 }
@@ -56,6 +58,8 @@ import com.exception.UndeclaredVariableException;
   private NameSpaceManager nameSpaceManager = new NameSpaceManager();
   private ArrayList<String> IRList = new ArrayList<String>();
   private TempVarFactory tvf = new TempVarFactory();
+  private String enclosingFunctionName;
+  private ExceptionHandler exceptionHandler = new ExceptionHandler();
 
   private void putVariableNameAttributeMap(List<String> variableNameList, String type, String declaringFunctionName) {
     for (String variableName : variableNameList) {
@@ -72,12 +76,12 @@ import com.exception.UndeclaredVariableException;
   public void printAttributeMap() {
     for (Entry<String, List<Symbol>> attr : symbolTableManager.getSymbolTable().entrySet()){
       for (Symbol symbol : attr.getValue() ) {
-        System.out.println(symbol + " :: Have access to: " + showAllReachableAttribute(symbol.getScope())); // TODO debug, delete me
+        System.out.println(symbol + " :: Have access to: " + showAllReachableAttributes(symbol.getScope())); // TODO debug, delete me
       }
     }
   }
 
-  public String showAllReachableAttribute(Scope scope) {
+  public String showAllReachableAttributes(Scope scope) {
     String temp = "";
     while (scope != null) {
       for(Entry<String, List<Symbol>> symbolListEntry : scope.getSymbolMap().entrySet()) {
@@ -113,6 +117,10 @@ import com.exception.UndeclaredVariableException;
   
   public List<String> getIRList() {
     return IRList;
+  }
+  
+  private int getLineNumber(ParserRuleReturnScope token) {
+    return token.start.getLine();
   }
 }
 
@@ -153,6 +161,7 @@ afterBegin[String myFunctionName, ReturnType returnType]
   putFunctionNameAttributeMap(myFunctionName,
                               returnType,
                               $funcDeclaration::myParams);
+  enclosingFunctionName = myFunctionName;
 }
 :
   key_begin blockList[myFunctionName] key_end OP_SCOLON
@@ -379,7 +388,13 @@ stat[String functionName]
 		}
 		| KEY_RETURN myReturnValue=expr
 		{
-		  
+		  ReturnType returnType = symbolTableManager.getReturnType();
+		  if($myReturnValue.type != returnType) {
+		    int lineNumber = getLineNumber(myReturnValue);
+		    exceptionHandler.handleException(lineNumber, "Type doesn't match the expected return type", 
+		                                      returnType.getName(), $myReturnValue.type.getName(), 
+		                                      TypeMismatchException.class);
+		  }
 		}
 	)
 	OP_SCOLON
@@ -954,8 +969,7 @@ funcExprListTail[List<String> paramList] returns [String exp]:
 
 key_begin
   @init{
-  System.out.println(attributeMap);
-  symbolTableManager.makeNewScope(attributeMap);
+  symbolTableManager.makeNewScope(attributeMap, enclosingFunctionName);
   attributeMap.clear();
   }
   : 

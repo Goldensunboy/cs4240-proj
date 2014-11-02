@@ -21,7 +21,7 @@ import com.exception.NameSpaceConflictException;
 public class SymbolTableManager {
 	
 	// used for global types and function names
-	private Scope globalScope = new Scope(null, -1);
+	private Scope globalScope = new Scope(null, -1, null);
 	
 	private Scope currentScope;	
 	private int scopeId = 0;
@@ -37,14 +37,14 @@ public class SymbolTableManager {
 	 * key.   
 	 * @return the newly made scope 
 	 */
-	public Scope makeNewScope(Map<String, Attribute> attributeMaps) {
+	public Scope makeNewScope(Map<String, Attribute> attributeMaps, String enclosingFunctionName) {
 		if(currentScope != null){
 			symbolTable.putAll(currentScope.putInScope(attributeMaps));			
 		} else {
 			symbolTable.putAll(globalScope.putInScope(attributeMaps));
 		}
 
-		Scope newScope = new Scope(currentScope, scopeId++);
+		Scope newScope = new Scope(currentScope, scopeId++, enclosingFunctionName);
 		currentScope = newScope;
 		return currentScope;
 	}
@@ -184,5 +184,14 @@ public class SymbolTableManager {
 	
 	public Scope getCurrentScope() {
 		return currentScope;
+	}
+	
+	/**
+	 * return the return type of the current scope's function
+	 */
+	public ReturnType getReturnType() {
+		String functionName = currentScope.getEnclosingFunctionName();
+		FunctionNameAttribute functionNameAttribute = getFunctionAttribute(functionName);
+		return functionNameAttribute.getReturnType();
 	}
 }
