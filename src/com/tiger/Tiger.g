@@ -332,6 +332,13 @@ stat[String functionName] returns [ReturnType statReturnType]
 		          (($s1.start != null)? $s1.start.getLine() : -1) +
 		          ": Assignment of fixedpt expression " + $s3.exp + " to int variable " + $s1.exp);
 		      }
+		      //Cannot assign a conditional to a variable
+		      if($s3.myIsBool) {
+	          int lineNumber = getLineNumber(s3);
+	          String customMessage = "Boolean values cannot be assigned to a variable.";
+	          exceptionHandler.handleException(lineNumber, customMessage, null, 
+	                                          null,InvalidTypeException.class);
+		      }
 		      // Assignment statement
           IRList.add("assign, " + $s1.exp + $s2.exp + ", " + $s3.exp);
 		    } else {
@@ -347,7 +354,7 @@ stat[String functionName] returns [ReturnType statReturnType]
 		      IRList.add("callr, " + $s1.exp + ", " + parts[0] + ", " + parts[1]);
 		    }
 		  }
-		  | OP_LPAREN s4=exprList[paramList] OP_RPAREN
+		  | OP_LPAREN s4=funcExprList[paramList] OP_RPAREN
 		  {
 		    // Lone function call
 		    if("".equals($s4.exp)) {
@@ -441,12 +448,12 @@ stat[String functionName] returns [ReturnType statReturnType]
 		{
 		  ReturnType expectedReturnType = symbolTableManager.getReturnType();
 		  ReturnType actualReturnType = $myReturnValue.type;
-		  if(actualReturnType != expectedReturnType) {
+		  if(actualReturnType != expectedReturnType || $myReturnValue.myIsBool) {
 		    int lineNumber = getLineNumber(myReturnValue);
 		    String customMessage = "Type doesn't match the expected return type";
 		    exceptionHandler.handleException(lineNumber, customMessage, 
 		                                      expectedReturnType.getName(), 
-		                                      actualReturnType.getName(), 
+		                                      ($myReturnValue.myIsBool)? "boolean":actualReturnType.getName(), 
 		                                      TypeMismatchException.class);
 		  } else {
 		    symbolTableManager.setCurrentScopeReturnType(actualReturnType);
@@ -467,8 +474,8 @@ expr returns [String exp, ReturnType type, boolean myIsBool, boolean myIsFunc]:
   s1=binOp1
   (
     (
-      s2=OP_OR
-      | OP_AND
+      s2=OP_AND
+      | OP_OR
     )
     s3=expr
   )?
@@ -482,11 +489,11 @@ expr returns [String exp, ReturnType type, boolean myIsBool, boolean myIsFunc]:
         if(s2 != null) {
           throw new InvalidTypeException("Line " +
             (($s1.start != null)? $s1.start.getLine() : -1) +
-            ": Cannot use '|' on non-boolean values.");
+            ": Cannot use '&' on non-boolean values.");
         } else {
           throw new InvalidTypeException("Line " +
           (($s1.start != null)? $s1.start.getLine() : -1) +
-          ": Cannot use '&' on non-boolean values.");
+          ": Cannot use '|' on non-boolean values.");
         }
       } else if($s1.myIsFunc || $s3.myIsFunc) {
         throw new InvalidInvocationException("Line " +
@@ -510,7 +517,7 @@ expr returns [String exp, ReturnType type, boolean myIsBool, boolean myIsFunc]:
   }
 ;
 
-funcExpr returns [String exp, ReturnType type]:
+funcExpr returns [String exp, ReturnType type, boolean myIsBool]:
   s1=funcBinOp1
   (
     (
@@ -523,7 +530,20 @@ funcExpr returns [String exp, ReturnType type]:
     if($s3.exp == null) {
       $exp = $s1.exp;
       $type = $s1.type;
+      $myIsBool = $s1.myIsBool;
     } else {
+      if($s1.myIsBool == false || $s3.myIsBool == false){
+        if(s2 != null) {
+          throw new InvalidTypeException("Line " +
+            (($s1.start != null)? $s1.start.getLine() : -1) +
+            ": Cannot use '&' on non-boolean values.");
+        } else {
+          throw new InvalidTypeException("Line " +
+          (($s1.start != null)? $s1.start.getLine() : -1) +
+          ": Cannot use '|' on non-boolean values.");
+        }
+      }
+      $myIsBool = true;
       String temp = tvf.nextTemp();
       if(s2 != null) {
         IRList.add("and, " + $s1.exp + ", " + $s3.exp + ", " + temp);
@@ -595,7 +615,7 @@ binOp1 returns [String exp, ReturnType type, boolean myIsBool, boolean myIsFunc]
   }
 ;
 
-funcBinOp1 returns [String exp, ReturnType type]:
+funcBinOp1 returns [String exp, ReturnType type, boolean myIsBool]:
   s1=funcBinOp2
   (
     (
@@ -612,7 +632,14 @@ funcBinOp1 returns [String exp, ReturnType type]:
     if($s7.exp == null) {
       $exp = $s1.exp;
       $type = $s1.type;
+      $myIsBool = $s1.myIsBool;
     } else {
+      if($s1.myIsBool == true || $s7.myIsBool == true){
+        throw new InvalidTypeException("Line " +
+          (($s1.start != null)? $s1.start.getLine() : -1) +
+          ": Cannot compare using a boolean value.");
+      }
+      $myIsBool = true;
       String temp = tvf.nextTemp();
       if(s2 != null) {
         IRList.add("leq, "    + $s1.exp + ", " + $s7.exp + ", " + temp);
@@ -686,7 +713,7 @@ binOp2 returns [String exp, ReturnType type, boolean myIsBool, boolean myIsFunc]
   }
 ;
 
-funcBinOp2 returns [String exp, ReturnType type]:
+funcBinOp2 returns [String exp, ReturnType type, boolean myIsBool]:
   s1=funcBinOp3
   (
     (
@@ -699,7 +726,20 @@ funcBinOp2 returns [String exp, ReturnType type]:
     if($s3.exp == null) {
       $exp = $s1.exp;
       $type = $s1.type;
+      $myIsBool = $s1.myIsBool;
     } else {
+      if($s1.myIsBool == true || $s3.myIsBool == true){
+        if(s2 != null) {
+          throw new InvalidTypeException("Line " +
+            (($s1.start != null)? $s1.start.getLine() : -1) +
+            ": Cannot add using a boolean value.");
+        } else {
+          throw new InvalidTypeException("Line " +
+            (($s1.start != null)? $s1.start.getLine() : -1) +
+            ": Cannot subtract using a boolean value.");
+        }
+      }
+      $myIsBool = false;
       String temp = tvf.nextTemp();
       if(s2 != null) {
         IRList.add("add, " + $s1.exp + ", " + $s3.exp + ", " + temp);
@@ -765,7 +805,7 @@ binOp3 returns [String exp, ReturnType type, boolean myIsBool, boolean myIsFunc]
   }
 ;
 
-funcBinOp3 returns [String exp, ReturnType type]:
+funcBinOp3 returns [String exp, ReturnType type, boolean myIsBool]:
   s1=funcBinOp4
   (
     (
@@ -778,7 +818,20 @@ funcBinOp3 returns [String exp, ReturnType type]:
     if($s3.exp == null) {
       $exp = $s1.exp;
       $type = $s1.type;
+      $myIsBool = $s1.myIsBool;
     } else {
+      if($s1.myIsBool || $s3.myIsBool){
+        if(s2 != null) {
+          throw new InvalidTypeException("Line " +
+            (($s1.start != null)? $s1.start.getLine() : -1) +
+            ": Cannot divide using a boolean value.");
+        } else {
+          throw new InvalidTypeException("Line " +
+            (($s1.start != null)? $s1.start.getLine() : -1) +
+            ": Cannot multiply using a boolean value.");
+        }
+      }
+      $myIsBool = false;
       String temp = tvf.nextTemp();
       if(s2 != null) {
         IRList.add("div, "  + $s1.exp + ", " + $s3.exp + ", " + temp);
@@ -856,10 +909,10 @@ binOp4 returns [String exp, ReturnType type, boolean myIsBool, boolean myIsFunc]
   }
 ;
 
-funcBinOp4 returns [String exp, ReturnType type]:
-  s1=constant                      {$exp = $s1.exp; $type = $s1.type;}
-  | OP_LPAREN s2=expr OP_RPAREN    {$exp = $s2.exp; $type = $s2.type;}
-  | s3=id[IdType.NIY] s4=valueTail {$exp = $s3.exp + $s4.exp; $type = $s3.type;}
+funcBinOp4 returns [String exp, ReturnType type, boolean myIsBool]:
+  s1=constant                      {$exp = $s1.exp; $type = $s1.type; $myIsBool = false;}
+  | OP_LPAREN s2=expr OP_RPAREN    {$exp = $s2.exp; $type = $s2.type; $myIsBool = $expr.myIsBool;}
+  | s3=id[IdType.NIY] s4=valueTail {$exp = $s3.exp + $s4.exp; $type = $s3.type; $myIsBool = false;}
   {
     Attribute att = symbolTableManager.getAttributeInCurrentScope($s3.exp, attributeMap);
     if(att == null) {
@@ -992,6 +1045,12 @@ funcExprList[List<String> paramList] returns [String exp]:
       $exp = "";
     } else {
       $exp = $s1.exp + $s2.exp;
+      if($s1.myIsBool) {
+          int lineNumber = getLineNumber(s1);
+          String customMessage = "Cannot pass in a boolean value as a parameter";
+          exceptionHandler.handleException(lineNumber, customMessage, null, 
+                                          null,InvalidTypeException.class);
+      }
       paramList.add($s1.type == ReturnType.INT ? "int" : "fixedpt");
     }
   }
