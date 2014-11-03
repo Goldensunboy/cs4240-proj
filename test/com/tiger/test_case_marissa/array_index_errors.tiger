@@ -1,0 +1,119 @@
+type ArrayInt = array [100] of int;
+type Array2DInt = array [100][100] of int;
+
+int function testFunc() 
+begin
+	begin
+		var a, b : int :=0;
+		return a;
+	end;
+end; 
+
+int function testFunc2(x:int) 
+begin
+	begin
+		var a, b : int :=0;
+		return a;
+	end;
+end; 
+
+/* array indexes should not be negative */ /*
+void function func1()
+begin
+	begin
+		var X : ArrayInt := 10;
+		var i : int := 0;
+		i := X[-1];
+	end;
+end; */
+
+/* TODO: array indexes should not be greater than the length of the array */ 
+void function func2()
+begin
+	begin
+		var X : ArrayInt := 10;
+		var i : int := 0;
+		i := X[100];
+	end;
+end; 
+
+/* TODO: array indexes should not be greater than the length of the array */ 
+void function func3()
+begin
+	begin
+		var X : Array2DInt := 10;
+		var i : int := 0;
+		i := X[100][1000];
+	end;
+end; 
+
+/* array indexes should not be fixed point numbers */ /*
+void function func4()
+begin
+	begin
+		var X : ArrayInt := 10;
+		var i : int := 0;
+		i := X[5.0];
+	end;
+end; */
+
+/* array indexes should not be fixed point numbers */ /*
+void function func5()
+begin
+	begin
+		var X : ArrayInt := 10;
+		var i : int := 0;
+		var f : fixedpt := 0;
+		i := X[f];
+	end;
+end; */
+
+/* array indexes should not be function calls */ /*
+void function func6()
+begin
+	begin
+		var X : ArrayInt := 10;
+		var i : int := 0;
+		i := X[testFunc()];
+	end;
+end;*/
+
+/* TODO: arrays should not be used without an index. Not type compatible*/ 
+void function func7()
+begin
+	begin
+		var X : ArrayInt := 10;
+		var i : int := 0;
+		i := X;
+	end;
+end;
+
+/* TODO!!!!!!!!!!!! arrays should not be used without an index. Wrong error message */ /*
+void function func8()
+begin
+	begin
+		var X : ArrayInt := 10;
+		var a : int := 0;
+		for i := 1 to X do
+			 break;
+		enddo;
+	end;
+end; */
+
+/* TODO: arrays should not be used with aggregate operations */ 
+void function func9()
+begin
+	begin
+		var X : ArrayInt := 10;
+		var i : int := 0;
+		i := X*8;
+	end;
+end;
+
+void main()
+begin
+	begin
+		var x : int := 10;
+		x := 2;
+	end;
+end;

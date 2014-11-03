@@ -1,0 +1,36 @@
+
+/* function called a reserved word should not be allowed */ /*
+void function function()
+begin
+	begin
+		var x : fixedpt :=0;
+		x := 3;
+	end;
+end; */
+
+/* variable named a reserved word should not be allowed */ /*
+void function func2()
+begin
+	begin
+		var then : fixedpt :=0;
+		then := 3;
+	end;
+end; */
+
+/* type named a reserved word should not be allowed */ /*
+void function func3()
+begin
+	begin
+		type main = int;
+		var id : fixedpt :=0;
+		id := 3;
+	end;
+end; */
+
+void main()
+begin
+	begin
+		var x : int := 10;
+		x := 2;
+	end;
+end;

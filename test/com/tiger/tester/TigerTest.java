@@ -21,6 +21,8 @@ public class TigerTest {
 	public static void main(String[] args) throws RecognitionException {
 		
 		String developerName = System.getProperty("user.name");
+		if (developerName.equals("Risa"))
+			developerName = "marissa";
 		System.out.println(System.getProperty("user.dir"));
 		System.out.println();
 		

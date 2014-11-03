@@ -1,0 +1,138 @@
+/* Used in testing */
+int function testFunc()
+begin
+	begin
+		var a, b : int :=0;
+		return a;
+	end;
+end; 
+int function testFunc2(x:int) 
+begin
+	begin
+		var a, b : int :=0;
+		return a;
+	end;
+end; 
+
+/* if condition statement does not contain a boolean value */ /*
+void function func1()
+begin
+	begin
+		var a, b : int :=0;
+		if 5 then
+			a := 1;
+		endif;
+	end;
+end; */
+
+/* if then else condition statement does not contain a boolean value */ /*
+void function func2()
+begin
+	begin
+		var a, b : int :=0;
+		if 6.0 then
+			a := 1;
+		else
+			b := 1;
+		endif;
+	end;
+end;*/
+
+/* if condition statement does not contain (int & int) */ /*
+void function func3()
+begin
+	begin
+		var a, b : int :=0;
+		if 5 & 6 then
+			a := 1;
+		endif;
+	end;
+end; */
+
+/* if condition statement does not contain (boolean & int) */ /*
+void function func3()
+begin
+	begin
+		var a, b : int :=0;
+		if b < a  & a + b then
+			a := 1;
+		endif;
+	end;
+end; */
+
+/* while condition statement does not contains (fixedpt | int) */ /*
+int function func4()
+begin
+	begin
+		var a, b : int :=0;
+		while 4.9 | b do
+			a := a + 1;
+			return 6;
+		enddo;
+	end;
+end; */
+
+/* if condition statement cannot contain a function call */ /*
+void function func5()
+begin
+	begin
+		var a, b : int :=0;
+		if 5 < testFunc() then
+			a := 1;
+		endif;
+	end;
+end;*/
+
+/* TODO: A variable cannot be assigned a conditional value */ 
+void function func6()
+begin
+	begin
+		var a, b : int :=0;
+		a := 6 < 7;
+	end;
+end;
+
+/* A variable cannot be assigned a conditional value using a function's return value */ /*
+void function func7()
+begin
+	begin
+		var a, b : int :=0;
+		a := 6 < testFunc();
+	end;
+end;*/
+
+/* An array index cannot contain a conditional statement */ /*
+void function func8()
+begin
+	begin
+		var X: array [100] of int := 10;
+		var i: int := 0;
+		i := X[8 > 9];
+	end;
+end; */
+
+/* TODO: Cannot pass a conditional into a function call */
+void function func9()
+begin
+	begin
+		var i: int := 0;
+		i := testFunc2(6 <= 9);
+	end;
+end;
+
+/* TODO: Cannot return a conditional */
+int function func10()
+begin
+	begin
+		var i: int := 0;
+		return 6 <= 9;
+	end;
+end;
+
+void main()
+begin
+	begin
+		var x : int := 10;
+		x := 2;
+	end;
+end;

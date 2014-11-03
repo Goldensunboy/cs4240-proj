@@ -1,0 +1,56 @@
+
+/* void function can't return an int literal */ /*
+void function func1()
+begin
+	begin
+		var n : int := 5;
+		return 7;
+	end;
+end;*/
+
+/* void function can't return a float variable*/ /*
+void function func2()
+begin
+	begin
+		var n : fixedpt := 5.0;
+		return n;
+	end;
+end;*/
+
+/* int return type function can't return a float literal*/ /*
+int function func3()
+begin
+	begin
+		var n : int := 5;
+		return 7.0;
+	end;
+end;*/
+
+/* int return type function can't return a float variable*/ /*
+int function func4()
+begin
+	begin
+		var n : fixedpt := 5.0;
+		return n;
+	end;
+end;*/
+
+/* int return type function needs a return statement*/ /*
+int function func5()
+begin
+	begin
+		var n : fixedpt := 5.0;
+		n := 6.0;
+	end;
+end; */
+
+
+
+
+void main()
+begin
+	begin
+		var x : int := 10;
+		x := 2;
+	end;
+end;

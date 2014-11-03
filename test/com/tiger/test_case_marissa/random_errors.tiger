@@ -1,0 +1,18 @@
+
+/* TODO: Should not be able to put a break randomly in a function */
+void function func1()
+begin
+	begin
+		var a, b : int :=0;
+		break;
+	end;
+end;
+
+
+void main()
+begin
+	begin
+		var x : int := 10;
+		x := 2;
+	end;
+end;

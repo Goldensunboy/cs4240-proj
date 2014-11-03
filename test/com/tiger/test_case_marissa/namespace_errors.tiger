@@ -1,0 +1,82 @@
+type name1 = int;
+type name2 = int;
+
+/* type, function name and variable can't all have the same names */ /*
+void function name1() 
+begin
+	begin
+		var name1 : int :=0;
+		name1 := 0;
+	end;
+end;*/
+
+/* TODO: type and function name can't have the same names */
+void function name2() 
+begin
+	begin
+		var temp1 : int :=0;
+		temp1 := 0;
+	end;
+end;
+
+/* type and variable can't have the same names */ /*
+void function temp2() 
+begin
+	begin
+		var name2 : int :=0;
+		name2 := 0;
+	end;
+end;*/
+
+/* function and variable can't have the same names */ /*
+void function name4() 
+begin
+	begin
+		var name4 : int :=0;
+		name4 := 0;
+	end;
+end;*/
+
+/* two functions can't have the same names */ /*
+void function name5() 
+begin
+	begin
+		var temp3 : int :=0;
+		temp3 := 0;
+	end;
+end;
+void function name5() 
+begin
+	begin
+		var temp3 : int :=0;
+		temp3 := 0;
+	end;
+end;*/
+
+/* TODO: variables can't have the same name in the same scope */
+void function temp4() 
+begin
+	begin
+		var name6 : int :=0;
+		name6 := 0;
+	end;
+end;
+
+/* TODO: type can't have the same name in the same scope */
+void function temp5() 
+begin
+	begin
+		type name7 = int;
+		type name7 = fixedpt;
+		var temp6 : int :=0;
+		temp6 := 0;
+	end;
+end;
+
+void main()
+begin
+	begin
+		var x : int := 10;
+		x := 2;
+	end;
+end;
