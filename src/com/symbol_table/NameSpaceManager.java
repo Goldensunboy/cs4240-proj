@@ -6,17 +6,21 @@ import java.util.HashSet;
 import java.util.Scanner;
 import java.util.Set;
 
+import org.antlr.runtime.Token;
+
+import com.exception.ExceptionHandler;
 import com.exception.NameSpaceConflictException;
 
 public class NameSpaceManager {
 	private Set<String> functionNames;
 	private Set<String> varNames;
 	private Set<String> typeNames;
-
+	private ExceptionHandler exceptionHandler;
 	public NameSpaceManager() {
 		initalizeFunctionNames();
 		varNames = new HashSet<>();
 		typeNames = new HashSet<>();
+		exceptionHandler = new ExceptionHandler();
 	}
 	
 	private void initalizeFunctionNames() {
@@ -34,14 +38,19 @@ public class NameSpaceManager {
 			e.printStackTrace();
 		}
 	}
-	public void manageNameSpace(IdType idType, String idName) {
+	public void manageNameSpace(Token token, IdType idType) {
+		String idName = token.getText();
+		int lineNumber = token.getLine();
+		
 		boolean usedBefore = functionNames.contains(idName);
+		String customMessage = idType.getName() + " is already in the name space";
+		Class<? extends RuntimeException> exceptionClass = NameSpaceConflictException.class;
 		
 		switch (idType) {
 		case FUNCTION_NAME:
 			usedBefore = usedBefore || varNames.contains(idName) || typeNames.contains(idName);
 			if(usedBefore) {
-				throw new NameSpaceConflictException("Function name is already in the name space");
+				exceptionHandler.handleException(lineNumber, customMessage, null, null, exceptionClass);
 			}
 			functionNames.add(idName);
 			break;
@@ -49,13 +58,20 @@ public class NameSpaceManager {
 		case VAR_NAME:
 			usedBefore = usedBefore || typeNames.contains(idName);
 			if(usedBefore) {
-				throw new NameSpaceConflictException("Var name is already in the name space");
+				exceptionHandler.handleException(lineNumber, customMessage, null, null, exceptionClass);
 			}
 			varNames.add(idName);
 			break;
 			
+		case TYPE_NAME:
+			usedBefore = usedBefore || varNames.contains(idName);
+			if (usedBefore) { 
+				exceptionHandler.handleException(lineNumber, customMessage, null, null, exceptionClass);
+			}
+			typeNames.add(idName);
+			break;
 		case NIY:
-			//System.out.println("Warning :: ID is not implemented yet");
+//			System.out.println("NIY");
 			break;
 		default:
 			throw new RuntimeException("Not a valid IdType");

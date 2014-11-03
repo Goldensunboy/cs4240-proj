@@ -8,6 +8,7 @@ import java.util.Map.Entry;
 
 import com.attribute.Attribute;
 import com.attribute.FunctionNameAttribute;
+import com.attribute.VarTypeAttribute;
 import com.compiler.ReturnType;
 import com.exception.AttributeCastException;
 import com.exception.ErroneousParserImplementationException;
@@ -212,5 +213,15 @@ public class SymbolTableManager {
 	
 	public void setCurrentScopeReturnType(ReturnType returnType) {
 		currentScope.setReturnType(returnType);
+	}
+	
+	public VarTypeAttribute getOtherType(Map<String, Attribute> attributeMap, String typeName) {
+		VarTypeAttribute varTypeAttribute;
+		try {
+			varTypeAttribute = (VarTypeAttribute) globalScope.getSymbolMap().get(typeName).get(0).getAttribute();				
+		} catch (ClassCastException e) {
+			throw new AttributeCastException(e.getMessage());
+		}
+		return varTypeAttribute;
 	}
 }

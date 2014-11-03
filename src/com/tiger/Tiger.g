@@ -28,6 +28,7 @@ import com.attribute.FunctionNameAttribute;
 import com.attribute.FunctionNameAttribute.ParamType;
 import com.compiler.TempVarFactory;
 import com.compiler.ReturnType;
+import com.compiler.VarType;
 import com.exception.InvalidTypeException;
 import com.exception.InvalidInvocationException;
 import com.exception.UndeclaredFunctionException;
@@ -73,6 +74,10 @@ import com.exception.TypeMismatchException;
     attributeMap.put(functionName, functionNameAttribute);
   }
 
+  public void putTypeAttribute(String attributeName, VarType type) {
+    
+  }
+
   public void printAttributeMap() {
     for (Entry<String, List<Symbol>> attr : symbolTableManager.getSymbolTable().entrySet()){
       for (Symbol symbol : attr.getValue() ) {
@@ -80,7 +85,7 @@ import com.exception.TypeMismatchException;
       }
     }
   }
-
+  
   public String showAllReachableAttributes(Scope scope) {
     String temp = "";
     while (scope != null) {
@@ -252,7 +257,7 @@ varDeclarationList[String functionName] :
 
 typeDeclaration :
   
-	KEY_TYPE id[IdType.NIY] OP_EQUAL type OP_SCOLON
+	KEY_TYPE id[IdType.TYPE_NAME] OP_EQUAL type OP_SCOLON
 	
 ;
 
@@ -1156,7 +1161,7 @@ FIXEDPTLIT :
 id[IdType idType] returns [String exp, ReturnType type]:
   ID
   {
-    nameSpaceManager.manageNameSpace(idType, $ID.text);
+    nameSpaceManager.manageNameSpace($ID, idType);
     $exp = $ID.text;
     Attribute att = symbolTableManager.getAttributeInCurrentScope($ID.text, attributeMap);
     if(att != null) {

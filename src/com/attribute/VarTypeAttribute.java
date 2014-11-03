@@ -1,6 +1,7 @@
 package com.attribute;
 
-public class TypeAttribute {
+
+public class VarTypeAttribute {
 	public enum Datatype {
 		Int,
 		FixPt
@@ -10,7 +11,7 @@ public class TypeAttribute {
 	private int dim1size, dim2size;
 	private String alias;
 	
-	public TypeAttribute(boolean isArray, int arrayDimensions, int dim1size, int dim2size, String alias){
+	public VarTypeAttribute(boolean isArray, int arrayDimensions, int dim1size, int dim2size, String alias){
 		this.isArray = isArray;
 		this.arrayDimensions = arrayDimensions;
 		this.dim1size = dim1size;
