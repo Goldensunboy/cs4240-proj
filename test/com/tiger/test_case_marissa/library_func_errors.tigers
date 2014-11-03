@@ -2,14 +2,14 @@
 
 /* WHAT ARE STRINGS IN TIGER??????????? */
 
- 
+/* TODO allow library functions to compile */ /*
 void function func1()
 begin
 	begin
 		var x : fixedpt :=0;
-		x := 3;
+		flush();
 	end;
-end; 
+end; */
 
 void main()
 begin

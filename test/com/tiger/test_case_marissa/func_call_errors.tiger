@@ -1,7 +1,6 @@
 
 type ArrayInt = array [100] of int;
 
-
 /* Used in testing */
 void function testFunc()
 begin
