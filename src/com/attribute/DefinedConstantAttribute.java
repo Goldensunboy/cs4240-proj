@@ -1,5 +1,7 @@
 package com.attribute;
 
+import com.compiler.Type;
+
 
 public class DefinedConstantAttribute implements Attribute{
 	public enum Constants {
@@ -18,7 +20,7 @@ public class DefinedConstantAttribute implements Attribute{
 	}
 
 	@Override
-	public String getType() {
+	public Type getType() {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -1,6 +1,6 @@
 type x = int;
 
-void function xm() 
+void function mx() 
 begin
 	begin
 		var s : int := 10;

@@ -10,9 +10,9 @@ import java.util.Set;
 
 import com.antlr.generated.TigerParser;
 import com.attribute.Attribute;
-import com.attribute.FunctionNameAttribute;
-import com.attribute.VarTypeAttribute;
-import com.compiler.ReturnType;
+import com.attribute.FunctionAttribute;
+import com.attribute.TypeAttribute;
+import com.compiler.Type;
 import com.exception.AttributeCastException;
 import com.exception.ErroneousParserImplementationException;
 import com.exception.NameSpaceConflictException;
@@ -97,7 +97,7 @@ public class SymbolTableManager {
 			}
 		}
 		
-		ReturnType returnType = currentScope.getReturnType();
+		Type returnType = currentScope.getReturnType();
 		
 		currentScope = currentScope.getEnclosingScope();
 		if (currentScope != null) {			
@@ -172,15 +172,15 @@ public class SymbolTableManager {
 	 * given the function name returns all the parameters 
 	 */
 	public List<String> getFunctionParameters(String functionName) { 
-		FunctionNameAttribute functionNameAttribute = getFunctionAttribute(functionName);
+		FunctionAttribute functionNameAttribute = getFunctionAttribute(functionName);
 		return functionNameAttribute.getParams();
 	}
 
 	/**
 	 * Given the function name returns the return type
 	 */
-	public ReturnType getFunctionReturnType(String functionName) {
-		FunctionNameAttribute functionNameAttribute = getFunctionAttribute(functionName);
+	public Type getFunctionReturnType(String functionName) {
+		FunctionAttribute functionNameAttribute = getFunctionAttribute(functionName);
 		return functionNameAttribute.getReturnType();
 	}
 
@@ -188,15 +188,15 @@ public class SymbolTableManager {
 	 * Finds the function attribute in the symbol table and casts it to 
 	 * FunctionNameAttribute and returns it.
 	 */
-	private FunctionNameAttribute getFunctionAttribute(String functionName) {
+	private FunctionAttribute getFunctionAttribute(String functionName) {
 		List<Symbol> symbolList = symbolTable.get(functionName);
 		if (symbolList.size() != 1) {
 			// SNH (Should Never Happen). Just a clue for us for debugging
 			throw new NameSpaceConflictException("SNH: More than one function with the same name.");
 		}
-		FunctionNameAttribute functionNameAttribute;
+		FunctionAttribute functionNameAttribute;
 		try {			
-			functionNameAttribute= (FunctionNameAttribute)symbolList.get(0).getAttribute();
+			functionNameAttribute= (FunctionAttribute)symbolList.get(0).getAttribute();
 		} catch (ClassCastException e) {
 			throw new AttributeCastException("SNH: Couldn't cast to FunctionNameAttribute");
 		}
@@ -223,29 +223,29 @@ public class SymbolTableManager {
 	/**
 	 * return the return type of the current scope's function
 	 */
-	public ReturnType getReturnType() {
+	public Type getReturnType() {
 		String functionName = currentScope.getEnclosingFunctionName();
-		FunctionNameAttribute functionNameAttribute = getFunctionAttribute(functionName);
+		FunctionAttribute functionNameAttribute = getFunctionAttribute(functionName);
 		return functionNameAttribute.getReturnType();
 	}
 	
-	public ReturnType getCurrentScopeReturnType() {
+	public Type getCurrentScopeReturnType() {
 		return currentScope.getReturnType();
 	}
 	
 	public boolean returnStatementSatisfied(String functionName) {
-		ReturnType returnType = getReturnType();
+		Type returnType = getReturnType();
 		return returnType == currentScope.getReturnType();
 	}
 	
-	public void setCurrentScopeReturnType(ReturnType returnType) {
+	public void setCurrentScopeReturnType(Type returnType) {
 		currentScope.setReturnType(returnType);
 	}
 	
-	public VarTypeAttribute getOtherType(Map<String, Attribute> attributeMap, String typeName) {
-		VarTypeAttribute varTypeAttribute;
+	public TypeAttribute getOtherType(Map<String, Attribute> attributeMap, String typeName) {
+		TypeAttribute varTypeAttribute;
 		try {
-			varTypeAttribute = (VarTypeAttribute) globalScope.getSymbolMap().get(typeName).get(0).getAttribute();				
+			varTypeAttribute = (TypeAttribute) globalScope.getSymbolMap().get(typeName).get(0).getAttribute();				
 		} catch (ClassCastException e) {
 			throw new AttributeCastException(e.getMessage());
 		}

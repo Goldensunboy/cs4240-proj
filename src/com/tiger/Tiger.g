@@ -22,17 +22,17 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Collections;
 import com.attribute.Attribute;
-import com.attribute.VariableNameAttribute;
+import com.attribute.VariableAttribute;
+import com.attribute.FunctionAttribute;
+import com.attribute.TypeAttribute;
+import com.attribute.FunctionAttribute.ParamType;
 import com.symbol_table.SymbolTableManager;
 import com.symbol_table.Symbol;
 import com.symbol_table.Scope;
 import com.symbol_table.IdType;
-import com.attribute.FunctionNameAttribute;
-import com.attribute.FunctionNameAttribute.ParamType;
 import com.compiler.TempVarFactory;
 import com.compiler.LabelFactory;
-import com.compiler.ReturnType;
-import com.compiler.VarType;
+import com.compiler.Type;
 import com.exception.InvalidTypeException;
 import com.exception.InvalidInvocationException;
 import com.exception.UndeclaredFunctionException;
@@ -75,20 +75,21 @@ import com.exception.NameSpaceConflictException;
   public static final String TYPE_NAMESPACE = "typeNameSpcae";
   public static final String FUNCTION_NAMESPACE = "functionNameSpcae";
   
-  private void putVariableNameAttributeMap(List<String> variableNameList, String type, String declaringFunctionName) {
+  private void putVariableAttributeMap(List<String> variableNameList, Type type, String declaringFunctionName) {
     for (String variableName : variableNameList) {
-        VariableNameAttribute variableNameAttribute = new VariableNameAttribute(variableName, type, declaringFunctionName);
-        attributeMap.put(variableName, variableNameAttribute);
+        VariableAttribute variableAttribute = new VariableAttribute(variableName, type, declaringFunctionName);
+        attributeMap.put(variableName, variableAttribute);
     }
   }
   
-  private void putFunctionNameAttributeMap(String functionName, ReturnType returnType, List<String> parameters) {
-    FunctionNameAttribute functionNameAttribute = new FunctionNameAttribute(functionName, returnType, parameters);
-    attributeMap.put(functionName, functionNameAttribute);
+  private void putFunctionAttributeMap(String functionName, Type returnType, List<String> parameters) {
+    FunctionAttribute functionAttribute = new FunctionAttribute(functionName, returnType, parameters);
+    attributeMap.put(functionName, functionAttribute);
   }
 
-  public void putTypeAttribute(String attributeName, VarType type) {
-    
+  public void putTypeAttribute(String typeName, Type type) {
+//    TypeAttribute typeAttribute = new TypeAttribute();
+//    attributeMap.put(typeName,  typeAttribute); 
   }
 
   public void printAttributeMap() {
@@ -134,14 +135,6 @@ import com.exception.NameSpaceConflictException;
     return IRList;
   }
   
-  private int getLineNumber(ParserRuleReturnScope token) {
-    return getLineNumber(token.start);
-  }
-    
-  private int getLineNumber(Token token) {
-    return token.getLine();
-  }
-  
   private void makeNewScope() {
     Map<String, Set<String>> unregisteredNamespaceMap = getUnregisteredNamespacesMap();
     
@@ -182,19 +175,24 @@ tigerProgram :
 ;
 
 funcNext:
-  typeId funcCurrent[$typeId.type]
+  typeId 
+  { if(!$typeId.type.isValidReturnType()) {
+//      exceptionHandler.handleException();
+    }
+  } 
+  funcCurrent[$typeId.type]
   | KEY_VOID
   (
-    funcCurrent[ReturnType.VOID]
-    | mainFunction[ReturnType.VOID]
+    funcCurrent[Type.VOID]
+    | mainFunction[Type.VOID]
   )
 ;
 
-funcCurrent[ReturnType returnType] :
+funcCurrent[Type returnType] :
 	 funcDeclaration[returnType] funcNext
 ;
 
-funcDeclaration[ReturnType returnType]
+funcDeclaration[Type returnType]
 scope
 {
   List<String> myParams;
@@ -208,33 +206,33 @@ scope
   OP_LPAREN paramList OP_RPAREN afterBegin[$myFunctionName.text, returnType]
 ;
 
-afterBegin[String myFunctionName, ReturnType returnType]
+afterBegin[String myFunctionName, Type returnType]
 @init
 {
-  putFunctionNameAttributeMap(myFunctionName,
+  putFunctionAttributeMap(myFunctionName,
                               returnType,
                               $funcDeclaration::myParams);
   enclosingFunctionName = myFunctionName;
 }
 :
-  key_begin blockList[myFunctionName] 
+  myKey_begin=key_begin blockList[myFunctionName] 
   {
     if(!symbolTableManager.returnStatementSatisfied(myFunctionName)) {
       String customMessage = "Mismatch return statement for function " + myFunctionName;
-      ReturnType expectedReturnType = symbolTableManager.getReturnType();
-      ReturnType actualReturnType = symbolTableManager.getCurrentScopeReturnType();
-      exceptionHandler.handleException(null, customMessage, expectedReturnType.getName(), 
+      Type expectedReturnType = symbolTableManager.getReturnType();
+      Type actualReturnType = symbolTableManager.getCurrentScopeReturnType();
+      exceptionHandler.handleException(myKey_begin, customMessage, expectedReturnType.getName(), 
                                        actualReturnType.getName(), TypeMismatchException.class);
     }
   }
   key_end OP_SCOLON
 ;
 
-mainFunction [ReturnType returnType]:
+mainFunction [Type returnType]:
   a=KEY_MAIN OP_LPAREN OP_RPAREN 
   {
-	  putFunctionNameAttributeMap($KEY_MAIN.text,
-	                              ReturnType.VOID,
+	  putFunctionAttributeMap($KEY_MAIN.text,
+	                              Type.VOID,
 	                              new ArrayList<String>());
 	  enclosingFunctionName = $KEY_MAIN.text;
   }
@@ -246,16 +244,16 @@ retType :
 	| KEY_VOID
 ;
 
-typeId returns[ReturnType type]:
+typeId returns[Type type]:
 	baseType {$type=$baseType.type;}
-	| id[IdType.NIY, false] {$type=ReturnType.OTHER;}
+	| id[IdType.NIY, false] {$type=Type.OTHER;}
 	
 	
 ;
 
-baseType returns[ReturnType type]:
-	KEY_INT {$type=ReturnType.INT;}
-	| KEY_FIXEDPT {$type=ReturnType.FIXPT;}
+baseType returns[Type type]:
+	KEY_INT {$type=Type.INT;}
+	| KEY_FIXEDPT {$type=Type.FIXPT;}
 ;
 
 param :
@@ -321,8 +319,8 @@ scope
 :
 	KEY_VAR idList[IdType.VAR_NAME, true] OP_COLON myTypeId=typeId optionalInit OP_SCOLON
 	{
-	  putVariableNameAttributeMap($varDeclaration::aggregatedMyIdList,
-	                              $myTypeId.text,
+	  putVariableAttributeMap($varDeclaration::aggregatedMyIdList,
+	                              $myTypeId.type,
 	                              $functionName);
 	}
 ;
@@ -348,7 +346,7 @@ statSeq[String functionName]
 	stat[functionName]+
 ;
 
-stat[String functionName] returns [ReturnType statReturnType]
+stat[String functionName] returns [Type statReturnType]
 @init
 {
   List<String> paramList = new ArrayList<String>();
@@ -368,7 +366,7 @@ stat[String functionName] returns [ReturnType statReturnType]
 		        throw new UndeclaredVariableException("Line " +
 		          (($s1.start != null)? $s1.start.getLine() : -1) +
 		          ": Assignment to undeclared variable: " + $s1.exp);
-		      } else if($s1.type == ReturnType.INT && $s3.type == ReturnType.FIXPT) {
+		      } else if($s1.type == Type.INT && $s3.type == Type.FIXPT) {
 		        // Illegal assignment (fixpt to int)
 		        throw new InvalidTypeException("Line " +
 		          (($s1.start != null)? $s1.start.getLine() : -1) +
@@ -376,9 +374,8 @@ stat[String functionName] returns [ReturnType statReturnType]
 		      }
 		      //Cannot assign a conditional to a variable
 		      if($s3.myIsBool) {
-	          int lineNumber = getLineNumber(s3);
 	          String customMessage = "Boolean values cannot be assigned to a variable.";
-	          exceptionHandler.handleException(lineNumber, customMessage, null, 
+	          exceptionHandler.handleException(s3, customMessage, null, 
 	                                          null,InvalidTypeException.class);
 		      }
 		      // Assignment statement
@@ -386,8 +383,8 @@ stat[String functionName] returns [ReturnType statReturnType]
 		    } else {
 		      // Function assignment
 		      String[] parts = $s3.exp.split("#");
-		      ReturnType rettype = symbolTableManager.getFunctionReturnType(parts[0]);
-		      if($s1.type == ReturnType.INT && rettype == ReturnType.FIXPT) {
+		      Type rettype = symbolTableManager.getFunctionReturnType(parts[0]);
+		      if($s1.type == Type.INT && rettype == Type.FIXPT) {
 		        // (fixpt to int)
             throw new InvalidTypeException("Line " +
               (($s1.start != null)? $s1.start.getLine() : -1) +
@@ -444,16 +441,15 @@ stat[String functionName] returns [ReturnType statReturnType]
 		)
 		| KEY_IF 
 		{
-		  ReturnType ifReturnType=ReturnType.VOID, elseReturnType=ReturnType.VOID;
+		  Type ifReturnType=Type.VOID, elseReturnType=Type.VOID;
 		  makeNewScope();
 		  String elseLabel = lf.nextLabel("ELSE");
 		}
 		myIfCond=expr[elseLabel]
 		  {
 		    if(!$myIfCond.myIsBool) {
-			    int lineNumber = getLineNumber(myReturnValue);
 			    String customMessage = "If statement conditions must resolve to a boolean value";
-	        exceptionHandler.handleException(lineNumber, customMessage, null, 
+	        exceptionHandler.handleException(myReturnValue, customMessage, null, 
                                           null,InvalidTypeException.class);
 		    }
 		  }
@@ -478,7 +474,7 @@ stat[String functionName] returns [ReturnType statReturnType]
     KEY_ENDIF
     {
       goToEnclosingScope();
-      symbolTableManager.setCurrentScopeReturnType(ifReturnType == elseReturnType? ifReturnType : ReturnType.VOID);
+      symbolTableManager.setCurrentScopeReturnType(ifReturnType == elseReturnType? ifReturnType : Type.VOID);
     }
 		|
 		{
@@ -508,12 +504,11 @@ stat[String functionName] returns [ReturnType statReturnType]
 		}
 		| KEY_RETURN myReturnValue=expr[null]
 		{
-		  ReturnType expectedReturnType = symbolTableManager.getReturnType();
-		  ReturnType actualReturnType = $myReturnValue.type;
+		  Type expectedReturnType = symbolTableManager.getReturnType();
+		  Type actualReturnType = $myReturnValue.type;
 		  if(actualReturnType != expectedReturnType || $myReturnValue.myIsBool) {
-		    int lineNumber = getLineNumber(myReturnValue);
 		    String customMessage = "Type doesn't match the expected return type";
-		    exceptionHandler.handleException(lineNumber, customMessage, 
+		    exceptionHandler.handleException(myReturnValue, customMessage, 
 		                                      expectedReturnType.getName(), 
 		                                      ($myReturnValue.myIsBool)? "boolean":actualReturnType.getName(), 
 		                                      TypeMismatchException.class);
@@ -532,7 +527,7 @@ optPrefix :
 	)?
 ;
 
-expr[String label] returns [String exp, ReturnType type, boolean myIsBool, boolean myIsFunc]:
+expr[String label] returns [String exp, Type type, boolean myIsBool, boolean myIsFunc]:
   s1=binOp1[label]
   (
     (
@@ -590,16 +585,16 @@ expr[String label] returns [String exp, ReturnType type, boolean myIsBool, boole
       }
       
       $exp = temp;
-      if($s1.type == ReturnType.FIXPT || $s3.type == ReturnType.FIXPT) {
-        $type = ReturnType.FIXPT;
+      if($s1.type == Type.FIXPT || $s3.type == Type.FIXPT) {
+        $type = Type.FIXPT;
       } else {
-        $type = ReturnType.INT;
+        $type = Type.INT;
       }
     }
   }
 ;
 
-funcExpr returns [String exp, ReturnType type, boolean myIsBool]:
+funcExpr returns [String exp, Type type, boolean myIsBool]:
   s1=funcBinOp1
   (
     (
@@ -633,16 +628,16 @@ funcExpr returns [String exp, ReturnType type, boolean myIsBool]:
         IRList.addFirst("or, "  + $s1.exp + ", " + $s3.exp + ", " + temp);
       }
       $exp = temp;
-      if($s1.type == ReturnType.FIXPT || $s3.type == ReturnType.FIXPT) {
-        $type = ReturnType.FIXPT;
+      if($s1.type == Type.FIXPT || $s3.type == Type.FIXPT) {
+        $type = Type.FIXPT;
       } else {
-        $type = ReturnType.INT;
+        $type = Type.INT;
       }
     }
   }
 ;
 
-binOp1[String label] returns [String exp, ReturnType type, boolean myIsBool, boolean myIsFunc]:
+binOp1[String label] returns [String exp, Type type, boolean myIsBool, boolean myIsFunc]:
   s1=binOp2[label]
   (
     (
@@ -688,16 +683,16 @@ binOp1[String label] returns [String exp, ReturnType type, boolean myIsBool, boo
         IRList.addFirst("equals, " + $s1.exp + ", " + $s7.exp + ", " + temp);
       }
       $exp = temp;
-      if($s1.type == ReturnType.FIXPT || $s7.type == ReturnType.FIXPT) {
-        $type = ReturnType.FIXPT;
+      if($s1.type == Type.FIXPT || $s7.type == Type.FIXPT) {
+        $type = Type.FIXPT;
       } else {
-        $type = ReturnType.INT;
+        $type = Type.INT;
       }
     }
   }
 ;
 
-funcBinOp1 returns [String exp, ReturnType type, boolean myIsBool]:
+funcBinOp1 returns [String exp, Type type, boolean myIsBool]:
   s1=funcBinOp2
   (
     (
@@ -737,16 +732,16 @@ funcBinOp1 returns [String exp, ReturnType type, boolean myIsBool]:
         IRList.addFirst("equals, " + $s1.exp + ", " + $s7.exp + ", " + temp);
       }
       $exp = temp;
-      if($s1.type == ReturnType.FIXPT || $s7.type == ReturnType.FIXPT) {
-        $type = ReturnType.FIXPT;
+      if($s1.type == Type.FIXPT || $s7.type == Type.FIXPT) {
+        $type = Type.FIXPT;
       } else {
-        $type = ReturnType.INT;
+        $type = Type.INT;
       }
     }
   }
 ;
 
-binOp2[String label] returns [String exp, ReturnType type, boolean myIsBool, boolean myIsFunc]:
+binOp2[String label] returns [String exp, Type type, boolean myIsBool, boolean myIsFunc]:
   s1=binOp3[label]
   (
     (
@@ -786,16 +781,16 @@ binOp2[String label] returns [String exp, ReturnType type, boolean myIsBool, boo
         IRList.addFirst("sub, " + $s1.exp + ", " + $s3.exp + ", " + temp);
       }
       $exp = temp;
-      if($s1.type == ReturnType.FIXPT || $s3.type == ReturnType.FIXPT) {
-        $type = ReturnType.FIXPT;
+      if($s1.type == Type.FIXPT || $s3.type == Type.FIXPT) {
+        $type = Type.FIXPT;
       } else {
-        $type = ReturnType.INT;
+        $type = Type.INT;
       }
     }
   }
 ;
 
-funcBinOp2 returns [String exp, ReturnType type, boolean myIsBool]:
+funcBinOp2 returns [String exp, Type type, boolean myIsBool]:
   s1=funcBinOp3
   (
     (
@@ -829,16 +824,16 @@ funcBinOp2 returns [String exp, ReturnType type, boolean myIsBool]:
         IRList.addFirst("sub, " + $s1.exp + ", " + $s3.exp + ", " + temp);
       }
       $exp = temp;
-      if($s1.type == ReturnType.FIXPT || $s3.type == ReturnType.FIXPT) {
-        $type = ReturnType.FIXPT;
+      if($s1.type == Type.FIXPT || $s3.type == Type.FIXPT) {
+        $type = Type.FIXPT;
       } else {
-        $type = ReturnType.INT;
+        $type = Type.INT;
       }
     }
   }
 ;
 
-binOp3[String label] returns [String exp, ReturnType type, boolean myIsBool, boolean myIsFunc]:
+binOp3[String label] returns [String exp, Type type, boolean myIsBool, boolean myIsFunc]:
   s1=binOp4[label]
   (
     (
@@ -878,16 +873,16 @@ binOp3[String label] returns [String exp, ReturnType type, boolean myIsBool, boo
         IRList.addFirst("mult, " + $s1.exp + ", " + $s3.exp + ", " + temp);
       }
       $exp = temp;
-      if($s1.type == ReturnType.FIXPT || $s3.type == ReturnType.FIXPT) {
-        $type = ReturnType.FIXPT;
+      if($s1.type == Type.FIXPT || $s3.type == Type.FIXPT) {
+        $type = Type.FIXPT;
       } else {
-        $type = ReturnType.INT;
+        $type = Type.INT;
       }
     }
   }
 ;
 
-funcBinOp3 returns [String exp, ReturnType type, boolean myIsBool]:
+funcBinOp3 returns [String exp, Type type, boolean myIsBool]:
   s1=funcBinOp4
   (
     (
@@ -921,16 +916,16 @@ funcBinOp3 returns [String exp, ReturnType type, boolean myIsBool]:
         IRList.addFirst("mult, " + $s1.exp + ", " + $s3.exp + ", " + temp);
       }
       $exp = temp;
-      if($s1.type == ReturnType.FIXPT || $s3.type == ReturnType.FIXPT) {
-        $type = ReturnType.FIXPT;
+      if($s1.type == Type.FIXPT || $s3.type == Type.FIXPT) {
+        $type = Type.FIXPT;
       } else {
-        $type = ReturnType.INT;
+        $type = Type.INT;
       }
     }
   }
 ;
 
-binOp4[String label] returns [String exp, ReturnType type, boolean myIsBool, boolean myIsFunc]
+binOp4[String label] returns [String exp, Type type, boolean myIsBool, boolean myIsFunc]
 @init
 {
   List<String> paramList = new ArrayList<String>();
@@ -991,7 +986,7 @@ binOp4[String label] returns [String exp, ReturnType type, boolean myIsBool, boo
   }
 ;
 
-funcBinOp4 returns [String exp, ReturnType type, boolean myIsBool]:
+funcBinOp4 returns [String exp, Type type, boolean myIsBool]:
   s1=constant                      {$exp = $s1.exp; $type = $s1.type; $myIsBool = false;}
   | OP_LPAREN s2=funcExpr OP_RPAREN    {$exp = $s2.exp; $type = $s2.type; $myIsBool = $s2.myIsBool;}
   | s3=id[IdType.NIY, false] s4=valueTail {$exp = $s3.exp + $s4.exp; $type = $s3.type; $myIsBool = false;}
@@ -1006,12 +1001,12 @@ funcBinOp4 returns [String exp, ReturnType type, boolean myIsBool]:
   }
 ;
 
-constant returns [String exp, ReturnType type]:
-	FIXEDPTLIT {$exp = $FIXEDPTLIT.text; $type = ReturnType.FIXPT;}
-	| INTLIT   {$exp = $INTLIT.text;     $type = ReturnType.INT;  }
+constant returns [String exp, Type type]:
+	FIXEDPTLIT {$exp = $FIXEDPTLIT.text; $type = Type.FIXPT;}
+	| INTLIT   {$exp = $INTLIT.text;     $type = Type.INT;  }
 ;
 
-value returns [String exp, ReturnType type]:
+value returns [String exp, Type type]:
 	s1=id[IdType.NIY, false] s2=valueTail
 	{
 	  $exp = $s1.exp + "#" + $s2.exp;
@@ -1085,16 +1080,14 @@ indexExpr3 returns [String exp]:
     Attribute att = symbolTableManager.getAttributeInCurrentScope($id.exp, attributeMap);
     if(att == null) {
       // Variable not declared yet
-      int lineNumber = getLineNumber(myId);
       String customMessage = "Use of undeclared variable: \"" + $id.exp + "\""; 
-      exceptionHandler.handleException(lineNumber, customMessage, null, null, 
+      exceptionHandler.handleException(myId, customMessage, null, null, 
                                        UndeclaredVariableException.class);
     }
     if(!"int".equals($id.type)) {
       // Invalid type (must be int)
-      int lineNumber = getLineNumber(myId);
       String customMessage = "Use of fixedpt variable in array index expression: \"" + $id.exp + "\""; 
-      exceptionHandler.handleException(lineNumber, customMessage, null, null, 
+      exceptionHandler.handleException(myId, customMessage, null, null, 
                                        InvalidTypeException.class);
     }
   }
@@ -1113,7 +1106,7 @@ exprList[List<String> paramList] returns [String exp]:
       $exp = "";
     } else {
       $exp = $s1.exp + $s2.exp;
-      paramList.add($s1.type == ReturnType.INT ? "int" : "fixedpt");
+      paramList.add($s1.type == Type.INT ? "int" : "fixedpt");
     }
   }
 ;
@@ -1128,12 +1121,11 @@ funcExprList[List<String> paramList] returns [String exp]:
     } else {
       $exp = $s1.exp + $s2.exp;
       if($s1.myIsBool) {
-          int lineNumber = getLineNumber(s1);
           String customMessage = "Cannot pass in a boolean value as a parameter";
-          exceptionHandler.handleException(lineNumber, customMessage, null, 
+          exceptionHandler.handleException(s1, customMessage, null, 
                                           null,InvalidTypeException.class);
       }
-      paramList.add($s1.type == ReturnType.INT ? "int" : "fixedpt");
+      paramList.add($s1.type == Type.INT ? "int" : "fixedpt");
     }
   }
 ;
@@ -1147,7 +1139,7 @@ exprListTail[List<String> paramList] returns [String exp]:
       $exp = "";
     } else {
       $exp = ", " + $s1.exp + $s2.exp;
-      paramList.add($s1.type == ReturnType.INT ? "int" : "fixedpt");
+      paramList.add($s1.type == Type.INT ? "int" : "fixedpt");
     }
   }
 ;
@@ -1161,7 +1153,7 @@ funcExprListTail[List<String> paramList] returns [String exp]:
       $exp = "";
     } else {
       $exp = ", " + $s1.exp + $s2.exp;
-      paramList.add($s1.type == ReturnType.INT ? "int" : "fixedpt");
+      paramList.add($s1.type == Type.INT ? "int" : "fixedpt");
     }
   }
 ;
@@ -1235,16 +1227,15 @@ FIXEDPTLIT :
 	INTLIT OP_PERIOD DIGIT (DIGIT? DIGIT)?
 ;
 
-id[IdType idType, boolean testNamespace] returns [String exp, ReturnType type]:
+id[IdType idType, boolean testNamespace] returns [String exp, Type type]:
   myId=ID
   {
     
     if (testNamespace) {
 	    Map<String, Set<String>> unregisteredNameSpaceMap = getUnregisteredNamespacesMap();
 	    if(symbolTableManager.doesNameSpaceConflict(idType, $myId.text, unregisteredNameSpaceMap)) {
-	      int lineNumber = getLineNumber($myId);
 	      String customMessage = idType.getName() + " \"" + $myId.text + "\" is already in the namespace"; 
-	      exceptionHandler.handleException(lineNumber, customMessage, null, null, NameSpaceConflictException.class);
+	      exceptionHandler.handleException($myId, customMessage, null, null, NameSpaceConflictException.class);
 	    }
 	    
 	    if(idType == IdType.FUNCTION_NAME) {
@@ -1261,11 +1252,11 @@ id[IdType idType, boolean testNamespace] returns [String exp, ReturnType type]:
     $exp = $ID.text;
     Attribute att = symbolTableManager.getAttributeInCurrentScope($ID.text, attributeMap);
     if(att != null) {
-      $type = ReturnType.INT.getName().equals(att.getType())   ? ReturnType.INT   :
-              ReturnType.FIXPT.getName().equals(att.getType()) ? ReturnType.FIXPT :
-                                              ReturnType.OTHER ;
+      $type = Type.INT.getName().equals(att.getType())   ? Type.INT   :
+              Type.FIXPT.getName().equals(att.getType()) ? Type.FIXPT :
+                                              Type.OTHER ;
     } else {
-      $type = ReturnType.OTHER;
+      $type = Type.OTHER;
     }
   }
 ;

@@ -105,7 +105,7 @@ public class TigerTest {
 			if(preferedName.equals(MARISSA.getPreferedName())) {
 				return new DeveloperName[]{MARISSA};
 			} else if (preferedName.equals(SAMAN.getPreferedName())) {
-				return new DeveloperName[]{SAMAN};
+				return new DeveloperName[]{SAMAN, ANDREW};
 			} else if (preferedName.equals(ANDREW.getPreferedName())) {
 				return new DeveloperName[]{ANDREW};
 			}

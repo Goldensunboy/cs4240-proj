@@ -2,9 +2,9 @@ package com.attribute;
 
 import java.util.List;
 
-import com.compiler.ReturnType;
+import com.compiler.Type;
 
-public class FunctionNameAttribute implements Attribute{
+public class FunctionAttribute implements Attribute{
 	
 	// Enums for return type and param types
 	public enum ParamType {
@@ -14,10 +14,10 @@ public class FunctionNameAttribute implements Attribute{
 	
 	// Attributes for function name
 	private String functionName;
-	private ReturnType returnType;
+	private Type returnType;
 	private List<String> params;
 	
-	public FunctionNameAttribute(String functionName, ReturnType returnType, List<String> params) {
+	public FunctionAttribute(String functionName, Type returnType, List<String> params) {
 		this.functionName = functionName;
 		this.returnType = returnType;
 		this.params = params;
@@ -30,10 +30,10 @@ public class FunctionNameAttribute implements Attribute{
 	public void setFunctionName(String functionName) {
 		this.functionName = functionName;
 	}
-	public ReturnType getReturnType() {
+	public Type getReturnType() {
 		return returnType;
 	}
-	public void setReturnType(ReturnType returnType) {
+	public void setReturnType(Type returnType) {
 		this.returnType = returnType;
 	}
 	public List<String> getParams() {
@@ -57,7 +57,7 @@ public class FunctionNameAttribute implements Attribute{
 	}
 
 	@Override
-	public String getType() {
+	public Type getType() {
 		// TODO Auto-generated method stub
 		return null;
 	}

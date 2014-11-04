@@ -1,12 +1,14 @@
 package com.attribute;
 
-public class VariableNameAttribute implements Attribute{
+import com.compiler.Type;
+
+public class VariableAttribute implements Attribute{
 	
 	private String variableName;
-	private String type;
+	private Type type;
 	private String declaringProcedure; 
 	
-	public VariableNameAttribute(String variableName, String type, String declaringFunctionName){
+	public VariableAttribute(String variableName, Type type, String declaringFunctionName){
 		this.variableName = variableName;
 		this.type = type;
 		this.declaringProcedure = declaringFunctionName;
@@ -18,10 +20,10 @@ public class VariableNameAttribute implements Attribute{
 	public void setVariableName(String variableName) {
 		this.variableName = variableName;
 	}
-	public String getType() {
+	public Type getType() {
 		return type;
 	}
-	public void setType(String type) {
+	public void setType(Type type) {
 		this.type = type;
 	}
 	public String getDeclaringProcedure() {

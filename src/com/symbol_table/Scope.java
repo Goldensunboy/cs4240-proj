@@ -9,7 +9,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import com.attribute.Attribute;
-import com.compiler.ReturnType;
+import com.compiler.Type;
 
 public class Scope {
 	private String enclosingFunctionName;
@@ -19,13 +19,13 @@ public class Scope {
 	private Set<String> typeNameSpace;
 	private Set<String> functionNameSpace;
 	private Map<String, List<Symbol>> symbolMap = new LinkedHashMap<>();
-	private ReturnType returnType;
+	private Type returnType;
 	
 	public Scope(Scope enclosingScope, int scopeId, String enclosingFunctionName){
 		this.enclosingScope = enclosingScope;
 		this.scopeId = scopeId;
 		this.enclosingFunctionName = enclosingFunctionName;
-		returnType = ReturnType.VOID;
+		returnType = Type.VOID;
 		varNameSpace = new HashSet<>();
 		typeNameSpace = new HashSet<>();
 		functionNameSpace = new HashSet<>();
@@ -88,11 +88,11 @@ public class Scope {
 		this.enclosingFunctionName = enclosingFunctionName;
 	}
 
-	public ReturnType getReturnType() {
+	public Type getReturnType() {
 		return returnType;
 	}
 
-	public void setReturnType(ReturnType returnType) {
+	public void setReturnType(Type returnType) {
 		this.returnType = returnType;
 	}
 	

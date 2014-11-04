@@ -1,7 +1,9 @@
 package com.attribute;
 
+import com.compiler.Type;
+
 public interface Attribute {
 	
-	public String getType();
+	public Type getType();
 
 }
