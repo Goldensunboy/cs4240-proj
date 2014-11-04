@@ -17,6 +17,8 @@ import java.util.Map;
 import java.util.Hashtable;
 import java.util.TreeMap;
 import java.util.Map.Entry;
+import java.util.LinkedList;
+import java.util.Collections;
 import com.attribute.Attribute;
 import com.attribute.VariableNameAttribute;
 import com.symbol_table.SymbolTableManager;
@@ -27,6 +29,7 @@ import com.symbol_table.NameSpaceManager;
 import com.attribute.FunctionNameAttribute;
 import com.attribute.FunctionNameAttribute.ParamType;
 import com.compiler.TempVarFactory;
+import com.compiler.LabelFactory;
 import com.compiler.ReturnType;
 import com.compiler.VarType;
 import com.exception.InvalidTypeException;
@@ -57,8 +60,9 @@ import com.exception.TypeMismatchException;
   private SymbolTableManager symbolTableManager = new SymbolTableManager();
   private Map<String, Attribute> attributeMap = new Hashtable<String, Attribute>();
   private NameSpaceManager nameSpaceManager = new NameSpaceManager();
-  private ArrayList<String> IRList = new ArrayList<String>();
+  private LinkedList<String> IRList = new LinkedList<String>();
   private TempVarFactory tvf = new TempVarFactory();
+  private LabelFactory lf = new LabelFactory();
   private String enclosingFunctionName;
   private ExceptionHandler exceptionHandler = new ExceptionHandler();
 
@@ -103,6 +107,7 @@ import com.exception.TypeMismatchException;
   
   public void printTheIRCode() {
     System.out.println("IR code:\n**********");
+    Collections.reverse(IRList);
     for(String s : IRList) {
       System.out.println(s);
     }
@@ -320,7 +325,7 @@ stat[String functionName] returns [ReturnType statReturnType]
 	(
 		s1=id[IdType.NIY]
 		(
-		  s2=valueTail OP_ASSIGN s3=expr
+		  s2=valueTail OP_ASSIGN s3=expr[null]
 		  {
 		    // Verify that the assignment is valid
 		    Attribute att = symbolTableManager.getAttributeInCurrentScope($s1.exp, attributeMap);
@@ -345,7 +350,7 @@ stat[String functionName] returns [ReturnType statReturnType]
 	                                          null,InvalidTypeException.class);
 		      }
 		      // Assignment statement
-          IRList.add("assign, " + $s1.exp + $s2.exp + ", " + $s3.exp);
+          IRList.addFirst("assign, " + $s1.exp + $s2.exp + ", " + $s3.exp);
 		    } else {
 		      // Function assignment
 		      String[] parts = $s3.exp.split("#");
@@ -356,7 +361,7 @@ stat[String functionName] returns [ReturnType statReturnType]
               (($s1.start != null)? $s1.start.getLine() : -1) +
               ": Assignment of fixedpt function " + parts[0] + " to int variable " + $s1.exp);
 		      }
-		      IRList.add("callr, " + $s1.exp + ", " + parts[0] + ", " + parts[1]);
+		      IRList.addFirst("callr, " + $s1.exp + ", " + parts[0] + ", " + parts[1]);
 		    }
 		  }
 		  | OP_LPAREN s4=funcExprList[paramList] OP_RPAREN
@@ -364,10 +369,10 @@ stat[String functionName] returns [ReturnType statReturnType]
 		    // Lone function call
 		    if("".equals($s4.exp)) {
 		      // Parameterless
-		      IRList.add("call, " + $s1.exp);
+		      IRList.addFirst("call, " + $s1.exp);
 		    } else {
 		      // With params
-		      IRList.add("call, " + $s1.exp + ", " + $s4.exp);
+		      IRList.addFirst("call, " + $s1.exp + ", " + $s4.exp);
 		    }
 		    // Verify that the function exists
 		    Attribute att = symbolTableManager.getAttributeInGlobalScope($s1.exp);
@@ -409,25 +414,27 @@ stat[String functionName] returns [ReturnType statReturnType]
 		{
 		  ReturnType ifReturnType=ReturnType.VOID, elseReturnType=ReturnType.VOID;
 		  makeNewScope();
+		  String elseLabel = lf.nextLabel("ELSE");
 		}
-		myIfCond=expr
+		myIfCond=expr[elseLabel]
 		  {
 		    if(!$myIfCond.myIsBool) {
 			    int lineNumber = getLineNumber(myReturnValue);
 			    String customMessage = "If statement conditions must resolve to a boolean value";
 	        exceptionHandler.handleException(lineNumber, customMessage, null, 
                                           null,InvalidTypeException.class);
-		    } 
+		    }
 		  }
       KEY_THEN statSeq[functionName]
       {
         ifReturnType = symbolTableManager.getCurrentScopeReturnType();
+        IRList.addFirst(elseLabel + ":");
       }
     (
       {
         goToEnclosingScope();
       }
-      KEY_ELSE 
+      KEY_ELSE
       {
         makeNewScope();
       }
@@ -441,15 +448,33 @@ stat[String functionName] returns [ReturnType statReturnType]
       goToEnclosingScope();
       symbolTableManager.setCurrentScopeReturnType(ifReturnType == elseReturnType? ifReturnType : ReturnType.VOID);
     }
-		| KEY_WHILE myWhileCond=expr {if(!$myWhileCond.myIsBool) throw new InvalidTypeException("Line: " + (($myWhileCond.start != null)? $myWhileCond.start.getLine() : -1) +". while conditional statements must resolve to a boolean value.");} 
+		|
+		{
+		  String whileLabel = lf.nextLabel("WH_END");
+		  String whileTop = lf.nextLabel("WH_START");
+		  IRList.addFirst(whileTop + ":");
+		}
+		KEY_WHILE myWhileCond=expr[whileLabel]
+		{
+		  if(!$myWhileCond.myIsBool) {
+		    throw new InvalidTypeException("Line " +
+		      (($myWhileCond.start != null) ? $myWhileCond.start.getLine() : -1) +
+		      ": while conditional statements must resolve to a boolean value.");
+		  }
+		}
       KEY_DO statSeq[functionName] KEY_ENDDO
-		| KEY_FOR id[IdType.NIY] OP_ASSIGN indexExpr KEY_TO indexExpr KEY_DO statSeq[functionName] KEY_ENDDO
+    {
+      IRList.addFirst("goto, " + whileTop);
+      IRList.addFirst(whileLabel + ":");
+    }
+		|
+		KEY_FOR id[IdType.NIY] OP_ASSIGN indexExpr KEY_TO indexExpr KEY_DO statSeq[functionName] KEY_ENDDO
 		| KEY_BREAK
 		{
 		  // Cannot be in the function-level scope
 		  
 		}
-		| KEY_RETURN myReturnValue=expr
+		| KEY_RETURN myReturnValue=expr[null]
 		{
 		  ReturnType expectedReturnType = symbolTableManager.getReturnType();
 		  ReturnType actualReturnType = $myReturnValue.type;
@@ -475,22 +500,41 @@ optPrefix :
 	)?
 ;
 
-expr returns [String exp, ReturnType type, boolean myIsBool, boolean myIsFunc]:
-  s1=binOp1
+expr[String label] returns [String exp, ReturnType type, boolean myIsBool, boolean myIsFunc]:
+  s1=binOp1[label]
   (
     (
       s2=OP_AND
       | OP_OR
     )
-    s3=expr
+    s3=expr[label]
   )?
   {
     if($s3.exp == null) {
       $exp = $s1.exp;
       $type = $s1.type;
       $myIsBool = $s1.myIsBool;
+      if(label != null) {
+        // Branch to the label on complement of condition
+        String op = IRList.pop();
+        System.out.println("Popped operation: " + op);
+        String[] parts = op.split(", ");
+        if("leq".equals(parts[0])) {
+          IRList.addFirst("brgt, " + parts[1] + ", " + parts[2] + ", " + label);
+        } else if("geq".equals(parts[0])) {
+          IRList.addFirst("brlt, " + parts[1] + ", " + parts[2] + ", " + label);
+        } else if("lthan".equals(parts[0])) {
+          IRList.addFirst("brgeq, " + parts[1] + ", " + parts[2] + ", " + label);
+        } else if("gthan".equals(parts[0])) {
+          IRList.addFirst("brleq, " + parts[1] + ", " + parts[2] + ", " + label);
+        } else if("neq".equals(parts[0])) {
+          IRList.addFirst("breq, " + parts[1] + ", " + parts[2] + ", " + label);
+        } else {
+          IRList.addFirst("brneq, " + parts[1] + ", " + parts[2] + ", " + label);
+        }
+      }
     } else {
-      if($s1.myIsBool == false || $s3.myIsBool == false){
+      if($s1.myIsBool == false || $s3.myIsBool == false) {
         if(s2 != null) {
           throw new InvalidTypeException("Line " +
             (($s1.start != null)? $s1.start.getLine() : -1) +
@@ -508,10 +552,11 @@ expr returns [String exp, ReturnType type, boolean myIsBool, boolean myIsFunc]:
       $myIsBool = true;
       String temp = tvf.nextTemp();
       if(s2 != null) {
-        IRList.add("and, " + $s1.exp + ", " + $s3.exp + ", " + temp);
+        IRList.addFirst("and, " + $s1.exp + ", " + $s3.exp + ", " + temp);
       } else {
-        IRList.add("or, "  + $s1.exp + ", " + $s3.exp + ", " + temp);
+        IRList.addFirst("or, "  + $s1.exp + ", " + $s3.exp + ", " + temp);
       }
+      
       $exp = temp;
       if($s1.type == ReturnType.FIXPT || $s3.type == ReturnType.FIXPT) {
         $type = ReturnType.FIXPT;
@@ -551,9 +596,9 @@ funcExpr returns [String exp, ReturnType type, boolean myIsBool]:
       $myIsBool = true;
       String temp = tvf.nextTemp();
       if(s2 != null) {
-        IRList.add("and, " + $s1.exp + ", " + $s3.exp + ", " + temp);
+        IRList.addFirst("and, " + $s1.exp + ", " + $s3.exp + ", " + temp);
       } else {
-        IRList.add("or, "  + $s1.exp + ", " + $s3.exp + ", " + temp);
+        IRList.addFirst("or, "  + $s1.exp + ", " + $s3.exp + ", " + temp);
       }
       $exp = temp;
       if($s1.type == ReturnType.FIXPT || $s3.type == ReturnType.FIXPT) {
@@ -565,8 +610,8 @@ funcExpr returns [String exp, ReturnType type, boolean myIsBool]:
   }
 ;
 
-binOp1 returns [String exp, ReturnType type, boolean myIsBool, boolean myIsFunc]:
-  s1=binOp2
+binOp1[String label] returns [String exp, ReturnType type, boolean myIsBool, boolean myIsFunc]:
+  s1=binOp2[label]
   (
     (
       s2=OP_LEQ
@@ -576,7 +621,7 @@ binOp1 returns [String exp, ReturnType type, boolean myIsBool, boolean myIsFunc]
       | s6=OP_NEQ
       | OP_EQUAL
     )
-    s7=binOp1
+    s7=binOp1[label]
   )?
   {
     if($s7.exp == null) {
@@ -598,17 +643,17 @@ binOp1 returns [String exp, ReturnType type, boolean myIsBool, boolean myIsFunc]
       $myIsFunc = false;
       String temp = tvf.nextTemp();
       if(s2 != null) {
-        IRList.add("leq, "    + $s1.exp + ", " + $s7.exp + ", " + temp);
+        IRList.addFirst("leq, "    + $s1.exp + ", " + $s7.exp + ", " + temp);
       } else if(s3 != null) {
-        IRList.add("geq, "    + $s1.exp + ", " + $s7.exp + ", " + temp);
+        IRList.addFirst("geq, "    + $s1.exp + ", " + $s7.exp + ", " + temp);
       } else if(s4 != null) {
-        IRList.add("lthan, "  + $s1.exp + ", " + $s7.exp + ", " + temp);
+        IRList.addFirst("lthan, "  + $s1.exp + ", " + $s7.exp + ", " + temp);
       } else if(s5 != null) {
-        IRList.add("gthan, "  + $s1.exp + ", " + $s7.exp + ", " + temp);
+        IRList.addFirst("gthan, "  + $s1.exp + ", " + $s7.exp + ", " + temp);
       } else if(s6 != null) {
-        IRList.add("neq, "    + $s1.exp + ", " + $s7.exp + ", " + temp);
+        IRList.addFirst("neq, "    + $s1.exp + ", " + $s7.exp + ", " + temp);
       } else {
-        IRList.add("equals, " + $s1.exp + ", " + $s7.exp + ", " + temp);
+        IRList.addFirst("equals, " + $s1.exp + ", " + $s7.exp + ", " + temp);
       }
       $exp = temp;
       if($s1.type == ReturnType.FIXPT || $s7.type == ReturnType.FIXPT) {
@@ -647,17 +692,17 @@ funcBinOp1 returns [String exp, ReturnType type, boolean myIsBool]:
       $myIsBool = true;
       String temp = tvf.nextTemp();
       if(s2 != null) {
-        IRList.add("leq, "    + $s1.exp + ", " + $s7.exp + ", " + temp);
+        IRList.addFirst("leq, "    + $s1.exp + ", " + $s7.exp + ", " + temp);
       } else if(s3 != null) {
-        IRList.add("geq, "    + $s1.exp + ", " + $s7.exp + ", " + temp);
+        IRList.addFirst("geq, "    + $s1.exp + ", " + $s7.exp + ", " + temp);
       } else if(s4 != null) {
-        IRList.add("lthan, "  + $s1.exp + ", " + $s7.exp + ", " + temp);
+        IRList.addFirst("lthan, "  + $s1.exp + ", " + $s7.exp + ", " + temp);
       } else if(s5 != null) {
-        IRList.add("gthan, "  + $s1.exp + ", " + $s7.exp + ", " + temp);
+        IRList.addFirst("gthan, "  + $s1.exp + ", " + $s7.exp + ", " + temp);
       } else if(s6 != null) {
-        IRList.add("neq, "    + $s1.exp + ", " + $s7.exp + ", " + temp);
+        IRList.addFirst("neq, "    + $s1.exp + ", " + $s7.exp + ", " + temp);
       } else {
-        IRList.add("equals, " + $s1.exp + ", " + $s7.exp + ", " + temp);
+        IRList.addFirst("equals, " + $s1.exp + ", " + $s7.exp + ", " + temp);
       }
       $exp = temp;
       if($s1.type == ReturnType.FIXPT || $s7.type == ReturnType.FIXPT) {
@@ -669,14 +714,14 @@ funcBinOp1 returns [String exp, ReturnType type, boolean myIsBool]:
   }
 ;
 
-binOp2 returns [String exp, ReturnType type, boolean myIsBool, boolean myIsFunc]:
-  s1=binOp3
+binOp2[String label] returns [String exp, ReturnType type, boolean myIsBool, boolean myIsFunc]:
+  s1=binOp3[label]
   (
     (
       s2=OP_PLUS
       | OP_MINUS
     )
-    s3=binOp2
+    s3=binOp2[label]
   )?
   {
     if($s3.exp == null) {
@@ -704,9 +749,9 @@ binOp2 returns [String exp, ReturnType type, boolean myIsBool, boolean myIsFunc]
       $myIsFunc = false;
       String temp = tvf.nextTemp();
       if(s2 != null) {
-        IRList.add("add, " + $s1.exp + ", " + $s3.exp + ", " + temp);
+        IRList.addFirst("add, " + $s1.exp + ", " + $s3.exp + ", " + temp);
       } else {
-        IRList.add("sub, " + $s1.exp + ", " + $s3.exp + ", " + temp);
+        IRList.addFirst("sub, " + $s1.exp + ", " + $s3.exp + ", " + temp);
       }
       $exp = temp;
       if($s1.type == ReturnType.FIXPT || $s3.type == ReturnType.FIXPT) {
@@ -747,9 +792,9 @@ funcBinOp2 returns [String exp, ReturnType type, boolean myIsBool]:
       $myIsBool = false;
       String temp = tvf.nextTemp();
       if(s2 != null) {
-        IRList.add("add, " + $s1.exp + ", " + $s3.exp + ", " + temp);
+        IRList.addFirst("add, " + $s1.exp + ", " + $s3.exp + ", " + temp);
       } else {
-        IRList.add("sub, " + $s1.exp + ", " + $s3.exp + ", " + temp);
+        IRList.addFirst("sub, " + $s1.exp + ", " + $s3.exp + ", " + temp);
       }
       $exp = temp;
       if($s1.type == ReturnType.FIXPT || $s3.type == ReturnType.FIXPT) {
@@ -761,14 +806,14 @@ funcBinOp2 returns [String exp, ReturnType type, boolean myIsBool]:
   }
 ;
 
-binOp3 returns [String exp, ReturnType type, boolean myIsBool, boolean myIsFunc]:
-  s1=binOp4
+binOp3[String label] returns [String exp, ReturnType type, boolean myIsBool, boolean myIsFunc]:
+  s1=binOp4[label]
   (
     (
       s2=OP_DIV
       | OP_MULT
     )
-    s3=binOp3
+    s3=binOp3[label]
   )?
   {
     if($s3.exp == null) {
@@ -796,9 +841,9 @@ binOp3 returns [String exp, ReturnType type, boolean myIsBool, boolean myIsFunc]
       $myIsFunc = false;
       String temp = tvf.nextTemp();
       if(s2 != null) {
-        IRList.add("div, "  + $s1.exp + ", " + $s3.exp + ", " + temp);
+        IRList.addFirst("div, "  + $s1.exp + ", " + $s3.exp + ", " + temp);
       } else {
-        IRList.add("mult, " + $s1.exp + ", " + $s3.exp + ", " + temp);
+        IRList.addFirst("mult, " + $s1.exp + ", " + $s3.exp + ", " + temp);
       }
       $exp = temp;
       if($s1.type == ReturnType.FIXPT || $s3.type == ReturnType.FIXPT) {
@@ -839,9 +884,9 @@ funcBinOp3 returns [String exp, ReturnType type, boolean myIsBool]:
       $myIsBool = false;
       String temp = tvf.nextTemp();
       if(s2 != null) {
-        IRList.add("div, "  + $s1.exp + ", " + $s3.exp + ", " + temp);
+        IRList.addFirst("div, "  + $s1.exp + ", " + $s3.exp + ", " + temp);
       } else {
-        IRList.add("mult, " + $s1.exp + ", " + $s3.exp + ", " + temp);
+        IRList.addFirst("mult, " + $s1.exp + ", " + $s3.exp + ", " + temp);
       }
       $exp = temp;
       if($s1.type == ReturnType.FIXPT || $s3.type == ReturnType.FIXPT) {
@@ -853,7 +898,7 @@ funcBinOp3 returns [String exp, ReturnType type, boolean myIsBool]:
   }
 ;
 
-binOp4 returns [String exp, ReturnType type, boolean myIsBool, boolean myIsFunc]
+binOp4[String label] returns [String exp, ReturnType type, boolean myIsBool, boolean myIsFunc]
 @init
 {
   List<String> paramList = new ArrayList<String>();
@@ -862,7 +907,7 @@ binOp4 returns [String exp, ReturnType type, boolean myIsBool, boolean myIsFunc]
 }
 :
   s1=constant                   {$exp = $s1.exp; $type = $s1.type;}
-  | OP_LPAREN s2=expr OP_RPAREN {$exp = $s2.exp; $type = $s2.type; $myIsBool = $expr.myIsBool;}
+  | OP_LPAREN s2=expr[label] OP_RPAREN {$exp = $s2.exp; $type = $s2.type; $myIsBool = $s2.myIsBool;}
   | s3=id[IdType.NIY]
   (
     s4=valueTail                                     {$exp = $s3.exp + $s4.exp; $type = $s3.type;}
@@ -916,7 +961,7 @@ binOp4 returns [String exp, ReturnType type, boolean myIsBool, boolean myIsFunc]
 
 funcBinOp4 returns [String exp, ReturnType type, boolean myIsBool]:
   s1=constant                      {$exp = $s1.exp; $type = $s1.type; $myIsBool = false;}
-  | OP_LPAREN s2=expr OP_RPAREN    {$exp = $s2.exp; $type = $s2.type; $myIsBool = $expr.myIsBool;}
+  | OP_LPAREN s2=funcExpr OP_RPAREN    {$exp = $s2.exp; $type = $s2.type; $myIsBool = $s2.myIsBool;}
   | s3=id[IdType.NIY] s4=valueTail {$exp = $s3.exp + $s4.exp; $type = $s3.type; $myIsBool = false;}
   {
     Attribute att = symbolTableManager.getAttributeInCurrentScope($s3.exp, attributeMap);
@@ -970,7 +1015,7 @@ indexExpr returns [String exp]:
       $exp = $s1.exp;
     } else {
       String temp = tvf.nextTemp();
-      IRList.add("mult, " + $s1.exp + ", " + $s2.exp + ", " + temp);
+      IRList.addFirst("mult, " + $s1.exp + ", " + $s2.exp + ", " + temp);
       $exp = temp;
     }
   }
@@ -991,9 +1036,9 @@ indexExpr2 returns [String exp]:
     } else {
       String temp = tvf.nextTemp();
       if(s2 != null) {
-        IRList.add("add, " + $s1.exp + ", " + $s3.exp + ", " + temp);
+        IRList.addFirst("add, " + $s1.exp + ", " + $s3.exp + ", " + temp);
       } else {
-        IRList.add("sub, " + $s1.exp + ", " + $s3.exp + ", " + temp);
+        IRList.addFirst("sub, " + $s1.exp + ", " + $s3.exp + ", " + temp);
       }
       $exp = temp;
     }
@@ -1029,7 +1074,7 @@ declarationSegment[String functionName] :
 
 exprList[List<String> paramList] returns [String exp]:
   (
-    s1=expr s2=exprListTail[paramList]
+    s1=expr[null] s2=exprListTail[paramList]
   )?
   {
     if($s1.exp == null) {
@@ -1063,7 +1108,7 @@ funcExprList[List<String> paramList] returns [String exp]:
 
 exprListTail[List<String> paramList] returns [String exp]:
   (
-    OP_COMMA s1=expr s2=exprListTail[paramList]
+    OP_COMMA s1=expr[null] s2=exprListTail[paramList]
   )?
   {
     if($s1.exp == null) {
