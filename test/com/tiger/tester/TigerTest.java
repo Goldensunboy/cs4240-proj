@@ -1,7 +1,9 @@
 package com.tiger.tester;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
 
 import org.antlr.runtime.RecognitionException;
@@ -9,6 +11,7 @@ import org.antlr.runtime.RecognitionException;
 import com.antlr.generated.TigerParser;
 import com.compiler.TigerCompiler;
 import com.compiler.TigerCompiler.CompilerErrorReport;
+import com.exception.BadDeveloperException;
 
 
 public class TigerTest {
@@ -19,8 +22,11 @@ public class TigerTest {
 	 * tester figures out which set of test cases to execute
 	 */
 	public static void main(String[] args) throws RecognitionException {
+		String mainDeveloperName = System.getProperty("user.name");
+		DeveloperName[] developerNames = DeveloperName.lookup(mainDeveloperName);
+
+		checkForThrows(mainDeveloperName);
 		
-		DeveloperName[] developerNames = DeveloperName.lookup(System.getProperty("user.name"));
 		System.out.println(System.getProperty("user.dir"));
 		System.out.println();
 		
@@ -60,6 +66,22 @@ public class TigerTest {
 				System.out.println("******************************");
 				System.out.println();
 			}
+		}
+	}
+	
+	private static void checkForThrows(String developerName) {
+		File file = new File("src/com/tiger/Tiger.g");
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(file));
+			String line;
+			while ((line = br.readLine()) != null) {
+			   if(line.contains("throw new"))
+				   throw new BadDeveloperException("Bad " + developerName + "!!! Don't use throw!!! PLEASE " + developerName + " PLEASE");
+			}
+			br.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 	
@@ -105,7 +127,7 @@ public class TigerTest {
 			if(preferedName.equals(MARISSA.getPreferedName())) {
 				return new DeveloperName[]{MARISSA};
 			} else if (preferedName.equals(SAMAN.getPreferedName())) {
-				return new DeveloperName[]{SAMAN, ANDREW};
+				return new DeveloperName[]{SAMAN};
 			} else if (preferedName.equals(ANDREW.getPreferedName())) {
 				return new DeveloperName[]{ANDREW};
 			}

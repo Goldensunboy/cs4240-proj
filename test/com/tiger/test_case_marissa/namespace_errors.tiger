@@ -58,6 +58,7 @@ void function temp4()
 begin
 	begin
 		var name6 : int :=0;
+		var name6 : int :=0;
 		name6 := 0;
 	end;
 end;

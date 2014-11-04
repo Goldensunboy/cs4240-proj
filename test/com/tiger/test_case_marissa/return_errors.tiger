@@ -1,0 +1,132 @@
+
+/* void function can't return an int literal */ /*
+void function func1()
+begin
+	begin
+		var n : int := 5;
+		return 7;
+	end;
+end;*/
+
+/* void function can't return a float variable*/ /*
+void function func2()
+begin
+	begin
+		var n : fixedpt := 5.0;
+		return n;
+	end;
+end;*/
+
+/* int return type function can't return a float literal*/ /*
+int function func3()
+begin
+	begin
+		var n : int := 5;
+		return 7.0;
+	end;
+end;*/
+
+/* int return type function can't return a float variable*/ /*
+int function func4()
+begin
+	begin
+		var n : fixedpt := 5.0;
+		return n;
+	end;
+end;*/
+
+/* int return type function needs a return statement*/ /*
+int function func5()
+begin
+	begin
+		var n : fixedpt := 5.0;
+		n := 6.0;
+	end;
+end; */
+
+/* needs a return value */ /*
+int function func6()
+begin
+	begin
+		var a, b : int :=0;
+		if a = b then
+			a := 1;
+		else
+			b := 1;
+		endif;
+	end;
+end; */
+
+/* needs a return value in else */ /*
+int function func7()
+begin
+	begin
+		var a, b : int :=0;
+		if a = b then
+			a := 1;
+			return 5;
+		else
+			b := 1;
+		endif;
+	end;
+end; */
+
+/* needs a return value in if */ /*
+int function func8()
+begin
+	begin
+		var a, b : int :=0;
+		if a = b then
+			a := 1;
+		else
+			b := 1;
+			return 5;
+		endif;
+	end;
+end; */
+
+/* needs a return value */ /*
+int function func9()
+begin
+	begin
+		var a, b : int :=0;
+		if a = b then
+			a := 1;
+			if a = b then
+				a := 1;
+			else
+				b := 1;
+				return 5;
+			endif;
+		else
+			b := 1;
+			return 5;
+		endif;
+	end;
+end; */
+
+/* needs a return value */ /*
+int function func10()
+begin
+	begin
+		var a, b : int :=0;
+		if a = b then
+			a := 1;
+			if a = b then
+				a := 1;
+				return 5;
+			endif;
+		else
+			b := 1;
+			return 5;
+		endif;
+	end;
+end; */
+
+void main()
+begin
+	begin
+		var x : int := 10;
+		x := 2;
+	end;
+end;

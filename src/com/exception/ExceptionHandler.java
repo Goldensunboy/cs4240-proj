@@ -44,8 +44,9 @@ public class ExceptionHandler {
 				errorMessage.append(actual);
 				errorMessage.append("\"");
 			}
-			
-			throw constructor.newInstance(errorMessage.toString());
+			RuntimeException exception = constructor.newInstance(errorMessage.toString());
+			exception.printStackTrace();
+//			throw constructor.newInstance(errorMessage.toString());
 			
 		} catch ( SecurityException
 				| InstantiationException | IllegalAccessException

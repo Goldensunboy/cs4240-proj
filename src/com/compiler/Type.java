@@ -5,6 +5,7 @@ public enum Type {
   INT("int", true, true),
   FIXPT("fixedpt", true, true),
   VOID("void", false, true),
+  ARRAY("array", true, true), //TODO isValidReturnType == true?
   OTHER("user_defined", true, true),
   INVALID("", false, false); //temporary for testing
   

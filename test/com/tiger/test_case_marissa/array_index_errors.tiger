@@ -26,26 +26,7 @@ begin
 		i := X[-1];
 	end;
 end; */
-
-/* TODO: array indexes should not be greater than the length of the array */ 
-void function func2()
-begin
-	begin
-		var X : ArrayInt := 10;
-		var i : int := 0;
-		i := X[100];
-	end;
-end; 
-
-/* TODO: array indexes should not be greater than the length of the array */ 
-void function func3()
-begin
-	begin
-		var X : Array2DInt := 10;
-		var i : int := 0;
-		i := X[100][1000];
-	end;
-end; 
+ 
 
 /* array indexes should not be fixed point numbers */ /*
 void function func4()
@@ -109,6 +90,17 @@ begin
 		i := X*8;
 	end;
 end;
+
+/* Cannot use an fixedpt  */ /*
+void function func10() 
+begin
+	begin
+		var x : ArrayInt := 0;
+		var y : ArrayInt := 0;
+		var i : fixedpt := 3.5;
+		x[0] := y[i];
+	end;
+end; */
 
 void main()
 begin
