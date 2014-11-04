@@ -1,23 +1,24 @@
-int function mofo()
+type x = int;
+
+void function xm() 
 begin
 	begin
-		var x, b : int := 10;
-		var x : int :=5;
-		x := 2;
-		return x;
-	end; 
+		var s : int := 10;
+		s := 2;
+		begin
+			var s : int := 10;
+			s := 2;
+		end;
+	end;
 end;
-
 void main()
 begin
 	begin
-		type ArrayInt = array [100] of int;
-		var x, b : int := 10;
-		x := 2;
+		var b : int := 10;
 		b :=3;
 		begin
 			var i : int:= 0;
-			i := x + b;
+			i := b;
 		end;
 	end;
 end;

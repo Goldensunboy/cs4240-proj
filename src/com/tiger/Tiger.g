@@ -17,13 +17,14 @@ import java.util.Map;
 import java.util.Hashtable;
 import java.util.TreeMap;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.HashSet;
 import com.attribute.Attribute;
 import com.attribute.VariableNameAttribute;
 import com.symbol_table.SymbolTableManager;
 import com.symbol_table.Symbol;
 import com.symbol_table.Scope;
 import com.symbol_table.IdType;
-import com.symbol_table.NameSpaceManager;
 import com.attribute.FunctionNameAttribute;
 import com.attribute.FunctionNameAttribute.ParamType;
 import com.compiler.TempVarFactory;
@@ -35,6 +36,7 @@ import com.exception.UndeclaredFunctionException;
 import com.exception.UndeclaredVariableException;
 import com.exception.ExceptionHandler;
 import com.exception.TypeMismatchException;
+import com.exception.NameSpaceConflictException;
 /**************************************/
 
 }
@@ -56,12 +58,19 @@ import com.exception.TypeMismatchException;
   
   private SymbolTableManager symbolTableManager = new SymbolTableManager();
   private Map<String, Attribute> attributeMap = new Hashtable<String, Attribute>();
-  private NameSpaceManager nameSpaceManager = new NameSpaceManager();
   private ArrayList<String> IRList = new ArrayList<String>();
   private TempVarFactory tvf = new TempVarFactory();
   private String enclosingFunctionName;
   private ExceptionHandler exceptionHandler = new ExceptionHandler();
-
+  
+  private Set<String> varNamespace = new HashSet<>();
+  private Set<String> typeNamespace = new HashSet<>();
+  private Set<String> functionNamespace = new HashSet<>();
+  
+  public static final String VAR_NAMESPACE = "varNameSpcae";
+  public static final String TYPE_NAMESPACE = "typeNameSpcae";
+  public static final String FUNCTION_NAMESPACE = "functionNameSpcae";
+  
   private void putVariableNameAttributeMap(List<String> variableNameList, String type, String declaringFunctionName) {
     for (String variableName : variableNameList) {
         VariableNameAttribute variableNameAttribute = new VariableNameAttribute(variableName, type, declaringFunctionName);
@@ -97,10 +106,6 @@ import com.exception.TypeMismatchException;
     return temp;
   }
   
-  public void printTheNameSpace() {
-    System.out.println(nameSpaceManager.toString());
-  }
-  
   public void printTheIRCode() {
     System.out.println("IR code:\n**********");
     for(String s : IRList) {
@@ -125,18 +130,46 @@ import com.exception.TypeMismatchException;
   }
   
   private int getLineNumber(ParserRuleReturnScope token) {
-    return token.start.getLine();
+    return getLineNumber(token.start);
+  }
+    
+  private int getLineNumber(Token token) {
+    return token.getLine();
   }
   
   private void makeNewScope() {
-	  symbolTableManager.makeNewScope(attributeMap, enclosingFunctionName);
-	  attributeMap.clear();
+    Map<String, Set<String>> unregisteredNamespaceMap = getUnregisteredNamespacesMap();
+    
+    symbolTableManager.makeNewScope(attributeMap, enclosingFunctionName, unregisteredNamespaceMap);
+	  
+	  clearMapsAndSets();
   }
   
   private void goToEnclosingScope() {
-    symbolTableManager.goToEnclosingScope(attributeMap);
-    attributeMap.clear();
+    Map<String, Set<String>> unregisteredNamespaceMap = getUnregisteredNamespacesMap();
+    
+    symbolTableManager.goToEnclosingScope(attributeMap, unregisteredNamespaceMap);
+    
+    clearMapsAndSets();
   }
+  
+  private void clearMapsAndSets() {
+    attributeMap.clear();
+    varNamespace.clear();
+    typeNamespace.clear();
+    functionNamespace.clear();
+  }
+  
+  private Map<String, Set<String>> getUnregisteredNamespacesMap() {
+    Map<String, Set<String>> unregisteredNameSpaces = new Hashtable<>();
+    
+    unregisteredNameSpaces.put(FUNCTION_NAMESPACE, functionNamespace);
+	  unregisteredNameSpaces.put(VAR_NAMESPACE, varNamespace);
+	  unregisteredNameSpaces.put(TYPE_NAMESPACE, typeNamespace);
+  
+	  return unregisteredNameSpaces;
+  }
+  
 }
 
 tigerProgram :
@@ -166,7 +199,7 @@ scope
   $funcDeclaration::myParams = new ArrayList<String>();
 }
 :
-  KEY_FUNCTION myFunctionName=id[IdType.FUNCTION_NAME]
+  KEY_FUNCTION myFunctionName=id[IdType.FUNCTION_NAME, true]
   OP_LPAREN paramList OP_RPAREN afterBegin[$myFunctionName.text, returnType]
 ;
 
@@ -210,7 +243,7 @@ retType :
 
 typeId returns[ReturnType type]:
 	baseType {$type=$baseType.type;}
-	| id[IdType.NIY] {$type=ReturnType.OTHER;}
+	| id[IdType.NIY, false] {$type=ReturnType.OTHER;}
 	
 	
 ;
@@ -221,7 +254,7 @@ baseType returns[ReturnType type]:
 ;
 
 param :
-	id[IdType.NIY] OP_COLON typeId
+	id[IdType.NIY, false] OP_COLON typeId
 	{
 	  $funcDeclaration::myParams.add($typeId.text);
 	}
@@ -257,8 +290,7 @@ varDeclarationList[String functionName] :
 
 typeDeclaration :
   
-	KEY_TYPE id[IdType.TYPE_NAME] OP_EQUAL type OP_SCOLON
-	
+	KEY_TYPE myId=id[IdType.TYPE_NAME, true] OP_EQUAL type OP_SCOLON
 ;
 
 type :
@@ -282,7 +314,7 @@ scope
   $varDeclaration::aggregatedMyIdList = new ArrayList<String>();
 }
 :
-	KEY_VAR idList[IdType.VAR_NAME] OP_COLON myTypeId=typeId optionalInit OP_SCOLON
+	KEY_VAR idList[IdType.VAR_NAME, true] OP_COLON myTypeId=typeId optionalInit OP_SCOLON
 	{
 	  putVariableNameAttributeMap($varDeclaration::aggregatedMyIdList,
 	                              $myTypeId.text,
@@ -290,10 +322,10 @@ scope
 	}
 ;
 
-idList[IdType idType] : 
-  myId=id[idType]
+idList[IdType idType, boolean testNamespace] : 
+  myId=id[idType, testNamespace]
   (
-    OP_COMMA idList[idType]
+    OP_COMMA idList[idType, testNamespace]
   )?
 	{
 	  $varDeclaration::aggregatedMyIdList.add($myId.text);
@@ -318,7 +350,7 @@ stat[String functionName] returns [ReturnType statReturnType]
 }
 : 
 	(
-		s1=id[IdType.NIY]
+		s1=id[IdType.NIY, false]
 		(
 		  s2=valueTail OP_ASSIGN s3=expr
 		  {
@@ -443,7 +475,7 @@ stat[String functionName] returns [ReturnType statReturnType]
     }
 		| KEY_WHILE myWhileCond=expr {if(!$myWhileCond.myIsBool) throw new InvalidTypeException("Line: " + (($myWhileCond.start != null)? $myWhileCond.start.getLine() : -1) +". while conditional statements must resolve to a boolean value.");} 
       KEY_DO statSeq[functionName] KEY_ENDDO
-		| KEY_FOR id[IdType.NIY] OP_ASSIGN indexExpr KEY_TO indexExpr KEY_DO statSeq[functionName] KEY_ENDDO
+		| KEY_FOR id[IdType.NIY, false] OP_ASSIGN indexExpr KEY_TO indexExpr KEY_DO statSeq[functionName] KEY_ENDDO
 		| KEY_BREAK
 		{
 		  // Cannot be in the function-level scope
@@ -863,7 +895,7 @@ binOp4 returns [String exp, ReturnType type, boolean myIsBool, boolean myIsFunc]
 :
   s1=constant                   {$exp = $s1.exp; $type = $s1.type;}
   | OP_LPAREN s2=expr OP_RPAREN {$exp = $s2.exp; $type = $s2.type; $myIsBool = $expr.myIsBool;}
-  | s3=id[IdType.NIY]
+  | s3=id[IdType.NIY, false]
   (
     s4=valueTail                                     {$exp = $s3.exp + $s4.exp; $type = $s3.type;}
     | OP_LPAREN s5=funcExprList[paramList] OP_RPAREN {$exp = $s3.exp + "#" + $s5.exp; $type = $s3.type; $myIsFunc = true;}
@@ -917,7 +949,7 @@ binOp4 returns [String exp, ReturnType type, boolean myIsBool, boolean myIsFunc]
 funcBinOp4 returns [String exp, ReturnType type, boolean myIsBool]:
   s1=constant                      {$exp = $s1.exp; $type = $s1.type; $myIsBool = false;}
   | OP_LPAREN s2=expr OP_RPAREN    {$exp = $s2.exp; $type = $s2.type; $myIsBool = $expr.myIsBool;}
-  | s3=id[IdType.NIY] s4=valueTail {$exp = $s3.exp + $s4.exp; $type = $s3.type; $myIsBool = false;}
+  | s3=id[IdType.NIY, false] s4=valueTail {$exp = $s3.exp + $s4.exp; $type = $s3.type; $myIsBool = false;}
   {
     Attribute att = symbolTableManager.getAttributeInCurrentScope($s3.exp, attributeMap);
     if(att == null) {
@@ -935,7 +967,7 @@ constant returns [String exp, ReturnType type]:
 ;
 
 value returns [String exp, ReturnType type]:
-	s1=id[IdType.NIY] s2=valueTail
+	s1=id[IdType.NIY, false] s2=valueTail
 	{
 	  $exp = $s1.exp + "#" + $s2.exp;
 	  $type = $id.type;
@@ -1002,7 +1034,7 @@ indexExpr2 returns [String exp]:
 
 indexExpr3 returns [String exp]:
   INTLIT {$exp = $INTLIT.text;}
-  | myId=id[IdType.NIY]
+  | myId=id[IdType.NIY, false]
   {
     $exp = $id.exp;
     Attribute att = symbolTableManager.getAttributeInCurrentScope($id.exp, attributeMap);
@@ -1158,15 +1190,34 @@ FIXEDPTLIT :
 	INTLIT OP_PERIOD DIGIT (DIGIT? DIGIT)?
 ;
 
-id[IdType idType] returns [String exp, ReturnType type]:
-  ID
+id[IdType idType, boolean testNamespace] returns [String exp, ReturnType type]:
+  myId=ID
   {
-    nameSpaceManager.manageNameSpace($ID, idType);
+    
+    if (testNamespace) {
+	    Map<String, Set<String>> unregisteredNameSpaceMap = getUnregisteredNamespacesMap();
+	    if(symbolTableManager.doesNameSpaceConflict(idType, $myId.text, unregisteredNameSpaceMap)) {
+	      int lineNumber = getLineNumber($myId);
+	      String customMessage = idType.getName() + " \"" + $myId.text + "\" is already in the namespace"; 
+	      exceptionHandler.handleException(lineNumber, customMessage, null, null, NameSpaceConflictException.class);
+	    }
+	    
+	    if(idType == IdType.FUNCTION_NAME) {
+	      functionNamespace.add($myId.text);
+	    }
+	    if(idType == IdType.VAR_NAME) {
+	      varNamespace.add($myId.text);
+	    }
+	    if(idType == IdType.TYPE_NAME) {
+		    typeNamespace.add($myId.text);
+	    }
+    }
+    
     $exp = $ID.text;
     Attribute att = symbolTableManager.getAttributeInCurrentScope($ID.text, attributeMap);
     if(att != null) {
-      $type = "int".equals(att.getType())   ? ReturnType.INT   :
-              "fixedpt".equals(att.getType()) ? ReturnType.FIXPT :
+      $type = ReturnType.INT.getName().equals(att.getType())   ? ReturnType.INT   :
+              ReturnType.FIXPT.getName().equals(att.getType()) ? ReturnType.FIXPT :
                                               ReturnType.OTHER ;
     } else {
       $type = ReturnType.OTHER;

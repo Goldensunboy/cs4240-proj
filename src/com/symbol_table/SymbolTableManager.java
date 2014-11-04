@@ -1,11 +1,14 @@
 package com.symbol_table;
 
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
+import com.antlr.generated.TigerParser;
 import com.attribute.Attribute;
 import com.attribute.FunctionNameAttribute;
 import com.attribute.VarTypeAttribute;
@@ -13,6 +16,7 @@ import com.compiler.ReturnType;
 import com.exception.AttributeCastException;
 import com.exception.ErroneousParserImplementationException;
 import com.exception.NameSpaceConflictException;
+import com.exception.ShouldNotHappenException;
 
 /**
  * Manages scoping and any addition to the symbol table. 
@@ -23,13 +27,21 @@ public class SymbolTableManager {
 	
 	// used for global types and function names
 	private Scope globalScope = new Scope(null, -1, null);
-	
+	private Set<String> globalTypeFunctionNameSpace = new HashSet<>();
 	private Scope currentScope;	
 	private int scopeId = 0;
 	
 	// the symbol table that holds all symbol names and their actual symbols in the code
 	private Map<String, List<Symbol>> symbolTable = new Hashtable<String, List<Symbol>>();
-	
+
+	/*
+	 * Sorry I couldn't think of a good name. This set keep tracks of the names that 
+	 * have been used in as functionName, varName and typeName. So when we
+	 * are creating new functionName's we won't use them again. It's independent
+	 * of any scope.
+	 *  
+	 */
+	private Set<String> expiredFunctionName = new HashSet<>();
 	/**
 	 * Takes the temporary attributeMap in the TigerParser and insert all of its values
 	 * into the symbolTable
@@ -38,11 +50,22 @@ public class SymbolTableManager {
 	 * key.   
 	 * @return the newly made scope 
 	 */
-	public Scope makeNewScope(Map<String, Attribute> attributeMaps, String enclosingFunctionName) {
+	public Scope makeNewScope(Map<String, Attribute> attributeMaps, 
+			String enclosingFunctionName, Map<String, Set<String>> nameSpaceMap) {
+		
+		addToExpiredFunctionName(nameSpaceMap); 
+		
 		if(currentScope != null){
-			symbolTable.putAll(currentScope.putInScope(attributeMaps));			
+			symbolTable.putAll(currentScope.putInScope(attributeMaps));
+			currentScope.addToVarNameSpace(nameSpaceMap.get(TigerParser.VAR_NAMESPACE));
+			currentScope.addToTypeNameSpace(nameSpaceMap.get(TigerParser.TYPE_NAMESPACE));
 		} else {
 			symbolTable.putAll(globalScope.putInScope(attributeMaps));
+			globalScope.addToFunctionNameSpace(nameSpaceMap.get(TigerParser.FUNCTION_NAMESPACE));
+			globalScope.addToTypeNameSpace(nameSpaceMap.get(TigerParser.TYPE_NAMESPACE));
+
+			globalTypeFunctionNameSpace = globalScope.getFunctionNameSpace();
+			globalTypeFunctionNameSpace.addAll(globalScope.getTypeNameSpace()); 
 		}
 
 		Scope newScope = new Scope(currentScope, scopeId++, enclosingFunctionName);
@@ -57,7 +80,11 @@ public class SymbolTableManager {
 	 * 
 	 * @return the enclosing scope of the current scope
 	 */
-	public Scope goToEnclosingScope(Map<String, Attribute> attributeMaps) {
+	public Scope goToEnclosingScope(Map<String, Attribute> attributeMaps,
+									Map<String, Set<String>> nameSpaceMap) {
+		
+		addToExpiredFunctionName(nameSpaceMap);
+		
 		if(attributeMaps.size() > 0) {			
 			Map<String, List<Symbol>> currentScopeMap = currentScope.putInScope(attributeMaps);
 			for(Entry<String, List<Symbol>> currentScopeSymbol : currentScopeMap.entrySet()) {
@@ -223,5 +250,41 @@ public class SymbolTableManager {
 			throw new AttributeCastException(e.getMessage());
 		}
 		return varTypeAttribute;
+	}
+	
+	public void addToExpiredFunctionName(Map<String, Set<String>> nameSpaceMap) {
+		for (Entry<String, Set<String>> nameSpcae : nameSpaceMap.entrySet()) {
+			expiredFunctionName.addAll(nameSpcae.getValue());
+		}
+	}
+	
+	public boolean doesNameSpaceConflict(IdType idType, String name, Map<String, Set<String>> unregisteredNamespaceMap) {
+
+		Set<String> varNameSpace = unregisteredNamespaceMap.get(TigerParser.VAR_NAMESPACE);
+		Set<String> typeNameSpace = unregisteredNamespaceMap.get(TigerParser.TYPE_NAMESPACE);
+		Set<String> functionNameSpace = unregisteredNamespaceMap.get(TigerParser.FUNCTION_NAMESPACE);
+		
+		boolean functionNameConflict = globalScope.isInFunctionNameSpace(name, functionNameSpace, globalTypeFunctionNameSpace); 
+		boolean typeNameConflict = currentScope == null ? false : currentScope.isInTypeNameSpace(idType, name, typeNameSpace, globalTypeFunctionNameSpace);
+		boolean varNameConflict = currentScope == null ? false : currentScope.isInVarNameSpace(name, varNameSpace, globalTypeFunctionNameSpace);
+		
+		if(idType == IdType.FUNCTION_NAME) {
+			for(Entry<String, Set<String>> nameSpace : unregisteredNamespaceMap.entrySet()) {
+				if(nameSpace.getValue().contains(name)) {
+					return true;
+				}
+			}
+			return expiredFunctionName.contains(name);
+		}
+		
+		if(idType == IdType.VAR_NAME) {
+			return functionNameConflict || typeNameConflict || varNameConflict;
+		}
+
+		if(idType == IdType.TYPE_NAME) {
+			return functionNameConflict || varNameConflict || typeNameConflict;
+		}
+		
+		throw new ShouldNotHappenException();
 	}
 }
