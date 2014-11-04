@@ -372,6 +372,7 @@ statSeq[String functionName]
 	stat[functionName]+
 ;
 
+
 stat[String functionName] returns [Type statReturnType]
 @init
 {
