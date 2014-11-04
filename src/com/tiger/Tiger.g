@@ -280,7 +280,13 @@ blockList[String functionName] :
 ;
 
 block[String functionName] :
-	key_begin declarationSegment[functionName] statSeq[functionName] key_end OP_SCOLON
+{
+  String endLabel = lf.nextLabel("BLOCK_END");
+}
+	key_begin declarationSegment[functionName] statSeq[functionName, endLabel] key_end OP_SCOLON
+{
+  IRList.addFirst(endLabel + ":");
+}
 ;
 
 typeDeclarationList :
@@ -341,12 +347,11 @@ optionalInit :
 	)?
 ;
 
-statSeq[String functionName] 
-:
-	stat[functionName]+
+statSeq[String functionName, String endLabel] :
+	stat[functionName, endLabel]+
 ;
 
-stat[String functionName] returns [Type statReturnType]
+stat[String functionName, String endLabel] returns [Type statReturnType]
 @init
 {
   List<String> paramList = new ArrayList<String>();
@@ -444,6 +449,7 @@ stat[String functionName] returns [Type statReturnType]
 		  Type ifReturnType=Type.VOID, elseReturnType=Type.VOID;
 		  makeNewScope();
 		  String elseLabel = lf.nextLabel("ELSE");
+		  String endLabel2 = lf.nextLabel("BLOCK_END");
 		}
 		myIfCond=expr[elseLabel]
 		  {
@@ -453,7 +459,7 @@ stat[String functionName] returns [Type statReturnType]
                                           null,InvalidTypeException.class);
 		    }
 		  }
-      KEY_THEN statSeq[functionName]
+      KEY_THEN statSeq[functionName, endLabel2]
       {
         ifReturnType = symbolTableManager.getCurrentScopeReturnType();
         IRList.addFirst(elseLabel + ":");
@@ -466,7 +472,7 @@ stat[String functionName] returns [Type statReturnType]
       {
         makeNewScope();
       }
-      statSeq[functionName]
+      statSeq[functionName, endLabel2]
       {
         elseReturnType = symbolTableManager.getCurrentScopeReturnType();
       }
@@ -475,14 +481,15 @@ stat[String functionName] returns [Type statReturnType]
     {
       goToEnclosingScope();
       symbolTableManager.setCurrentScopeReturnType(ifReturnType == elseReturnType? ifReturnType : Type.VOID);
+      IRList.addFirst(endLabel2 + ":");
     }
 		|
 		{
-		  String whileLabel = lf.nextLabel("WH_END");
-		  String whileTop = lf.nextLabel("WH_START");
+		  String whileTop = lf.nextLabel("WHILE");
+		  String endLabel2 = lf.nextLabel("BLOCK_END");
 		  IRList.addFirst(whileTop + ":");
 		}
-		KEY_WHILE myWhileCond=expr[whileLabel]
+		KEY_WHILE myWhileCond=expr[endLabel2]
 		{
 		  if(!$myWhileCond.myIsBool) {
 		    throw new InvalidTypeException("Line " +
@@ -490,17 +497,26 @@ stat[String functionName] returns [Type statReturnType]
 		      ": while conditional statements must resolve to a boolean value.");
 		  }
 		}
-      KEY_DO statSeq[functionName] KEY_ENDDO
+      KEY_DO statSeq[functionName, endLabel2] KEY_ENDDO
     {
       IRList.addFirst("goto, " + whileTop);
-      IRList.addFirst(whileLabel + ":");
+      IRList.addFirst(endLabel2 + ":");
     }
-		| 
-		KEY_FOR id[IdType.NIY, false] OP_ASSIGN indexExpr KEY_TO indexExpr KEY_DO statSeq[functionName] KEY_ENDDO
+		|
+		{
+		  String endLabel2 = lf.nextLabel("BLOCK_END");
+		}
+		KEY_FOR id[IdType.NIY, false]
+		  OP_ASSIGN indexExpr KEY_TO indexExpr
+		  KEY_DO statSeq[functionName, endLabel2] KEY_ENDDO
+		{
+		  IRList.addFirst(endLabel2 +":");
+		}
 		| KEY_BREAK
 		{
-		  // Cannot be in the function-level scope
+		  // TODO Cannot be in the function-level scope
 		  
+		  IRList.addFirst("goto, " + endLabel);
 		}
 		| KEY_RETURN myReturnValue=expr[null]
 		{
