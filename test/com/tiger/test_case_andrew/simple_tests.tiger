@@ -35,6 +35,7 @@ begin
 		x := 2 * 3 + 5;
 		if x < 7 - 9 then
 			x := 9;
+			break;
 			x := 90 - 5;
 		endif;
 		x := 0;

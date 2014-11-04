@@ -37,6 +37,7 @@ import com.exception.InvalidTypeException;
 import com.exception.InvalidInvocationException;
 import com.exception.UndeclaredFunctionException;
 import com.exception.UndeclaredVariableException;
+import com.exception.ShouldNotHappenException;
 import com.exception.ExceptionHandler;
 import com.exception.TypeMismatchException;
 import com.exception.NameSpaceConflictException;
@@ -205,6 +206,9 @@ scope
 }
 :
   KEY_FUNCTION myFunctionName=id[IdType.FUNCTION_NAME, true]
+{
+  IRList.addFirst("FUNC_" + $id.text + ":");
+}
   OP_LPAREN paramList OP_RPAREN afterBegin[$myFunctionName.text, returnType]
 ;
 
@@ -417,7 +421,7 @@ stat[String functionName, String endLabel] returns [Type statReturnType]
 		        String customMessage = "Assignment of fixedpt function " + parts[0] + " to int variable " + $s1.exp;
             exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
 		      }
-		      IRList.addFirst("callr, " + $s1.exp + ", " + parts[0] + ", " + parts[1]);
+		      IRList.addFirst("callr, " + $s1.exp + ", FUNC_" + parts[0] + ", " + parts[1]);
 		    }
 		  }
 		  | OP_LPAREN s4=funcExprList[paramList] OP_RPAREN
@@ -425,10 +429,10 @@ stat[String functionName, String endLabel] returns [Type statReturnType]
 		    // Lone function call
 		    if("".equals($s4.exp)) {
 		      // Parameterless
-		      IRList.addFirst("call, " + $s1.exp);
+		      IRList.addFirst("call, FUNC_" + $s1.exp);
 		    } else {
 		      // With params
-		      IRList.addFirst("call, " + $s1.exp + ", " + $s4.exp);
+		      IRList.addFirst("call, FUNC_" + $s1.exp + ", " + $s4.exp);
 		    }
 		    // Verify that the function exists
 		    Attribute att = symbolTableManager.getAttributeInGlobalScope($s1.exp);
@@ -532,11 +536,17 @@ stat[String functionName, String endLabel] returns [Type statReturnType]
 		{
 		  IRList.addFirst(endLabel2 +":");
 		}
-		| KEY_BREAK
+		| brk=KEY_BREAK
 		{
-		  // TODO Cannot be in the function-level scope
-		  
-		  IRList.addFirst("goto, " + endLabel);
+		  // Cannot be in the function-level scope
+		  if(symbolTableManager.isInFunctionScope()) {
+		    String customMessage = "Cannot break out of a function";
+		    exceptionHandler.handleException(brk, customMessage, 
+		                                      null, null,
+		                                      ShouldNotHappenException.class);
+		  } else {
+		    IRList.addFirst("goto, " + endLabel);
+		  }
 		}
 		| KEY_RETURN myReturnValue=expr[null]
 		{
