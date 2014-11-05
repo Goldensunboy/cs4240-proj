@@ -6,6 +6,6 @@ public class TempVarFactory {
 		nextVar = 0;
 	}
 	public String nextTemp() {
-		return "t" + nextVar++;
+		return "$t" + nextVar++;
 	}
 }

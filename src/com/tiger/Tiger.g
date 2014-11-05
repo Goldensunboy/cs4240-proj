@@ -424,7 +424,10 @@ stat[String functionName, String endLabel] returns [Type statReturnType]
 		        String customMessage = "Assignment of fixedpt function " + parts[0] + " to int variable " + $s1.exp;
             exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
 		      }
-		      IRList.addFirst("callr, " + $s1.exp + ", FUNC_" + parts[0] + ", " + parts[1]);
+		      IRList.addFirst("callr, " + $s1.exp + ", FUNC_" + parts[0] +
+		        // Be careful not to reference parts[1] which is out
+		        // of bounds for parameterless functions
+		        (parts.length == 1 ? "" : ", " + parts[1]));
 		    }
 		  }
 		  | OP_LPAREN s4=funcExprList[paramList] OP_RPAREN
