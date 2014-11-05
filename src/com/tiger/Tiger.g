@@ -1263,7 +1263,6 @@ ID :
   ALPHANUM (ALPHANUM | DIGIT | OP_UNDER)*
 ;
 
-
 fragment
 DIGIT :
   '0'..'9'

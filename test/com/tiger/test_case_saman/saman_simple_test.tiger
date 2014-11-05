@@ -1,16 +1,33 @@
-type x = int;
-
-void function mx() 
+int function func1() 
 begin
 	begin
-		var s : int := 10;
-		s := 2;
+		var name3 : int :=0;
 		begin
-			var s : int := 10;
-			s := 2;
+			var name3 : int :=0;
+			begin
+				var name3 : int :=0;
+				begin
+					var name3 : int :=0;
+					name3 :=0;
+				end;
+				name3 :=0;
+			end;
+			name3 :=0;
 		end;
+		name3 := 0;
+		
+		begin
+			var name4 : int :=0;
+			name4 :=0;
+		end;
+		begin
+			var name4 : int :=0;
+			name4 :=0;
+		end;
+		return 5;
 	end;
 end;
+
 void main()
 begin
 	begin
