@@ -486,7 +486,7 @@ stat[String functionName, String endLabel] returns [Type statReturnType]
 		  {
 		    if(!$myIfCond.myIsBool) {
 			    String customMessage = "If statement conditions must resolve to a boolean value";
-	        exceptionHandler.handleException(myReturnValue, customMessage, null, 
+	        exceptionHandler.handleException(myIfCond, customMessage, null, 
                                           null,InvalidTypeException.class);
 		    }
 		  }
