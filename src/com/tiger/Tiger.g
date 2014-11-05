@@ -313,8 +313,10 @@ typeDeclaration :
 type returns [Type type, Type typeOfArray, boolean isTwoDimensionalArray, int dim1, int dim2]
 @init{
   boolean myIsTwoDimensional_var = false;
-  boolean myIsTypeArray = false;
+  boolean myIsTypeArray_var = false;
   int myDim2_var = -1;
+  $dim1 = -1;
+  $dim2 = -1;
 }
 :
 	(
@@ -323,22 +325,23 @@ type returns [Type type, Type typeOfArray, boolean isTwoDimensionalArray, int di
 		  OP_LBRACK myDim2=INTLIT OP_RBRACK
 		  {
 			  $isTwoDimensionalArray = true;
-			  myDim2_var= Integer.valueOf($myDim1.text);
+			  myDim2_var= Integer.valueOf($myDim2.text);
 		  }
 		)?
 		KEY_OF
 		{
 		  $type = Type.ARRAY;
 		  $dim1 = Integer.valueOf($myDim1.text);
-			$dim2 = myDim2_var;			  
+			$dim2 = myDim2_var;	
+			myIsTypeArray_var = true;		  
 		}
 	)?
-	baseType 
+	myBaseType=baseType
 	{
-	  if(myIsTypeArray) {
-	    $typeOfArray = $type;
+	  if(myIsTypeArray_var) {
+	    $typeOfArray = $myBaseType.type;
 	  } else {
-	    $type = $baseType.type; 
+	    $type = $myBaseType.type; 
 	  }
 	}
 ;

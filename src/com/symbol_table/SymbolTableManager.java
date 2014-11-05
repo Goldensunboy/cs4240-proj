@@ -75,7 +75,7 @@ public class SymbolTableManager {
 			globalTypeFunctionNameSpace = globalScope.getFunctionNameSpace();
 			globalTypeFunctionNameSpace.addAll(globalScope.getTypeNameSpace()); 
 		}
-
+		
 		Scope newScope = new Scope(currentScope, scopeId++, enclosingFunctionName);
 		currentScope = newScope;
 
@@ -273,7 +273,7 @@ public class SymbolTableManager {
 		Set<String> functionNameSpace = unregisteredNamespaceMap.get(TigerParser.FUNCTION_NAMESPACE);
 		
 		boolean functionNameConflict = globalScope.isInFunctionNameSpace(name, functionNameSpace, globalTypeFunctionNameSpace); 
-		boolean typeNameConflict = currentScope == null ? false : currentScope.isInTypeNameSpace(idType, name, typeNameSpace, globalTypeFunctionNameSpace);
+		boolean typeNameConflict = currentScope == null ? typeNameSpace.contains(name): currentScope.isInTypeNameSpace(idType, name, typeNameSpace, globalTypeFunctionNameSpace);
 		boolean varNameConflict = currentScope == null ? false : currentScope.isInVarNameSpace(name, varNameSpace, globalTypeFunctionNameSpace);
 		
 		if(idType == IdType.FUNCTION_NAME) {

@@ -1,8 +1,12 @@
+type a = int;
+type ArrayInt = array [100][5] of int;
+
 int function func1() 
 begin
 	begin
 		var name3 : int :=0;
 		begin
+			type x = int;
 			var name3 : int :=0;
 			begin
 				var name3 : int :=0;
@@ -17,6 +21,7 @@ begin
 		name3 := 0;
 		
 		begin
+			type x = int;
 			var name4 : int :=0;
 			name4 :=0;
 		end;
