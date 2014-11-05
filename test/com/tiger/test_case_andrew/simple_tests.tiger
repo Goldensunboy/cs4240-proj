@@ -36,12 +36,20 @@ begin
 		x := 2 * 3 + 5;
 		if x < 9 then
 			x := 9;
-			break;
+			/* break; */
 			x := 90 - 5;
 		endif;
 		x := 0;
 		while y - 3 <> 0 do
-			y := y - 0.01;
+			while y = 0 do
+				if x = 10 then
+					x := 9;
+			    else
+			    	y := 7.8 - 5;
+				endif;
+				y := y - 0.01;
+			enddo;
+			break;
 		enddo;
 		y := 9.5;
 	end;

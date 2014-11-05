@@ -113,13 +113,9 @@ import com.exception.NameSpaceConflictException;
     return temp;
   }
   
-  public void printTheIRCode() {
-    System.out.println("IR code:\n**********");
+  public List<String> getIRCode() {
     Collections.reverse(IRList);
-    for(String s : IRList) {
-      System.out.println(s);
-    }
-    System.out.println("**********");
+    return IRList;
   }
 
   private boolean errorFlag = false;
@@ -286,13 +282,7 @@ blockList[String functionName] :
 ;
 
 block[String functionName] :
-{
-  String endLabel = lf.nextLabel("BLOCK_END");
-}
-	key_begin declarationSegment[functionName] statSeq[functionName, endLabel] key_end OP_SCOLON
-{
-  IRList.addFirst(endLabel + ":");
-}
+	key_begin declarationSegment[functionName] statSeq[functionName, ""] key_end OP_SCOLON
 ;
 
 typeDeclarationList :
@@ -380,11 +370,11 @@ optionalInit :
 	)?
 ;
 
-statSeq[String functionName, String endLabel] :
-	stat[functionName, endLabel]+
+statSeq[String functionName, String endLoop] :
+	stat[functionName, endLoop]+
 ;
 
-stat[String functionName, String endLabel] returns [Type statReturnType]
+stat[String functionName, String endLoop] returns [Type statReturnType]
 @init
 {
   List<String> paramList = new ArrayList<String>();
@@ -479,8 +469,7 @@ stat[String functionName, String endLabel] returns [Type statReturnType]
 		{
 		  Type ifReturnType=Type.VOID, elseReturnType=Type.VOID;
 		  makeNewScope();
-		  String elseLabel = lf.nextLabel("ELSE");
-		  String endLabel2 = lf.nextLabel("BLOCK_END");
+		  String elseLabel = lf.nextLabel("ELSE_BEGIN");
 		}
 		myIfCond=expr[elseLabel]
 		  {
@@ -490,20 +479,22 @@ stat[String functionName, String endLabel] returns [Type statReturnType]
                                           null,InvalidTypeException.class);
 		    }
 		  }
-      KEY_THEN statSeq[functionName, endLabel2]
+      KEY_THEN statSeq[functionName, endLoop]
       {
         ifReturnType = symbolTableManager.getCurrentScopeReturnType();
+        String elseLabel2 = lf.nextLabel("ELSE_END");
+        IRList.addFirst("goto, " + elseLabel2);
         IRList.addFirst(elseLabel + ":");
       }
     (
       {
         goToEnclosingScope();
       }
-      KEY_ELSE
+      s5=KEY_ELSE
       {
         makeNewScope();
       }
-      statSeq[functionName, endLabel2]
+      statSeq[functionName, endLoop]
       {
         elseReturnType = symbolTableManager.getCurrentScopeReturnType();
       }
@@ -512,12 +503,12 @@ stat[String functionName, String endLabel] returns [Type statReturnType]
     {
       goToEnclosingScope();
       symbolTableManager.setCurrentScopeReturnType(ifReturnType == elseReturnType? ifReturnType : Type.VOID);
-      IRList.addFirst(endLabel2 + ":");
+      IRList.addFirst(elseLabel2 + ":");
     }
 		|
 		{
 		  String whileTop = lf.nextLabel("WHILE");
-		  String endLabel2 = lf.nextLabel("BLOCK_END");
+		  String endSubLoop = lf.nextLabel("LOOP_END");
 		  IRList.addFirst(whileTop + ":");
 		}
 		KEY_WHILE myWhileCond=expr[endLabel2]
@@ -527,31 +518,31 @@ stat[String functionName, String endLabel] returns [Type statReturnType]
         exceptionHandler.handleException(myWhileCond, customMessage, null, null, InvalidTypeException.class);
 		  }
 		}
-      KEY_DO statSeq[functionName, endLabel2] KEY_ENDDO
+      KEY_DO statSeq[functionName, endSubLoop] KEY_ENDDO
     {
       IRList.addFirst("goto, " + whileTop);
       IRList.addFirst(endLabel2 + ":");
     }
 		|
 		{
-		  String endLabel2 = lf.nextLabel("BLOCK_END");
+		  String endSubLoop = lf.nextLabel("LOOP_END");
 		}
 		KEY_FOR id[IdType.NIY, false]
 		  OP_ASSIGN indexExpr KEY_TO indexExpr
-		  KEY_DO statSeq[functionName, endLabel2] KEY_ENDDO
+		  KEY_DO statSeq[functionName, endSubLoop] KEY_ENDDO
 		{
 		  IRList.addFirst(endLabel2 +":");
 		}
 		| brk=KEY_BREAK
 		{
 		  // Cannot be in the function-level scope
-		  if(symbolTableManager.isInFunctionScope()) {
-		    String customMessage = "Cannot break out of a function";
+		  if("".equals(endLoop)) {
+		    String customMessage = "Must be within a loop's scope to use break";
 		    exceptionHandler.handleException(brk, customMessage, 
 		                                      null, null,
 		                                      ShouldNotHappenException.class);
 		  } else {
-		    IRList.addFirst("goto, " + endLabel);
+		    IRList.addFirst("goto, " + endLoop);
 		  }
 		}
 		| KEY_RETURN myReturnValue=expr[null]
