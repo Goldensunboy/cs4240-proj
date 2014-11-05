@@ -22,6 +22,7 @@ public class TigerTest {
 	 * tester figures out which set of test cases to execute
 	 */
 	public static void main(String[] args) throws RecognitionException {
+		
 		String mainDeveloperName = System.getProperty("user.name");
 		DeveloperName[] developerNames = DeveloperName.lookup(mainDeveloperName);
 
@@ -37,7 +38,9 @@ public class TigerTest {
 			
 			File folder = new File(path);
 			for (File file : folder.listFiles()) {
-				System.out.println("Compiling: " + file.getName());
+				String fileName = file.getName();
+
+				System.out.println("Compiling: " + fileName);
 				System.out.println("******************************");
 				FileInputStream fis;
 				try {
@@ -124,7 +127,7 @@ public class TigerTest {
 		}
 		
 		public static DeveloperName[] lookup(String preferedName) {
-			if(preferedName.equals(MARISSA.getPreferedName())) {
+			if(preferedName.equals(MARISSA.getActualName())) {
 				return new DeveloperName[]{MARISSA};
 			} else if (preferedName.equals(SAMAN.getPreferedName())) {
 				return new DeveloperName[]{SAMAN};
