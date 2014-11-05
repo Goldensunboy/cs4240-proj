@@ -590,7 +590,7 @@ expr[String label] returns [String exp, Type type, boolean myIsBool, boolean myI
       if(label != null) {
         // Branch to the label on complement of condition
         String op = IRList.pop();
-        System.out.println("Popped operation: " + op);
+        //System.out.println("Popped operation: " + op);
         String[] parts = op.split(", ");
         if("leq".equals(parts[0])) {
           IRList.addFirst("brgt, " + parts[1] + ", " + parts[2] + ", " + label);
