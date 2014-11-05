@@ -33,6 +33,14 @@ begin
 		x := func2(5, 6.9);
 		func3();
 		x := 2 * 3 + 5;
-		break;
+		if x < 7 - 9 then
+			x := 9;
+			x := 90 - 5;
+		endif;
+		x := 0;
+		while y - 3 <> 0 do
+			y := y - 0.01;
+		enddo;
+		y := 9.5;
 	end;
 end;
