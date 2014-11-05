@@ -306,6 +306,7 @@ statSeq[String functionName]
 	stat[functionName]+
 ;
 
+
 stat[String functionName] returns [ReturnType statReturnType]
 @init
 {
@@ -857,7 +858,7 @@ binOp4 returns [String exp, ReturnType type, boolean myIsBool, boolean myIsFunc]
 }
 :
   s1=constant                   {$exp = $s1.exp; $type = $s1.type;}
-  | OP_LPAREN s2=expr OP_RPAREN {$exp = $s2.exp; $type = $s2.type; $myIsBool = $expr.myIsBool;}
+  | OP_LPAREN s2=expr OP_RPAREN {$exp = $s2.exp; $type = $s2.type; $myIsBool = $s2.myIsBool;}
   | s3=id[IdType.NIY]
   (
     s4=valueTail                                     {$exp = $s3.exp + $s4.exp; $type = $s3.type;}
@@ -911,7 +912,7 @@ binOp4 returns [String exp, ReturnType type, boolean myIsBool, boolean myIsFunc]
 
 funcBinOp4 returns [String exp, ReturnType type, boolean myIsBool]:
   s1=constant                      {$exp = $s1.exp; $type = $s1.type; $myIsBool = false;}
-  | OP_LPAREN s2=expr OP_RPAREN    {$exp = $s2.exp; $type = $s2.type; $myIsBool = $expr.myIsBool;}
+  | OP_LPAREN s2=funcExpr OP_RPAREN    {$exp = $s2.exp; $type = $s2.type; $myIsBool = $s2.myIsBool;}
   | s3=id[IdType.NIY] s4=valueTail {$exp = $s3.exp + $s4.exp; $type = $s3.type; $myIsBool = false;}
   {
     Attribute att = symbolTableManager.getAttributeInCurrentScope($s3.exp, attributeMap);

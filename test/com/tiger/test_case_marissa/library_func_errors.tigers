@@ -11,6 +11,42 @@ begin
 	end;
 end; */
 
+/* TODO (Error message does not contain line number) do not allow functions from the standard library to be redefined with same types */ /*
+int function not(i:int)
+begin
+	begin
+		var x: int :=0;
+		x :=0;
+	end;
+end; */
+
+/* TODO (Error message does not contain line number) do not allow functions from the standard library to be redefined with different parameters */ /*
+void function print()
+begin
+	begin
+		var x: int :=0;
+		x :=0;
+	end;
+end; */
+
+/* TODO (claims function is undefined) do not call library functions with bad parameters */ /*
+void function func2()
+begin
+	begin
+		var x: int :=0;
+		exit(5.0,9);
+	end;
+end; */
+
+/* TODO (claims function is undefined) do not call library functions and assign the void return value to a variable */ /*
+void function func3()
+begin
+	begin
+		var x: int :=0;
+		x := flush();
+	end;
+end */
+
 void main()
 begin
 	begin
