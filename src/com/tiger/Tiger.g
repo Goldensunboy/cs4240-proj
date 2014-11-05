@@ -511,7 +511,7 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		  String endSubLoop = lf.nextLabel("LOOP_END");
 		  IRList.addFirst(whileTop + ":");
 		}
-		KEY_WHILE myWhileCond=expr[endLabel2]
+		KEY_WHILE myWhileCond=expr[endSubLoop]
 		{
 		  if(!$myWhileCond.myIsBool) {
         String customMessage = "while conditional statements must resolve to a boolean value";
@@ -521,7 +521,7 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
       KEY_DO statSeq[functionName, endSubLoop] KEY_ENDDO
     {
       IRList.addFirst("goto, " + whileTop);
-      IRList.addFirst(endLabel2 + ":");
+      IRList.addFirst(endSubLoop + ":");
     }
 		|
 		{
@@ -531,7 +531,7 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		  OP_ASSIGN indexExpr KEY_TO indexExpr
 		  KEY_DO statSeq[functionName, endSubLoop] KEY_ENDDO
 		{
-		  IRList.addFirst(endLabel2 +":");
+		  IRList.addFirst(endSubLoop + ":");
 		}
 		| brk=KEY_BREAK
 		{
