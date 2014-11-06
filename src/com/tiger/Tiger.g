@@ -358,9 +358,12 @@ scope
 :
 	KEY_VAR idList[IdType.VAR_NAME, true] OP_COLON myTypeId=typeId optionalInit OP_SCOLON
 	{
+//	  if(!symbolTableManager.isValidType($myTypeId.text)) {
+//	    String customMessage = "Type \"" + $myTypeId.text + "\" has never been defined"; 
+//	    exceptionHandler.handleException(myTypeId, customMessage, null, null, InvalidTypeException.class);
+//	  }
 	  putVariableAttributeMap($varDeclaration::aggregatedMyIdList,
-	                              $myTypeId.type,
-	                              $functionName);
+	                          $myTypeId.type, $functionName);
 	}
 ;
 
@@ -1278,6 +1281,7 @@ id[IdType idType, boolean testNamespace] returns [String exp, Type type]:
     $exp = $ID.text;
     Attribute att = symbolTableManager.getAttributeInCurrentScope($ID.text, attributeMap);
     if(att != null) {
+      System.out.println(att.getType());
       $type = Type.INT.getName().equals(att.getType())   ? Type.INT   :
               Type.FIXPT.getName().equals(att.getType()) ? Type.FIXPT :
                                               Type.OTHER ;

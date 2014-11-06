@@ -28,4 +28,20 @@ public enum Type {
   public boolean isValidVarType() {
 	  return isValidVarType;
   }
+  
+  public static Type getType(String typeName) {
+	  if(typeName.equals(INT.getName())) {
+		  return INT;
+	  }
+	  
+	  if(typeName.equals(FIXPT.getName())) {
+		  return FIXPT;
+	  }
+	  
+	  if(typeName.equals(ARRAY.getName())) {
+		  return ARRAY;
+	  }
+	  
+	  return OTHER;
+  }
 }
