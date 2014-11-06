@@ -52,11 +52,19 @@ public class SymbolTableManager {
 	 */
 	public Scope makeNewScope(Map<String, Attribute> attributeMaps, 
 			String enclosingFunctionName, Map<String, Set<String>> nameSpaceMap) {
-		
+
 		addToExpiredFunctionName(nameSpaceMap); 
 		
 		if(currentScope != null){
-			symbolTable.putAll(currentScope.putInScope(attributeMaps));
+			for(Entry<String, List<Symbol>> attribute : currentScope.putInScope(attributeMaps).entrySet()){
+				List<Symbol> symbolList = symbolTable.get(attribute.getKey());
+				if(symbolList == null) {
+					symbolList = attribute.getValue();
+				} else {					
+					symbolList.addAll(attribute.getValue());
+				}
+				symbolTable.put(attribute.getKey(), symbolList);
+			}
 			currentScope.addToVarNameSpace(nameSpaceMap.get(TigerParser.VAR_NAMESPACE));
 			currentScope.addToTypeNameSpace(nameSpaceMap.get(TigerParser.TYPE_NAMESPACE));
 		} else {
@@ -67,9 +75,10 @@ public class SymbolTableManager {
 			globalTypeFunctionNameSpace = globalScope.getFunctionNameSpace();
 			globalTypeFunctionNameSpace.addAll(globalScope.getTypeNameSpace()); 
 		}
-
+		
 		Scope newScope = new Scope(currentScope, scopeId++, enclosingFunctionName);
 		currentScope = newScope;
+
 		return currentScope;
 	}
 	
@@ -82,7 +91,7 @@ public class SymbolTableManager {
 	 */
 	public Scope goToEnclosingScope(Map<String, Attribute> attributeMaps,
 									Map<String, Set<String>> nameSpaceMap) {
-		
+
 		addToExpiredFunctionName(nameSpaceMap);
 		
 		if(attributeMaps.size() > 0) {			
@@ -103,7 +112,6 @@ public class SymbolTableManager {
 		if (currentScope != null) {			
 			currentScope.setReturnType(returnType);
 		}
-		
 		return currentScope;
 	}
 	
@@ -265,7 +273,7 @@ public class SymbolTableManager {
 		Set<String> functionNameSpace = unregisteredNamespaceMap.get(TigerParser.FUNCTION_NAMESPACE);
 		
 		boolean functionNameConflict = globalScope.isInFunctionNameSpace(name, functionNameSpace, globalTypeFunctionNameSpace); 
-		boolean typeNameConflict = currentScope == null ? false : currentScope.isInTypeNameSpace(idType, name, typeNameSpace, globalTypeFunctionNameSpace);
+		boolean typeNameConflict = currentScope == null ? typeNameSpace.contains(name): currentScope.isInTypeNameSpace(idType, name, typeNameSpace, globalTypeFunctionNameSpace);
 		boolean varNameConflict = currentScope == null ? false : currentScope.isInVarNameSpace(name, varNameSpace, globalTypeFunctionNameSpace);
 		
 		if(idType == IdType.FUNCTION_NAME) {

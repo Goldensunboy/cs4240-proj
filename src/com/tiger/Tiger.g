@@ -37,6 +37,7 @@ import com.exception.InvalidTypeException;
 import com.exception.InvalidInvocationException;
 import com.exception.UndeclaredFunctionException;
 import com.exception.UndeclaredVariableException;
+import com.exception.ShouldNotHappenException;
 import com.exception.ExceptionHandler;
 import com.exception.TypeMismatchException;
 import com.exception.NameSpaceConflictException;
@@ -87,9 +88,10 @@ import com.exception.NameSpaceConflictException;
     attributeMap.put(functionName, functionAttribute);
   }
 
-  public void putTypeAttribute(String typeName, Type type) {
-//    TypeAttribute typeAttribute = new TypeAttribute();
-//    attributeMap.put(typeName,  typeAttribute); 
+  public void putTypeAttributeMap(int lineNumber /*TODO Testing, delete me*/,String aliasName, Type type, Type typeOfArray, boolean isTwoDimensionalArray, int dim1, int dim2) {
+    TypeAttribute typeAttribute = new TypeAttribute(aliasName, type, typeOfArray, isTwoDimensionalArray, dim1, dim2);
+    System.out.println("Line: " + lineNumber + " :: " + typeAttribute);
+    attributeMap.put(aliasName, typeAttribute); 
   }
 
   public void printAttributeMap() {
@@ -175,9 +177,10 @@ tigerProgram :
 ;
 
 funcNext:
-  typeId 
-  { if(!$typeId.type.isValidReturnType()) {
-//      exceptionHandler.handleException();
+  myTypeId=typeId 
+  { if(!$myTypeId.type.isValidReturnType()) {
+      String customMessage = "Invalid return type " + $myTypeId.text;
+      exceptionHandler.handleException(myTypeId, customMessage, null, null, InvalidTypeException.class);
     }
   } 
   funcCurrent[$typeId.type]
@@ -203,6 +206,9 @@ scope
 }
 :
   KEY_FUNCTION myFunctionName=id[IdType.FUNCTION_NAME, true]
+{
+  IRList.addFirst("FUNC_" + $id.text + ":");
+}
   OP_LPAREN paramList OP_RPAREN afterBegin[$myFunctionName.text, returnType]
 ;
 
@@ -280,7 +286,13 @@ blockList[String functionName] :
 ;
 
 block[String functionName] :
-	key_begin declarationSegment[functionName] statSeq[functionName] key_end OP_SCOLON
+{
+  String endLabel = lf.nextLabel("BLOCK_END");
+}
+	key_begin declarationSegment[functionName] statSeq[functionName, endLabel] key_end OP_SCOLON
+{
+  IRList.addFirst(endLabel + ":");
+}
 ;
 
 typeDeclarationList :
@@ -292,19 +304,46 @@ varDeclarationList[String functionName] :
 ;
 
 typeDeclaration :
-  
-	KEY_TYPE myId=id[IdType.TYPE_NAME, true] OP_EQUAL type OP_SCOLON
+	KEY_TYPE myId=id[IdType.TYPE_NAME, true] OP_EQUAL myType=type OP_SCOLON
+	{
+	  putTypeAttributeMap($myId.start.getLine(), $myId.text, $myType.type, $myType.typeOfArray, $myType.isTwoDimensionalArray, $myType.dim1, $myType.dim2);
+	}
 ;
 
-type :
+type returns [Type type, Type typeOfArray, boolean isTwoDimensionalArray, int dim1, int dim2]
+@init{
+  boolean myIsTwoDimensional_var = false;
+  boolean myIsTypeArray_var = false;
+  int myDim2_var = -1;
+  $dim1 = -1;
+  $dim2 = -1;
+}
+:
 	(
-	  KEY_ARRAY OP_LBRACK INTLIT OP_RBRACK
+	  KEY_ARRAY OP_LBRACK myDim1=INTLIT OP_RBRACK
 		(
-		  OP_LBRACK INTLIT OP_RBRACK
+		  OP_LBRACK myDim2=INTLIT OP_RBRACK
+		  {
+			  $isTwoDimensionalArray = true;
+			  myDim2_var= Integer.valueOf($myDim2.text);
+		  }
 		)?
 		KEY_OF
+		{
+		  $type = Type.ARRAY;
+		  $dim1 = Integer.valueOf($myDim1.text);
+			$dim2 = myDim2_var;	
+			myIsTypeArray_var = true;		  
+		}
 	)?
-	baseType
+	myBaseType=baseType
+	{
+	  if(myIsTypeArray_var) {
+	    $typeOfArray = $myBaseType.type;
+	  } else {
+	    $type = $myBaseType.type; 
+	  }
+	}
 ;
 
 varDeclaration[String functionName]
@@ -341,13 +380,11 @@ optionalInit :
 	)?
 ;
 
-statSeq[String functionName] 
-:
-	stat[functionName]+
+statSeq[String functionName, String endLabel] :
+	stat[functionName, endLabel]+
 ;
 
-
-stat[String functionName] returns [Type statReturnType]
+stat[String functionName, String endLabel] returns [Type statReturnType]
 @init
 {
   List<String> paramList = new ArrayList<String>();
@@ -364,20 +401,17 @@ stat[String functionName] returns [Type statReturnType]
 		      // Expr assignment
 		      if(att == null) {
 		        // Variable not declared yet
-		        throw new UndeclaredVariableException("Line " +
-		          (($s1.start != null)? $s1.start.getLine() : -1) +
-		          ": Assignment to undeclared variable: " + $s1.exp);
+		        String customMessage = "Assignment to undeclared variable: " + $s1.exp;
+		        exceptionHandler.handleException(s1, customMessage, null, null, UndeclaredVariableException.class);
 		      } else if($s1.type == Type.INT && $s3.type == Type.FIXPT) {
 		        // Illegal assignment (fixpt to int)
-		        throw new InvalidTypeException("Line " +
-		          (($s1.start != null)? $s1.start.getLine() : -1) +
-		          ": Assignment of fixedpt expression " + $s3.exp + " to int variable " + $s1.exp);
+            String customMessage = "Assignment of fixedpt expression " + $s3.exp + " to int variable " + $s1.exp;
+            exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
 		      }
 		      //Cannot assign a conditional to a variable
 		      if($s3.myIsBool) {
 	          String customMessage = "Boolean values cannot be assigned to a variable.";
-	          exceptionHandler.handleException(s3, customMessage, null, 
-	                                          null,InvalidTypeException.class);
+	          exceptionHandler.handleException(s3, customMessage, null, null,InvalidTypeException.class);
 		      }
 		      // Assignment statement
           IRList.addFirst("assign, " + $s1.exp + $s2.exp + ", " + $s3.exp);
@@ -387,11 +421,10 @@ stat[String functionName] returns [Type statReturnType]
 		      Type rettype = symbolTableManager.getFunctionReturnType(parts[0]);
 		      if($s1.type == Type.INT && rettype == Type.FIXPT) {
 		        // (fixpt to int)
-            throw new InvalidTypeException("Line " +
-              (($s1.start != null)? $s1.start.getLine() : -1) +
-              ": Assignment of fixedpt function " + parts[0] + " to int variable " + $s1.exp);
+		        String customMessage = "Assignment of fixedpt function " + parts[0] + " to int variable " + $s1.exp;
+            exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
 		      }
-		      IRList.addFirst("callr, " + $s1.exp + ", " + parts[0] + ", " + parts[1]);
+		      IRList.addFirst("callr, " + $s1.exp + ", FUNC_" + parts[0] + ", " + parts[1]);
 		    }
 		  }
 		  | OP_LPAREN s4=funcExprList[paramList] OP_RPAREN
@@ -399,18 +432,17 @@ stat[String functionName] returns [Type statReturnType]
 		    // Lone function call
 		    if("".equals($s4.exp)) {
 		      // Parameterless
-		      IRList.addFirst("call, " + $s1.exp);
+		      IRList.addFirst("call, FUNC_" + $s1.exp);
 		    } else {
 		      // With params
-		      IRList.addFirst("call, " + $s1.exp + ", " + $s4.exp);
+		      IRList.addFirst("call, FUNC_" + $s1.exp + ", " + $s4.exp);
 		    }
 		    // Verify that the function exists
 		    Attribute att = symbolTableManager.getAttributeInGlobalScope($s1.exp);
         if(att == null) {
           // Function not declared yet
-          throw new UndeclaredFunctionException("Line " +
-            (($s1.start != null)? $s1.start.getLine() : -1) +
-            ": Invocation of undeclared function: " + $s1.exp);
+          String customMessage = "Invocation of undeclared function: " + $s1.exp;
+          exceptionHandler.handleException(s1, customMessage, null, null, UndeclaredFunctionException.class); 
         }
         // Verify that the function params match with the type for the function
         List<String> params = symbolTableManager.getFunctionParameters($s1.exp);
@@ -420,10 +452,10 @@ stat[String functionName] returns [Type statReturnType]
           for(int i = params.size() - 1; i >= 0; --i) {
             foundList.add(paramList.get(i));
           }
-          String found = paramList.size() == 0 ? "[void]" : foundList.toString();
-          throw new InvalidInvocationException("Line " +
-            (($s1.start != null)? $s1.start.getLine() : -1) +
-            ": Invalid invocation of function: [" + $s1.exp + "] Expected: " + expected + " Found: " + found);
+          String actual = paramList.size() == 0 ? "[void]" : foundList.toString();
+          
+          String customMessage = "Invalid invocation of function: [" + $s1.exp + "]";
+          exceptionHandler.handleException(s1, customMessage, expected, actual, InvalidInvocationException.class);
         }
         for(int i = 0; i < params.size(); ++i) {
           if("int".equals(params.get(i)) && "fixedpt".equals(paramList.get(params.size() - i - 1))) {
@@ -432,10 +464,10 @@ stat[String functionName] returns [Type statReturnType]
             for(int j = params.size() - 1; j >= 0; --j) {
               foundList.add(paramList.get(j));
             }
-            String found = paramList.size() == 0 ? "[void]" : foundList.toString();
-            throw new InvalidInvocationException("Line " +
-              (($s1.start != null)? $s1.start.getLine() : -1) +
-              ": Invalid invocation of function: [" + $s1.exp + "] Expected: " + expected + " Found: " + found);
+            String actual = paramList.size() == 0 ? "[void]" : foundList.toString();
+
+	          String customMessage = "Invalid invocation of function: [" + $s1.exp + "]";
+	          exceptionHandler.handleException(s1, customMessage, expected, actual, InvalidInvocationException.class);
           }
         }
 		  }
@@ -445,6 +477,7 @@ stat[String functionName] returns [Type statReturnType]
 		  Type ifReturnType=Type.VOID, elseReturnType=Type.VOID;
 		  makeNewScope();
 		  String elseLabel = lf.nextLabel("ELSE");
+		  String endLabel2 = lf.nextLabel("BLOCK_END");
 		}
 		myIfCond=expr[elseLabel]
 		  {
@@ -454,7 +487,7 @@ stat[String functionName] returns [Type statReturnType]
                                           null,InvalidTypeException.class);
 		    }
 		  }
-      KEY_THEN statSeq[functionName]
+      KEY_THEN statSeq[functionName, endLabel2]
       {
         ifReturnType = symbolTableManager.getCurrentScopeReturnType();
         IRList.addFirst(elseLabel + ":");
@@ -467,7 +500,7 @@ stat[String functionName] returns [Type statReturnType]
       {
         makeNewScope();
       }
-      statSeq[functionName]
+      statSeq[functionName, endLabel2]
       {
         elseReturnType = symbolTableManager.getCurrentScopeReturnType();
       }
@@ -476,32 +509,47 @@ stat[String functionName] returns [Type statReturnType]
     {
       goToEnclosingScope();
       symbolTableManager.setCurrentScopeReturnType(ifReturnType == elseReturnType? ifReturnType : Type.VOID);
+      IRList.addFirst(endLabel2 + ":");
     }
 		|
 		{
-		  String whileLabel = lf.nextLabel("WH_END");
-		  String whileTop = lf.nextLabel("WH_START");
+		  String whileTop = lf.nextLabel("WHILE");
+		  String endLabel2 = lf.nextLabel("BLOCK_END");
 		  IRList.addFirst(whileTop + ":");
 		}
-		KEY_WHILE myWhileCond=expr[whileLabel]
+		KEY_WHILE myWhileCond=expr[endLabel2]
 		{
 		  if(!$myWhileCond.myIsBool) {
-		    throw new InvalidTypeException("Line " +
-		      (($myWhileCond.start != null) ? $myWhileCond.start.getLine() : -1) +
-		      ": while conditional statements must resolve to a boolean value.");
+        String customMessage = "while conditional statements must resolve to a boolean value";
+        exceptionHandler.handleException(myWhileCond, customMessage, null, null, InvalidTypeException.class);
 		  }
 		}
-      KEY_DO statSeq[functionName] KEY_ENDDO
+      KEY_DO statSeq[functionName, endLabel2] KEY_ENDDO
     {
       IRList.addFirst("goto, " + whileTop);
-      IRList.addFirst(whileLabel + ":");
+      IRList.addFirst(endLabel2 + ":");
     }
-		| 
-		KEY_FOR id[IdType.NIY, false] OP_ASSIGN indexExpr KEY_TO indexExpr KEY_DO statSeq[functionName] KEY_ENDDO
-		| KEY_BREAK
+		|
+		{
+		  String endLabel2 = lf.nextLabel("BLOCK_END");
+		}
+		KEY_FOR id[IdType.NIY, false]
+		  OP_ASSIGN indexExpr KEY_TO indexExpr
+		  KEY_DO statSeq[functionName, endLabel2] KEY_ENDDO
+		{
+		  IRList.addFirst(endLabel2 +":");
+		}
+		| brk=KEY_BREAK
 		{
 		  // Cannot be in the function-level scope
-		  
+		  if(symbolTableManager.isInFunctionScope()) {
+		    String customMessage = "Cannot break out of a function";
+		    exceptionHandler.handleException(brk, customMessage, 
+		                                      null, null,
+		                                      ShouldNotHappenException.class);
+		  } else {
+		    IRList.addFirst("goto, " + endLabel);
+		  }
 		}
 		| KEY_RETURN myReturnValue=expr[null]
 		{
@@ -564,18 +612,15 @@ expr[String label] returns [String exp, Type type, boolean myIsBool, boolean myI
     } else {
       if($s1.myIsBool == false || $s3.myIsBool == false) {
         if(s2 != null) {
-          throw new InvalidTypeException("Line " +
-            (($s1.start != null)? $s1.start.getLine() : -1) +
-            ": Cannot use '&' on non-boolean values.");
+	        String customMessage = "Cannot use '&' on non-boolean values";
+	        exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
         } else {
-          throw new InvalidTypeException("Line " +
-          (($s1.start != null)? $s1.start.getLine() : -1) +
-          ": Cannot use '|' on non-boolean values.");
+          String customMessage = "Cannot use '|' on non-boolean values";
+          exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
         }
       } else if($s1.myIsFunc || $s3.myIsFunc) {
-        throw new InvalidInvocationException("Line " +
-          (($s1.start != null)? $s1.start.getLine() : -1) +
-          ": Cannot perform operations on a function lvalue.");
+        String customMessage = "Cannot perform operations on a function lvalue";
+        exceptionHandler.handleException(s1, customMessage, null, null, InvalidInvocationException.class);
       }
       $myIsBool = true;
       String temp = tvf.nextTemp();
@@ -612,13 +657,11 @@ funcExpr returns [String exp, Type type, boolean myIsBool]:
     } else {
       if($s1.myIsBool == false || $s3.myIsBool == false){
         if(s2 != null) {
-          throw new InvalidTypeException("Line " +
-            (($s1.start != null)? $s1.start.getLine() : -1) +
-            ": Cannot use '&' on non-boolean values.");
+	        String customMessage = "Cannot use '&' on non-boolean values";
+	        exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
         } else {
-          throw new InvalidTypeException("Line " +
-          (($s1.start != null)? $s1.start.getLine() : -1) +
-          ": Cannot use '|' on non-boolean values.");
+          String customMessage = "Cannot use '|' on non-boolean values";
+          exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
         }
       }
       $myIsBool = true;
@@ -659,13 +702,11 @@ binOp1[String label] returns [String exp, Type type, boolean myIsBool, boolean m
       $myIsFunc = $s1.myIsFunc;
     } else {
       if($s1.myIsBool == true || $s7.myIsBool == true){
-        throw new InvalidTypeException("Line " +
-          (($s1.start != null)? $s1.start.getLine() : -1) +
-          ": Cannot compare using a boolean value.");
+         String customMessage = "Cannot compare using a boolean value";
+         exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
       } else if($s1.myIsFunc || $s7.myIsFunc) {
-        throw new InvalidInvocationException("Line " +
-          (($s1.start != null)? $s1.start.getLine() : -1) +
-          ": Cannot perform operations on a function lvalue.");
+        String customMessage = "Cannot perform operations on a function lvalue";
+        exceptionHandler.handleException(s1, customMessage, null, null, InvalidInvocationException.class);
       }
       $myIsBool = true;
       $myIsFunc = false;
@@ -713,9 +754,8 @@ funcBinOp1 returns [String exp, Type type, boolean myIsBool]:
       $myIsBool = $s1.myIsBool;
     } else {
       if($s1.myIsBool == true || $s7.myIsBool == true){
-        throw new InvalidTypeException("Line " +
-          (($s1.start != null)? $s1.start.getLine() : -1) +
-          ": Cannot compare using a boolean value.");
+        String customMessage = "Cannot compare using a boolean value";
+        exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
       }
       $myIsBool = true;
       String temp = tvf.nextTemp();
@@ -760,18 +800,15 @@ binOp2[String label] returns [String exp, Type type, boolean myIsBool, boolean m
     } else {
       if($s1.myIsBool == true || $s3.myIsBool == true){
         if(s2 != null) {
-          throw new InvalidTypeException("Line " +
-            (($s1.start != null)? $s1.start.getLine() : -1) +
-            ": Cannot add using a boolean value.");
+          String customMessage = "Cannot add using a boolean value";
+          exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
         } else {
-          throw new InvalidTypeException("Line " +
-            (($s1.start != null)? $s1.start.getLine() : -1) +
-            ": Cannot subtract using a boolean value.");
+          String customMessage = "Cannot subtract using a boolean value";
+          exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
         }
       } else if($s1.myIsFunc || $s3.myIsFunc) {
-        throw new InvalidInvocationException("Line " +
-          (($s1.start != null)? $s1.start.getLine() : -1) +
-          ": Cannot perform operations on a function rvalue.");
+          String customMessage = "Cannot perform operations on a function rvalue";
+          exceptionHandler.handleException(s1, customMessage, null, null, InvalidInvocationException.class);
       }
       $myIsBool = false;
       $myIsFunc = false;
@@ -808,13 +845,11 @@ funcBinOp2 returns [String exp, Type type, boolean myIsBool]:
     } else {
       if($s1.myIsBool == true || $s3.myIsBool == true){
         if(s2 != null) {
-          throw new InvalidTypeException("Line " +
-            (($s1.start != null)? $s1.start.getLine() : -1) +
-            ": Cannot add using a boolean value.");
+          String customMessage = "Cannot add using a boolean value";
+          exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
         } else {
-          throw new InvalidTypeException("Line " +
-            (($s1.start != null)? $s1.start.getLine() : -1) +
-            ": Cannot subtract using a boolean value.");
+          String customMessage = "Cannot subtract using a boolean value";
+          exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
         }
       }
       $myIsBool = false;
@@ -852,18 +887,15 @@ binOp3[String label] returns [String exp, Type type, boolean myIsBool, boolean m
     } else {
       if($s1.myIsBool || $s3.myIsBool){
         if(s2 != null) {
-          throw new InvalidTypeException("Line " +
-            (($s1.start != null)? $s1.start.getLine() : -1) +
-            ": Cannot divide using a boolean value.");
+          String customMessage = "Cannot divide using a boolean value";
+          exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
         } else {
-          throw new InvalidTypeException("Line " +
-            (($s1.start != null)? $s1.start.getLine() : -1) +
-            ": Cannot multiply using a boolean value.");
+          String customMessage = "Cannot multiply using a boolean value";
+          exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
         }
       } else if($s1.myIsFunc || $s3.myIsFunc) {
-        throw new InvalidInvocationException("Line " +
-          (($s1.start != null)? $s1.start.getLine() : -1) +
-          ": Cannot perform operations on a function rvalue.");
+          String customMessage = "Cannot perform operations on a function rvalue";
+          exceptionHandler.handleException(s1, customMessage, null, null, InvalidInvocationException.class);
       }
       $myIsBool = false;
       $myIsFunc = false;
@@ -900,13 +932,11 @@ funcBinOp3 returns [String exp, Type type, boolean myIsBool]:
     } else {
       if($s1.myIsBool || $s3.myIsBool){
         if(s2 != null) {
-          throw new InvalidTypeException("Line " +
-            (($s1.start != null)? $s1.start.getLine() : -1) +
-            ": Cannot divide using a boolean value.");
+          String customMessage = "Cannot divide using a boolean value";
+          exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
         } else {
-          throw new InvalidTypeException("Line " +
-            (($s1.start != null)? $s1.start.getLine() : -1) +
-            ": Cannot multiply using a boolean value.");
+          String customMessage = "Cannot multiply using a boolean value";
+          exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
         }
       }
       $myIsBool = false;
@@ -945,17 +975,15 @@ binOp4[String label] returns [String exp, Type type, boolean myIsBool, boolean m
     Attribute att = symbolTableManager.getAttributeInCurrentScope($s3.exp, attributeMap);
     if(att == null && $s5.exp == null) {
       // Variable not declared yet
-      throw new UndeclaredVariableException("Line " +
-        (($s1.start != null)? $s1.start.getLine() : -1) +
-        ": Use of undeclared variable: " + $s3.exp);
+        String customMessage = "Use of undeclared variable: " + $s3.exp;
+        exceptionHandler.handleException(s3, customMessage, null, null, UndeclaredVariableException.class);
     } else if($s5.exp != null) {
       // Verify that the function exists
       att = symbolTableManager.getAttributeInGlobalScope($s3.exp);
       if(att == null) {
         // Function not declared yet
-        throw new UndeclaredFunctionException("Line " +
-          (($s1.start != null)? $s1.start.getLine() : -1) +
-          ": Invocation of undeclared function: " + $s3.exp);
+        String customMessage = "Invocation of undeclared function: " + $s3.exp;
+        exceptionHandler.handleException(s3, customMessage, null, null, UndeclaredFunctionException.class);
       }
       // Verify that the function params match with the type for the function
       List<String> params = symbolTableManager.getFunctionParameters($s3.exp);
@@ -965,10 +993,9 @@ binOp4[String label] returns [String exp, Type type, boolean myIsBool, boolean m
         for(int i = paramList.size() - 1; i >= 0; --i) {
           foundList.add(paramList.get(i));
         }
-        String found = paramList.size() == 0 ? "[void]" : foundList.toString();
-        throw new InvalidInvocationException("Line " +
-          (($s1.start != null)? $s1.start.getLine() : -1) +
-          ": Invalid invocation of function: [" + $s3.exp + "] Expected: " + expected + " Found: " + found);
+        String actual = paramList.size() == 0 ? "[void]" : foundList.toString();
+        String customMessage = "Invalid invocation of function: [" + $s3.exp + "]";
+        exceptionHandler.handleException(s3/*TODO s1*/, customMessage, expected, actual, InvalidInvocationException.class);
       }
       for(int i = 0; i < params.size(); ++i) {
         if("int".equals(params.get(i)) && "fixedpt".equals(paramList.get(params.size() - i - 1))) {
@@ -977,10 +1004,9 @@ binOp4[String label] returns [String exp, Type type, boolean myIsBool, boolean m
           for(int j = params.size() - 1; j >= 0; --j) {
             foundList.add(paramList.get(j));
           }
-          String found = paramList.size() == 0 ? "[void]" : foundList.toString();
-          throw new InvalidInvocationException("Line " +
-            (($s1.start != null)? $s1.start.getLine() : -1) +
-            ": Invalid invocation of function: [" + $s3.exp + "] Expected: " + expected + " Found: " + found);
+          String actual = paramList.size() == 0 ? "[void]" : foundList.toString();
+          String customMessage = "Invalid invocation of function: [" + $s3.exp + "]";
+          exceptionHandler.handleException(s3 /*TODO s1*/, customMessage, expected, actual, InvalidInvocationException.class);
         }
       }
     }
@@ -995,9 +1021,8 @@ funcBinOp4 returns [String exp, Type type, boolean myIsBool]:
     Attribute att = symbolTableManager.getAttributeInCurrentScope($s3.exp, attributeMap);
     if(att == null) {
       // Variable not declared yet
-      throw new UndeclaredVariableException("Line " +
-        (($s1.start != null)? $s1.start.getLine() : -1) + 
-        ": Use of undeclared variable: " + $s3.exp);
+      String customMessage = "Use of undeclared variable: " + $s3.exp;
+      exceptionHandler.handleException(s3, customMessage, null, null, UndeclaredVariableException.class);
     }
   }
 ;
@@ -1265,7 +1290,6 @@ id[IdType idType, boolean testNamespace] returns [String exp, Type type]:
 ID :
   ALPHANUM (ALPHANUM | DIGIT | OP_UNDER)*
 ;
-
 
 fragment
 DIGIT :

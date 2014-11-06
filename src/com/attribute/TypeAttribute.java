@@ -6,28 +6,18 @@ import com.compiler.Type;
 public class TypeAttribute implements Attribute{
 	private boolean isTwoDimensionalArray = true;
 	private boolean isArray = false;
-	private int dim1size, dim2size;
+	private int dim1, dim2;
 	private String aliasName;
-	private Type type;
+	private Type type, typeOfArray;
 	
-	public TypeAttribute(Type type, String aliasName) {
-		this.type = type;
-		this.aliasName =aliasName;
-	}
-	
-	public TypeAttribute(Type type, String aliasName, int dim1Size, int dim2Size) {
-		this.type = type;
-		this.dim1size = dim1Size;
-		this.dim2size = dim2Size;
+	public TypeAttribute(String aliasName, Type type, Type typeOfArray, boolean isTwoDimensionalArray, int dim1, int dim2) {
 		this.aliasName = aliasName;
-		isArray = true;
+		this.type = type;
+		this.typeOfArray = typeOfArray;
+		this.isTwoDimensionalArray = isTwoDimensionalArray;
+		this.dim1 = dim1;
+		this.dim2 = dim2;
 	}
-	
-	public TypeAttribute(Type type, String aliasName, int dim1Size) {
-		this(type, aliasName, dim1Size, 0);
-		isTwoDimensionalArray = false;
-	}
-	
 	
 	public boolean isTwoDimensionalArray() {
 		return isArray && isTwoDimensionalArray;
@@ -38,20 +28,20 @@ public class TypeAttribute implements Attribute{
 		return type;
 	}
 
-	public int getDim1size() {
-		return dim1size;
+	public int getDim1() {
+		return dim1;
 	}
 
-	public void setDim1size(int dim1size) {
-		this.dim1size = dim1size;
+	public void setDim1(int dim1) {
+		this.dim1 = dim1;
 	}
 
-	public int getDim2size() {
-		return dim2size;
+	public int getDim2() {
+		return dim2;
 	}
 
-	public void setDim2size(int dim2size) {
-		this.dim2size = dim2size;
+	public void setDim2(int dim2) {
+		this.dim2 = dim2;
 	}
 
 	public String getAliasName() {
@@ -60,5 +50,25 @@ public class TypeAttribute implements Attribute{
 
 	public void setAliasName(String aliasName) {
 		this.aliasName = aliasName;
+	}
+
+	public Type getTypeOfArray() {
+		return typeOfArray;
+	}
+
+	public void setTypeOfArray(Type typeOfArray) {
+		this.typeOfArray = typeOfArray;
+	}
+	
+	public String toString() {
+		String retVal = "aliasName: " + aliasName;
+		retVal += ", type: " + type;
+		retVal += ", isArray: " + isArray;
+		retVal += ", isTwoDimensionalArray: " + isTwoDimensionalArray;
+		retVal += ", typeOfArray: " + typeOfArray;
+		retVal += ", dim1: " + dim1;
+		retVal += ", dim2: " + dim2;
+		
+		return retVal;
 	}
 }
