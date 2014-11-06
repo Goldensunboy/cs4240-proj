@@ -1253,8 +1253,8 @@ id[IdType idType, boolean testNamespace] returns [String exp, Type type]:
     $exp = $ID.text;
     Attribute att = symbolTableManager.getAttributeInCurrentScope($ID.text, attributeMap);
     if(att != null) {
-      $type = Type.INT.getName().equals(att.getType())   ? Type.INT   :
-              Type.FIXPT.getName().equals(att.getType()) ? Type.FIXPT :
+      $type = Type.INT.equals(att.getType())   ? Type.INT   :
+              Type.FIXPT.equals(att.getType()) ? Type.FIXPT :
                                               Type.OTHER ;
     } else {
       $type = Type.OTHER;

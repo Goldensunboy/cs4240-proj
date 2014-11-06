@@ -102,7 +102,7 @@ public class TigerTest {
 		}
 		
 		public static DeveloperName[] lookup(String preferedName) {
-			if(preferedName.equals(MARISSA.getPreferedName())) {
+			if(preferedName.equals(MARISSA.getActualName())) {
 				return new DeveloperName[]{MARISSA};
 			} else if (preferedName.equals(SAMAN.getPreferedName())) {
 				return new DeveloperName[]{SAMAN, ANDREW};

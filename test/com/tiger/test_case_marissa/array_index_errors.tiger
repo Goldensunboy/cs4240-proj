@@ -5,7 +5,7 @@ int function testFunc()
 begin
 	begin
 		var a, b : int :=0;
-		return a;
+		return b;
 	end;
 end; 
 
