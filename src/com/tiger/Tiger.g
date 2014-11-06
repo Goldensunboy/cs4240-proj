@@ -278,11 +278,11 @@ paramListTail :
 ;
 
 blockList[String functionName] :
-	block[functionName]+ // block-list and block-tail are combined
+	block[functionName, ""]+ // block-list and block-tail are combined
 ;
 
-block[String functionName] :
-	key_begin declarationSegment[functionName] statSeq[functionName, ""] key_end OP_SCOLON
+block[String functionName, String endLoop] :
+	key_begin declarationSegment[functionName] statSeq[functionName, endLoop] key_end OP_SCOLON
 ;
 
 typeDeclarationList :
@@ -398,7 +398,7 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
             String customMessage = "Assignment of fixedpt expression " + $s3.exp + " to int variable " + $s1.exp;
             exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
 		      }
-		      //Cannot assign a conditional to a variable
+		      // Cannot assign a conditional to a variable
 		      if($s3.myIsBool) {
 	          String customMessage = "Boolean values cannot be assigned to a variable.";
 	          exceptionHandler.handleException(s3, customMessage, null, null,InvalidTypeException.class);
@@ -406,6 +406,11 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		      // Assignment statement
           IRList.addFirst("assign, " + $s1.exp + $s2.exp + ", " + $s3.exp);
 		    } else {
+		      if(att == null) {
+          // Variable not declared yet
+            String customMessage = "Assignment to undeclared variable: " + $s1.exp;
+            exceptionHandler.handleException(s1, customMessage, null, null, UndeclaredVariableException.class);
+          }
 		      // Function assignment
 		      String[] parts = $s3.exp.split("#");
 		      Type rettype = symbolTableManager.getFunctionReturnType(parts[0]);
@@ -561,7 +566,7 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		}
 	)
 	OP_SCOLON
-	| block[functionName]
+	| block[functionName, endLoop]
 ; 
 
 optPrefix :
