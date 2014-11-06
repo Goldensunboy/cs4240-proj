@@ -12,7 +12,19 @@ begin
 	begin
 		var n : int := 5;
 		n := 8 - 3;
-		return 6;
+		return 8;
+	end;
+	begin
+		var u : int := 0;
+		return u;
+	end;
+end;
+
+fixedpt function func5()
+begin
+	begin
+		var t : fixedpt := 7.5;
+		return 8.0;
 	end;
 end;
 
@@ -31,16 +43,28 @@ begin
 		var y : fixedpt := 98.45;
 		func();
 		x := func2(5, 6.9);
+		x := func();
 		func3();
 		x := 2 * 3 + 5;
-		if x < 7 - 9 then
+		if x < 9 then
 			x := 9;
-			break;
+			/* break; */
 			x := 90 - 5;
 		endif;
 		x := 0;
 		while y - 3 <> 0 do
-			y := y - 0.01;
+			while y = 0 do
+				begin
+					if x = 10 then
+						x := 9;
+				    else
+				    	y := 7.8 - 5;
+					endif;
+					y := y - 0.01;
+					break;
+				end;
+			enddo;
+			break;
 		enddo;
 		y := 9.5;
 	end;
