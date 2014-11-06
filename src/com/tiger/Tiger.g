@@ -76,9 +76,11 @@ import com.exception.NameSpaceConflictException;
   public static final String TYPE_NAMESPACE = "typeNameSpcae";
   public static final String FUNCTION_NAMESPACE = "functionNameSpcae";
   
-  private void putVariableAttributeMap(List<String> variableNameList, Type type, String declaringFunctionName) {
+  private void putVariableAttributeMap(List<String> variableNameList, Type type,
+      String declaringFunctionName) {
     for (String variableName : variableNameList) {
-        VariableAttribute variableAttribute = new VariableAttribute(variableName, type, declaringFunctionName);
+        VariableAttribute variableAttribute = new VariableAttribute(variableName,
+          type, declaringFunctionName);
         attributeMap.put(variableName, variableAttribute);
     }
   }
@@ -88,8 +90,10 @@ import com.exception.NameSpaceConflictException;
     attributeMap.put(functionName, functionAttribute);
   }
 
-  public void putTypeAttributeMap(int lineNumber /*TODO Testing, delete me*/,String aliasName, Type type, Type typeOfArray, boolean isTwoDimensionalArray, int dim1, int dim2) {
-    TypeAttribute typeAttribute = new TypeAttribute(aliasName, type, typeOfArray, isTwoDimensionalArray, dim1, dim2);
+  public void putTypeAttributeMap(int lineNumber ,String aliasName, Type type,
+      Type typeOfArray, boolean isTwoDimensionalArray, int dim1, int dim2) {
+    TypeAttribute typeAttribute = new TypeAttribute(aliasName, type, typeOfArray,
+      isTwoDimensionalArray, dim1, dim2);
     System.out.println("Line: " + lineNumber + " :: " + typeAttribute);
     attributeMap.put(aliasName, typeAttribute); 
   }
@@ -97,7 +101,8 @@ import com.exception.NameSpaceConflictException;
   public void printAttributeMap() {
     for (Entry<String, List<Symbol>> attr : symbolTableManager.getSymbolTable().entrySet()){
       for (Symbol symbol : attr.getValue() ) {
-        System.out.println(symbol + " :: Have access to: " + showAllReachableAttributes(symbol.getScope())); // TODO debug, delete me
+        System.out.println(symbol + " :: Have access to: " +
+          showAllReachableAttributes(symbol.getScope()));
       }
     }
   }
@@ -296,7 +301,8 @@ varDeclarationList[String functionName] :
 typeDeclaration :
 	KEY_TYPE myId=id[IdType.TYPE_NAME, true] OP_EQUAL myType=type OP_SCOLON
 	{
-	  putTypeAttributeMap($myId.start.getLine(), $myId.text, $myType.type, $myType.typeOfArray, $myType.isTwoDimensionalArray, $myType.dim1, $myType.dim2);
+	  putTypeAttributeMap($myId.start.getLine(), $myId.text, $myType.type,
+	    $myType.typeOfArray, $myType.isTwoDimensionalArray, $myType.dim1, $myType.dim2);
 	}
 ;
 
@@ -453,7 +459,8 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
           String actual = paramList.size() == 0 ? "[void]" : foundList.toString();
           
           String customMessage = "Invalid invocation of function: [" + $s1.exp + "]";
-          exceptionHandler.handleException(s1, customMessage, expected, actual, InvalidInvocationException.class);
+          exceptionHandler.handleException(s1, customMessage, expected, actual,
+            InvalidInvocationException.class);
         }
         for(int i = 0; i < params.size(); ++i) {
           if("int".equals(params.get(i)) && "fixedpt".equals(paramList.get(params.size() - i - 1))) {
@@ -465,7 +472,8 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
             String actual = paramList.size() == 0 ? "[void]" : foundList.toString();
 
 	          String customMessage = "Invalid invocation of function: [" + $s1.exp + "]";
-	          exceptionHandler.handleException(s1, customMessage, expected, actual, InvalidInvocationException.class);
+	          exceptionHandler.handleException(s1, customMessage, expected, actual,
+	            InvalidInvocationException.class);
           }
         }
 		  }
@@ -512,32 +520,55 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
     }
 		|
 		{
-		  String whileTop = lf.nextLabel("WHILE");
-		  String endSubLoop = lf.nextLabel("LOOP_END");
+		  String whileTop = lf.nextLabel("WHILE_START");
+		  String endSubLoopWhile = lf.nextLabel("WHILE_END");
 		  IRList.addFirst(whileTop + ":");
 		}
-		KEY_WHILE myWhileCond=expr[endSubLoop]
+		KEY_WHILE myWhileCond=expr[endSubLoopWhile]
 		{
 		  if(!$myWhileCond.myIsBool) {
         String customMessage = "while conditional statements must resolve to a boolean value";
-        exceptionHandler.handleException(myWhileCond, customMessage, null, null, InvalidTypeException.class);
+        exceptionHandler.handleException(myWhileCond, customMessage, null, null,
+          InvalidTypeException.class);
 		  }
 		}
-      KEY_DO statSeq[functionName, endSubLoop] KEY_ENDDO
+      KEY_DO statSeq[functionName, endSubLoopWhile] KEY_ENDDO
     {
       IRList.addFirst("goto, " + whileTop);
-      IRList.addFirst(endSubLoop + ":");
+      IRList.addFirst(endSubLoopWhile + ":");
     }
 		|
 		{
 		  String endSubLoop = lf.nextLabel("LOOP_END");
 		}
-		KEY_FOR id[IdType.NIY, false]
-		  OP_ASSIGN indexExpr KEY_TO indexExpr
-		  KEY_DO statSeq[functionName, endSubLoop] KEY_ENDDO
-		{
-		  IRList.addFirst(endSubLoop + ":");
-		}
+		sym_for=key_for s6=id[IdType.NIY, false]
+		  OP_ASSIGN s7=indexExpr KEY_TO s8=indexExpr
+		  {
+		    String forTop = lf.nextLabel("FOR_START");
+		    String endSubLoopFor = ("FOR_END");
+		    // Store upper bound
+		    String upperBoundTemp = tvf.nextTemp();
+		    IRList.addFirst("assign, " + upperBoundTemp + ", " + $s8.exp);
+		    // Generate index variable
+		    ArrayList<String> varList = new ArrayList<String>();
+		    varList.add($s6.text);
+		    putVariableAttributeMap(varList,
+                                Type.INT,
+                                $functionName);
+        IRList.addFirst("assign, " + $s6.text + ", " + $s7.exp);
+        // Begin loop here
+        IRList.addFirst(forTop + ":");
+        IRList.addFirst("brgt, " + $s6.text + ", " + upperBoundTemp);
+		  }
+		  KEY_DO statSeq[functionName, endSubLoopFor] KEY_ENDDO
+		  {
+		    // Increment index variable and return to top
+		    String incTemp = tvf.nextTemp();
+		    IRList.addFirst("add, " + $s6.text + ", 1, " + incTemp);
+		    IRList.addFirst("goto, " + forTop);
+		    IRList.addFirst(endSubLoopFor + ":");
+		    goToEnclosingScope();
+		  }
 		| brk=KEY_BREAK
 		{
 		  // Cannot be in the function-level scope
@@ -567,7 +598,14 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 	)
 	OP_SCOLON
 	| block[functionName, endLoop]
-; 
+;
+ 
+key_for :
+  KEY_FOR
+  {
+    makeNewScope();
+  }
+;
 
 optPrefix :
 	(
