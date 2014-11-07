@@ -636,21 +636,22 @@ expr[String startLabel, String endLabel] returns [String exp, Type type, boolean
       } else if($s1.myIsFunc) {
         String customMessage = "Cannot perform operations on a function lvalue";
         exceptionHandler.handleException(s1, customMessage, null, null, InvalidInvocationException.class);
-      }
+      } else {
       // Convert default branch to start for OR
-      if(s2 == null) {
-        String[] parts = IRList.pop().split(", ");
-        switch(parts[0].hashCode()) {
-          case 0x02E44FC: parts[0] = "brneq"; break;
-          case 0x02E453D: parts[0] = "brleq"; break;
-          case 0x02E45D8: parts[0] = "brgeq"; break;
-          case 0x59A6103: parts[0] = "brlt" ; break;
-          case 0x59A73C8: parts[0] = "brgt" ; break;
-          case 0x59A7B4A: parts[0] = "breq" ; break;
-          default: exceptionHandler.handleException(s1, "Internal error in popping branch for OR operation",
-                     null, null, ShouldNotHappenException.class);
+        if(s2 == null) {
+          String[] parts = IRList.pop().split(", ");
+          switch(parts[0].hashCode()) {
+            case 0x02E44FC: parts[0] = "brneq"; break;
+            case 0x02E453D: parts[0] = "brleq"; break;
+            case 0x02E45D8: parts[0] = "brgeq"; break;
+            case 0x59A6103: parts[0] = "brlt" ; break;
+            case 0x59A73C8: parts[0] = "brgt" ; break;
+            case 0x59A7B4A: parts[0] = "breq" ; break;
+            default: exceptionHandler.handleException(s1, "Internal error in popping branch for OR operation",
+                       null, null, ShouldNotHappenException.class);
+          }
+          IRList.addFirst(parts[0] + ", " + parts[1] + ", " + parts[2] + ", " + startLabel);
         }
-        IRList.addFirst(parts[0] + ", " + parts[1] + ", " + parts[2] + ", " + startLabel);
       }
     }
     s3=expr[startLabel, endLabel]
