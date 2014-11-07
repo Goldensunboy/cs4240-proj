@@ -7,14 +7,19 @@ type FixedPt = fixedpt;
 type ArrayFixedPt = array [100] of fixedpt;
 type Array2DFixedPt = array [100][100] of fixedpt;
 
-
-/* LEGAL????: Must assign values at initialization */
-void function funcName1() 
+int function testFunc(x:int) 
 begin
 	begin
-		var x : ArrayInt;
-		var y : int := 9;
-		y := 10;
+		var a, b : int :=0;
+		return b;
+	end;
+end;
+
+int function testFunc2(x:ArrayInt) 
+begin
+	begin
+		var a, b : int :=0;
+		return b;
 	end;
 end;
 
@@ -57,15 +62,24 @@ begin
 	end;
 end; */
 
-/* TODO: Cannot assign arrays of different types to each other  */
+
+/* TODO: Should not be able to pass an int instead of an int array */
 void function funcName6() 
 begin
 	begin
-		var x : ArrayInt;
-		x[9]:=0;
+		var x : int;
+		testFunc2(x);
 	end;
 end;
 
+/* TODO: Should not be able to pass an int array instead of an int */ /*
+void function funcName7() 
+begin
+	begin
+		var x : ArrayInt := 9;
+		testFunc(x);
+	end;
+end; */
 
 void main()
 begin

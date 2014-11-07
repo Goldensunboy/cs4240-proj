@@ -17,7 +17,7 @@ begin
 		var temp1 : int :=0;
 		temp1 := 0;
 	end;
-end; */
+end; /*
 
 /* type and variable can't have the same names */ /*
 void function temp2() 
@@ -72,7 +72,7 @@ begin
 		var temp6 : int :=0;
 		temp6 := 0;
 	end;
-end;*/
+end; */
 
 void main()
 begin

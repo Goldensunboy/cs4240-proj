@@ -1,4 +1,12 @@
 
+int function testFunc(x:int) 
+begin
+	begin
+		var a, b : int :=0;
+		return b;
+	end;
+end;
+
 /* void function can't return an int literal */ /*
 void function func1()
 begin
@@ -120,6 +128,15 @@ begin
 			b := 1;
 			return 5;
 		endif;
+	end;
+end; */
+
+/* can't return a function */ /*
+void function func11()
+begin
+	begin
+		var n : int := 5;
+		return testFunc(0);
 	end;
 end; */
 

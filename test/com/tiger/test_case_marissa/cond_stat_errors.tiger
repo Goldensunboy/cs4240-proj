@@ -1,5 +1,6 @@
 
-/* Should contain no more TODOs */
+type ArrayInt = array [100] of int;
+type ArrayFixedPt = array [100] of fixedpt;
 
 /* Used in testing */
 int function testFunc()
@@ -17,8 +18,8 @@ begin
 	end;
 end; 
 
-/* if condition statement does not contain a boolean value */ /*
-void function func1()
+/* TODO: (wrong error message) if condition statement does not contain a boolean value */ /*
+void function func1a()
 begin
 	begin
 		var a, b : int :=0;
@@ -28,7 +29,19 @@ begin
 	end;
 end; */
 
-/* if then else condition statement does not contain a boolean value */ /*
+/* TODO: (wrong error message) while condition statement does not contain a boolean value */ /*
+void function func1b()
+begin
+	begin
+		var a, b : int :=0;
+		while 4.0 do
+			a := a + 1;
+			return 6;
+		enddo;
+	end;
+end; */
+
+/* TODO: (wrong error message) if then else condition statement does not contain a boolean value */ /*
 void function func2()
 begin
 	begin
@@ -39,7 +52,7 @@ begin
 			b := 1;
 		endif;
 	end;
-end;*/
+end; */
 
 /* if condition statement does not contain (int & int) */ /*
 void function func3()
@@ -53,7 +66,7 @@ begin
 end; */
 
 /* if condition statement does not contain (boolean & int) */ /*
-void function func3()
+void function func4()
 begin
 	begin
 		var a, b : int :=0;
@@ -63,8 +76,8 @@ begin
 	end;
 end; */
 
-/* while condition statement does not contains (fixedpt | int) */ /*
-int function func4()
+/* TODO: (wrong error message) while condition statement does not contains (fixedpt | int) */  /*
+int function func5()
 begin
 	begin
 		var a, b : int :=0;
@@ -76,7 +89,7 @@ begin
 end; */
 
 /* if condition statement cannot contain a function call */ /*
-void function func5()
+void function func6()
 begin
 	begin
 		var a, b : int :=0;
@@ -87,7 +100,7 @@ begin
 end;*/
 
 /* A variable cannot be assigned a conditional value */ /*
-void function func6()
+void function func7()
 begin
 	begin
 		var a, b : int :=0;
@@ -96,16 +109,16 @@ begin
 end; */
 
 /* A variable cannot be assigned a conditional value using a function's return value */ /*
-void function func7()
+void function func8()
 begin
 	begin
 		var a, b : int :=0;
 		a := 6 < testFunc();
 	end;
-end;*/
+end; */
 
 /* An array index cannot contain a conditional statement */ /*
-void function func8()
+void function func9()
 begin
 	begin
 		var X: array [100] of int := 10;
@@ -115,7 +128,7 @@ begin
 end; */
 
 /* Cannot pass a conditional into a function call */ /*
-void function func9()
+void function func10()
 begin
 	begin
 		var i: int := 0;
@@ -124,7 +137,7 @@ begin
 end; */
 
 /* Cannot pass a conditional into a function call whose return value is not assigned to a variable */ /*
-void function func10()
+void function func11()
 begin
 	begin
 		var i: int := 0;
@@ -133,7 +146,7 @@ begin
 end; */
 
 /* Cannot return a conditional */ /*
-int function func11()
+int function func12()
 begin
 	begin
 		var i: int := 0;
@@ -142,13 +155,71 @@ begin
 end; */
 
 /* Cannot pass a conditional into a function call whose return value is not assigned to a variable */ /*
-void function func12()
+void function func13()
 begin
 	begin
 		var i: int := 0;
 		testFunc2((6 <= 9) * 10);
 	end;
 end; */
+
+/* TODO: Cannot perform a comparison of two arrays */
+void function func14() 
+begin
+	begin
+		var x,y : ArrayInt := 9;
+		if x < y then
+			x[9] := 0;
+		endif;
+	end;
+end;
+
+/* TODO: Cannot perform a comparison of an array and an int */
+void function func15() 
+begin
+	begin
+		var x,y : ArrayInt := 9;
+		if x < 5 then
+			x[9] := 0;
+		endif;
+	end;
+end;
+
+/* TODO: Cannot perform a comparison of an fixedpt variable and an int literal */
+void function func16() 
+begin
+	begin
+		var x : int := 9;
+		var y : fixedpt := 9;
+		if y < 5 then
+			x[9] := 0;
+		endif;
+	end;
+end;
+
+/* TODO: Cannot perform a comparison of an int variable and an fixedpt literal */
+void function func17() 
+begin
+	begin
+		var x : int := 9;
+		var y : fixedpt := 9;
+		if x < 5.0 then
+			x[9] := 0;
+		endif;
+	end;
+end;
+
+/* LEGAL??????: Cannot perform a comparison of an array and an int */
+void function func18() 
+begin
+	begin
+		var x : ArrayInt := 9;
+		var y : ArrayFixedPt := 9;
+		if x[6] < y[9] then
+			x[9] := 0;
+		endif;
+	end;
+end;
 
 void main()
 begin

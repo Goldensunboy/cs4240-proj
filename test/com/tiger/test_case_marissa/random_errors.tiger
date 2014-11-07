@@ -7,23 +7,9 @@ begin
 	end;
 end; 
 
-/* TODO: Should not be able to put a break randomly in a function */
-void function func1()
-begin
-	begin
-		var a, b : int :=0;
-		break;
-	end;
-end;
 
-/* TODO!!! Bad error message for using a function as a parameter to another function when the return value is NOT assigned to a variable */ /*
-void function func2()
-begin
-	begin
-		var a, b : int :=0;
-		testFunc(testFunc(a));
-	end;
-end; */
+
+
 
 
 void main()

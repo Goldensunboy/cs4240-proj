@@ -77,6 +77,17 @@ begin
 	end;
 end; */
 
+/* Cannot used a value from an array as a for loop index */ /*
+void function func5()
+begin
+	begin
+		var x: int := 0;
+		for i := 1 to y do
+			x := x + 1;
+		enddo;
+	end;
+end; */
+
 void main()
 begin
 	begin
