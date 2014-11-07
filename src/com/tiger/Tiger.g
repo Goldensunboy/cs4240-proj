@@ -389,7 +389,7 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 	(
 		s1=id[IdType.NIY, false]
 		(
-		  s2=valueTail OP_ASSIGN s3=expr[null]
+		  s2=valueTail OP_ASSIGN s3=expr[null, null]
 		  {
 		    // Verify that the assignment is valid
 		    Attribute att = symbolTableManager.getAttributeInCurrentScope($s1.exp, attributeMap);
@@ -482,9 +482,10 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		{
 		  Type ifReturnType=Type.VOID, elseReturnType=Type.VOID;
 		  makeNewScope();
+		  String ifLabel = lf.nextLabel("IF_START");
 		  String elseLabel = lf.nextLabel("ELSE_BEGIN");
 		}
-		myIfCond=expr[elseLabel]
+		myIfCond=expr[ifLabel, elseLabel]
 		  {
 		    if(!$myIfCond.myIsBool) {
 			    String customMessage = "If statement conditions must resolve to a boolean value";
@@ -520,11 +521,12 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
     }
 		|
 		{
-		  String whileTop = lf.nextLabel("WHILE_START");
+		  String whileTop = lf.nextLabel("WHILE_TOP");
+		  String whileBegin = lf.nextLabel("WHILE_BEGIN");
 		  String endSubLoopWhile = lf.nextLabel("WHILE_END");
 		  IRList.addFirst(whileTop + ":");
 		}
-		KEY_WHILE myWhileCond=expr[endSubLoopWhile]
+		KEY_WHILE myWhileCond=expr[whileBegin, endSubLoopWhile]
 		{
 		  if(!$myWhileCond.myIsBool) {
         String customMessage = "while conditional statements must resolve to a boolean value";
@@ -545,7 +547,7 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		  OP_ASSIGN s7=indexExpr KEY_TO s8=indexExpr
 		  {
 		    String forTop = lf.nextLabel("FOR_START");
-		    String endSubLoopFor = ("FOR_END");
+		    String endSubLoopFor = lf.nextLabel("FOR_END");
 		    // Store upper bound
 		    String upperBoundTemp = tvf.nextTemp();
 		    IRList.addFirst("assign, " + upperBoundTemp + ", " + $s8.exp);
@@ -558,13 +560,14 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
         IRList.addFirst("assign, " + $s6.text + ", " + $s7.exp);
         // Begin loop here
         IRList.addFirst(forTop + ":");
-        IRList.addFirst("brgt, " + $s6.text + ", " + upperBoundTemp);
+        IRList.addFirst("brgt, " + $s6.text + ", " + upperBoundTemp + ", " + endSubLoopFor);
 		  }
 		  KEY_DO statSeq[functionName, endSubLoopFor] KEY_ENDDO
 		  {
 		    // Increment index variable and return to top
 		    String incTemp = tvf.nextTemp();
 		    IRList.addFirst("add, " + $s6.text + ", 1, " + incTemp);
+		    IRList.addFirst("assign, " + $s6.text + ", " + incTemp);
 		    IRList.addFirst("goto, " + forTop);
 		    IRList.addFirst(endSubLoopFor + ":");
 		    goToEnclosingScope();
@@ -581,7 +584,7 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		    IRList.addFirst("goto, " + endLoop);
 		  }
 		}
-		| KEY_RETURN myReturnValue=expr[null]
+		| KEY_RETURN myReturnValue=expr[null, null]
 		{
 		  Type expectedReturnType = symbolTableManager.getReturnType();
 		  Type actualReturnType = $myReturnValue.type;
@@ -613,66 +616,56 @@ optPrefix :
 	)?
 ;
 
-expr[String label] returns [String exp, Type type, boolean myIsBool, boolean myIsFunc]:
-  s1=binOp1[label]
+expr[String startLabel, String endLabel] returns [String exp, Type type, boolean myIsBool, boolean myIsFunc] :
+  s1=binOp1[startLabel, endLabel]
   (
     (
       s2=OP_AND
       | OP_OR
     )
-    s3=expr[label]
+    {
+      // Left side check for boolean value
+      if(!$s1.myIsBool) {
+        String customMessage = "Cannot use " + (s2 != null ? "'&'" : "'|'") + " on non-boolean values";
+        exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
+      } else if($s1.myIsFunc) {
+        String customMessage = "Cannot perform operations on a function lvalue";
+        exceptionHandler.handleException(s1, customMessage, null, null, InvalidInvocationException.class);
+      }
+      // Convert default branch to end for OR
+      if(s2 == null) {
+        String[] parts = IRList.pop().split(", ");
+        switch(parts[0].hashCode()) {
+          case 3032381 : parts[0] = "brleq"; break;
+          case 3032536 : parts[0] = "brgeq"; break;
+          case 94003459: parts[0] = "brlt" ; break;
+          case 94008264: parts[0] = "brgt" ; break;
+          case 3032316 : parts[0] = "brneq"; break;
+          case 94010186: parts[0] = "breq" ; break;
+          default: exceptionHandler.handleException(s1, "Internal error in popping branch for OR operation",
+                     null, null, ShouldNotHappenException.class);
+        }
+        IRList.addFirst(parts[0] + ", " + parts[1] + ", " + parts[2] + ", " + startLabel);
+      }
+    }
+    s3=expr[startLabel, endLabel]
   )?
   {
+    System.out.println($s3.exp);
     if($s3.exp == null) {
       $exp = $s1.exp;
       $type = $s1.type;
       $myIsBool = $s1.myIsBool;
-      if(label != null) {
-        // Branch to the label on complement of condition
-        String op = IRList.pop();
-        //System.out.println("Popped operation: " + op);
-        String[] parts = op.split(", ");
-        if("leq".equals(parts[0])) {
-          IRList.addFirst("brgt, " + parts[1] + ", " + parts[2] + ", " + label);
-        } else if("geq".equals(parts[0])) {
-          IRList.addFirst("brlt, " + parts[1] + ", " + parts[2] + ", " + label);
-        } else if("lthan".equals(parts[0])) {
-          IRList.addFirst("brgeq, " + parts[1] + ", " + parts[2] + ", " + label);
-        } else if("gthan".equals(parts[0])) {
-          IRList.addFirst("brleq, " + parts[1] + ", " + parts[2] + ", " + label);
-        } else if("neq".equals(parts[0])) {
-          IRList.addFirst("breq, " + parts[1] + ", " + parts[2] + ", " + label);
-        } else {
-          IRList.addFirst("brneq, " + parts[1] + ", " + parts[2] + ", " + label);
-        }
-      }
     } else {
-      if($s1.myIsBool == false || $s3.myIsBool == false) {
-        if(s2 != null) {
-	        String customMessage = "Cannot use '&' on non-boolean values";
-	        exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
-        } else {
-          String customMessage = "Cannot use '|' on non-boolean values";
-          exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
-        }
-      } else if($s1.myIsFunc || $s3.myIsFunc) {
+      if(!$s3.myIsBool) {
+	      String customMessage = "Cannot use " + (s2 != null ? "'&'" : "'|'") + " on non-boolean values";
+	      exceptionHandler.handleException(s3, customMessage, null, null, InvalidTypeException.class);
+      } else if($s3.myIsFunc) {
         String customMessage = "Cannot perform operations on a function lvalue";
-        exceptionHandler.handleException(s1, customMessage, null, null, InvalidInvocationException.class);
+        exceptionHandler.handleException(s3, customMessage, null, null, InvalidInvocationException.class);
       }
       $myIsBool = true;
-      String temp = tvf.nextTemp();
-      if(s2 != null) {
-        IRList.addFirst("and, " + $s1.exp + ", " + $s3.exp + ", " + temp);
-      } else {
-        IRList.addFirst("or, "  + $s1.exp + ", " + $s3.exp + ", " + temp);
-      }
-      
-      $exp = temp;
-      if($s1.type == Type.FIXPT || $s3.type == Type.FIXPT) {
-        $type = Type.FIXPT;
-      } else {
-        $type = Type.INT;
-      }
+      IRList.addFirst(startLabel + ":");
     }
   }
 ;
@@ -718,8 +711,8 @@ funcExpr returns [String exp, Type type, boolean myIsBool]:
   }
 ;
 
-binOp1[String label] returns [String exp, Type type, boolean myIsBool, boolean myIsFunc]:
-  s1=binOp2[label]
+binOp1[String startLabel, String endLabel] returns [String exp, Type type, boolean myIsBool, boolean myIsFunc]:
+  s1=binOp2[startLabel, endLabel]
   (
     (
       s2=OP_LEQ
@@ -729,7 +722,7 @@ binOp1[String label] returns [String exp, Type type, boolean myIsBool, boolean m
       | s6=OP_NEQ
       | OP_EQUAL
     )
-    s7=binOp1[label]
+    s7=binOp1[startLabel, endLabel]
   )?
   {
     if($s7.exp == null) {
@@ -747,21 +740,20 @@ binOp1[String label] returns [String exp, Type type, boolean myIsBool, boolean m
       }
       $myIsBool = true;
       $myIsFunc = false;
-      String temp = tvf.nextTemp();
       if(s2 != null) {
-        IRList.addFirst("leq, "    + $s1.exp + ", " + $s7.exp + ", " + temp);
+        IRList.addFirst("brgt, "  + $s1.exp + ", " + $s7.exp + ", " + endLabel);
       } else if(s3 != null) {
-        IRList.addFirst("geq, "    + $s1.exp + ", " + $s7.exp + ", " + temp);
+        IRList.addFirst("brlt, "  + $s1.exp + ", " + $s7.exp + ", " + endLabel);
       } else if(s4 != null) {
-        IRList.addFirst("lthan, "  + $s1.exp + ", " + $s7.exp + ", " + temp);
+        IRList.addFirst("brgeq, " + $s1.exp + ", " + $s7.exp + ", " + endLabel);
       } else if(s5 != null) {
-        IRList.addFirst("gthan, "  + $s1.exp + ", " + $s7.exp + ", " + temp);
+        IRList.addFirst("brleq, " + $s1.exp + ", " + $s7.exp + ", " + endLabel);
       } else if(s6 != null) {
-        IRList.addFirst("neq, "    + $s1.exp + ", " + $s7.exp + ", " + temp);
+        IRList.addFirst("breq, "  + $s1.exp + ", " + $s7.exp + ", " + endLabel);
       } else {
-        IRList.addFirst("equals, " + $s1.exp + ", " + $s7.exp + ", " + temp);
+        IRList.addFirst("brneq, " + $s1.exp + ", " + $s7.exp + ", " + endLabel);
       }
-      $exp = temp;
+      $exp = "";
       if($s1.type == Type.FIXPT || $s7.type == Type.FIXPT) {
         $type = Type.FIXPT;
       } else {
@@ -819,14 +811,14 @@ funcBinOp1 returns [String exp, Type type, boolean myIsBool]:
   }
 ;
 
-binOp2[String label] returns [String exp, Type type, boolean myIsBool, boolean myIsFunc]:
-  s1=binOp3[label]
+binOp2[String startLabel, String endLabel] returns [String exp, Type type, boolean myIsBool, boolean myIsFunc]:
+  s1=binOp3[startLabel, endLabel]
   (
     (
       s2=OP_PLUS
       | OP_MINUS
     )
-    s3=binOp2[label]
+    s3=binOp2[startLabel, endLabel]
   )?
   {
     if($s3.exp == null) {
@@ -906,14 +898,14 @@ funcBinOp2 returns [String exp, Type type, boolean myIsBool]:
   }
 ;
 
-binOp3[String label] returns [String exp, Type type, boolean myIsBool, boolean myIsFunc]:
-  s1=binOp4[label]
+binOp3[String startLabel, String endLabel] returns [String exp, Type type, boolean myIsBool, boolean myIsFunc]:
+  s1=binOp4[startLabel, endLabel]
   (
     (
       s2=OP_DIV
       | OP_MULT
     )
-    s3=binOp3[label]
+    s3=binOp3[startLabel, endLabel]
   )?
   {
     if($s3.exp == null) {
@@ -993,7 +985,7 @@ funcBinOp3 returns [String exp, Type type, boolean myIsBool]:
   }
 ;
 
-binOp4[String label] returns [String exp, Type type, boolean myIsBool, boolean myIsFunc]
+binOp4[String startLabel, String endLabel] returns [String exp, Type type, boolean myIsBool, boolean myIsFunc]
 @init
 {
   List<String> paramList = new ArrayList<String>();
@@ -1001,8 +993,8 @@ binOp4[String label] returns [String exp, Type type, boolean myIsBool, boolean m
   $myIsFunc = false;
 }
 :
-  s1=constant                   {$exp = $s1.exp; $type = $s1.type;}
-  | OP_LPAREN s2=expr[label] OP_RPAREN {$exp = $s2.exp; $type = $s2.type; $myIsBool = $s2.myIsBool;}
+  s1=constant                             {$exp = $s1.exp; $type = $s1.type;}
+  | OP_LPAREN s2=expr[startLabel, endLabel] OP_RPAREN {$exp = $s2.exp; $type = $s2.type; $myIsBool = $s2.myIsBool;}
   | s3=id[IdType.NIY, false]
   (
     s4=valueTail                                     {$exp = $s3.exp + $s4.exp; $type = $s3.type;}
@@ -1147,7 +1139,7 @@ indexExpr3 returns [String exp]:
       exceptionHandler.handleException(myId, customMessage, null, null, 
                                        UndeclaredVariableException.class);
     }
-    if(!"int".equals($id.type)) {
+    if(!"int".equals($id.type.getName())) {
       // Invalid type (must be int)
       String customMessage = "Use of fixedpt variable in array index expression: \"" + $id.exp + "\""; 
       exceptionHandler.handleException(myId, customMessage, null, null, 
@@ -1162,7 +1154,7 @@ declarationSegment[String functionName] :
 
 exprList[List<String> paramList] returns [String exp]:
   (
-    s1=expr[null] s2=exprListTail[paramList]
+    s1=expr[null, null] s2=exprListTail[paramList]
   )?
   {
     if($s1.exp == null) {
@@ -1195,7 +1187,7 @@ funcExprList[List<String> paramList] returns [String exp]:
 
 exprListTail[List<String> paramList] returns [String exp]:
   (
-    OP_COMMA s1=expr[null] s2=exprListTail[paramList]
+    OP_COMMA s1=expr[null, null] s2=exprListTail[paramList]
   )?
   {
     if($s1.exp == null) {
