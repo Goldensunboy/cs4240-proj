@@ -651,7 +651,6 @@ expr[String startLabel, String endLabel] returns [String exp, Type type, boolean
     s3=expr[startLabel, endLabel]
   )?
   {
-    System.out.println($s3.exp);
     if($s3.exp == null) {
       $exp = $s1.exp;
       $type = $s1.type;
