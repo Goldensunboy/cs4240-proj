@@ -68,13 +68,13 @@ import com.exception.NameSpaceConflictException;
   private String enclosingFunctionName;
   private ExceptionHandler exceptionHandler = new ExceptionHandler();
   
-  private Set<String> varNamespace = new HashSet<>();
-  private Set<String> typeNamespace = new HashSet<>();
-  private Set<String> functionNamespace = new HashSet<>();
+  private Set<String> varNamespace = new HashSet<String>();
+  private Set<String> typeNamespace = new HashSet<String>();
+  private Set<String> functionNamespace = new HashSet<String>();
   
-  public static final String VAR_NAMESPACE = "varNameSpcae";
-  public static final String TYPE_NAMESPACE = "typeNameSpcae";
-  public static final String FUNCTION_NAMESPACE = "functionNameSpcae";
+  public static final String VAR_NAMESPACE = "varNameSpace";
+  public static final String TYPE_NAMESPACE = "typeNameSpace";
+  public static final String FUNCTION_NAMESPACE = "functionNameSpace";
   
   private void putVariableAttributeMap(List<String> variableNameList, Type type,
       String declaringFunctionName) {
@@ -94,7 +94,7 @@ import com.exception.NameSpaceConflictException;
       Type typeOfArray, boolean isTwoDimensionalArray, int dim1, int dim2) {
     TypeAttribute typeAttribute = new TypeAttribute(aliasName, type, typeOfArray,
       isTwoDimensionalArray, dim1, dim2);
-    System.out.println("Line: " + lineNumber + " :: " + typeAttribute);
+    //System.out.println("Line: " + lineNumber + " :: " + typeAttribute);
     attributeMap.put(aliasName, typeAttribute); 
   }
 
@@ -254,8 +254,6 @@ retType :
 typeId returns[Type type]:
 	baseType {$type=$baseType.type;}
 	| id[IdType.NIY, false] {$type=Type.OTHER;}
-	
-	
 ;
 
 baseType returns[Type type]:
@@ -352,12 +350,13 @@ scope
   $varDeclaration::aggregatedMyIdList = new ArrayList<String>();
 }
 :
-	KEY_VAR idList[IdType.VAR_NAME, true] OP_COLON myTypeId=typeId optionalInit OP_SCOLON
+	KEY_VAR idList[IdType.VAR_NAME, true] OP_COLON myTypeId=typeId
 	{
 	  putVariableAttributeMap($varDeclaration::aggregatedMyIdList,
 	                              $myTypeId.type,
 	                              $functionName);
 	}
+  optionalInit[$varDeclaration::aggregatedMyIdList] OP_SCOLON
 ;
 
 idList[IdType idType, boolean testNamespace] : 
@@ -370,9 +369,20 @@ idList[IdType idType, boolean testNamespace] :
 	}
 ;
 
-optionalInit :
+optionalInit[List<String> varNames] :
 	(
-	  OP_ASSIGN constant
+	  OP_ASSIGN s1=constant
+	  {
+	    for(String varName : varNames) {
+	      Attribute att = attributeMap.get(varName);
+	      if(att.getType() == Type.INT || att.getType() == Type.FIXPT) {
+	        IRList.addFirst("assign, " + varName + ", " + $s1.exp);
+	      } else {
+	        // TODO 1D or 2D array? Must also get sizes
+	        IRList.addFirst("assign, " + varName + ", ***PLACEHOLDER ARRAY ASSIGN***, " + $s1.exp);
+	      }
+	    }
+	  }
 	)?
 ;
 
@@ -410,7 +420,16 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 	          exceptionHandler.handleException(s3, customMessage, null, null,InvalidTypeException.class);
 		      }
 		      // Assignment statement
-          IRList.addFirst("assign, " + $s1.exp + $s2.exp + ", " + $s3.exp);
+		      if("".equals($s2.exp)) {
+            IRList.addFirst("assign, " + $s1.exp + ", " + $s3.exp);
+          } else {
+            String[] parts = $s2.exp.substring(1, $s2.exp.length() - 1).split("\\]\\[");
+            if(parts.length == 1) {
+              IRList.addFirst("array_store, " + $s1.exp + ", " + parts[0] + ", " + $s3.exp);
+            } else {
+              IRList.addFirst("array_store, " + $s1.exp + ", " + parts[0] + ", " + parts[1] + ", " + $s3.exp);
+            }
+          }
 		    } else {
 		      if(att == null) {
           // Variable not declared yet
@@ -471,7 +490,6 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 	            System.out.println(paramList + " paramList");
 	            for(int j = params.size() - 1; j >= 0; --j) {
 	              foundList.add(paramList.get(j));
-//	              foundList.add(paramList.get(j));
 	            }
 	            String actual = paramList.size() == 0 ? "[void]" : foundList.toString();
 	
@@ -1002,7 +1020,22 @@ binOp4[String startLabel, String endLabel] returns [String exp, Type type, boole
   | OP_LPAREN s2=expr[startLabel, endLabel] OP_RPAREN {$exp = $s2.exp; $type = $s2.type; $myIsBool = $s2.myIsBool;}
   | s3=id[IdType.NIY, false]
   (
-    s4=valueTail                                     {$exp = $s3.exp + $s4.exp; $type = $s3.type;}
+    s4=valueTail
+    {
+      $type = $s3.type;
+      if("".equals($s4.exp)) {
+        $exp = $s3.exp;
+      } else {
+        String[] parts = $s4.exp.substring(1, $s4.exp.length() - 1).split("\\]\\[");
+        String arrTempVar = tvf.nextTemp();
+        if(parts.length == 1) {
+          IRList.addFirst("array_load, " + arrTempVar + ", " + $s3.exp + ", " + parts[0]);
+        } else {
+          IRList.addFirst("array_load, " + arrTempVar + ", " + $s3.exp + ", " + parts[0] + ", " + parts[1]);
+        }
+        $exp = arrTempVar;
+      }
+    }
     | OP_LPAREN s5=funcExprList[paramList] OP_RPAREN {$exp = $s3.exp + "#" + $s5.exp; $type = $s3.type; $myIsFunc = true;}
   )
   {
