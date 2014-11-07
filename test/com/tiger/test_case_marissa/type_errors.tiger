@@ -1,3 +1,282 @@
+
+type Int = int;
+type ArrayInt = array [100] of int;
+type Array2DInt = array [100][100] of int;
+type FixedPtLit = fixedpt;
+type ArrayFixedPtLit = array [100] of fixedpt;
+type Array2DFixedPtLit = array [100][100] of fixedpt;
+
+/* Used in testing */
+void function testFunc()
+begin
+	begin
+		var a, b : int :=0;
+		a := 9;
+	end;
+end; 
+int function testFunc2() 
+begin
+	begin
+		var a, b : int :=0;
+		return a;
+	end;
+end; 
+fixedpt function testFunc3() 
+begin
+	begin
+		var a : fixedpt := 5.0;
+		return a;
+	end;
+end; 
+void function testFunc4(x:int, y:fixedpt) 
+begin
+	begin
+		var x, b : int :=0;
+		x := 8;
+	end;
+end;
+int function testFunc5(x:ArrayInt) 
+begin
+	begin
+		var a, b : int :=0;
+		return a;
+	end;
+end; 
+int function testFunc6(x:int, y:fixedpt) 
+begin
+	begin
+		var x, b : int :=0;
+		return 8;
+	end;
+end;
+int function testFunc7(x:int) 
+begin
+	begin
+		var x, b : int :=0;
+		return 8;
+	end;
+end;
+
+
+
+/* TODO: Using undefined type for a variable */
+void function func1() 
+begin
+	begin
+		var temp1 : missingType :=0;
+		temp1 := 0;
+	end;
+end;
+
+/* TODO: Using undefined type for a variable */
+void function func2(x:missingType) 
+begin
+	begin
+		var temp1 : int :=0;
+		temp1 := 0;
+	end;
+end;
+
+/* TODO: Using undefined type for a return */
+missingType function func3() 
+begin
+	begin
+		var temp1 : int :=0;
+		return 0;
+	end;
+end;
+
+/* TODO: Redefining a type */
+void function func4() 
+begin
+	begin
+		type Int = int;
+		var temp1 : int :=0;
+		temp1 := 0;
+	end;
+end;
+
+/* TODO: Redefining a type */
+void function func5() 
+begin
+	begin
+		type Int2 = int;
+		var temp2 : int :=0;
+		begin
+			type Int2 = int;
+			var temp2 : int :=0;
+			temp2 := 0;
+		end;
+	end;
+end;
+
+/* TODO: Redefining a type */
+void function func6() 
+begin
+	begin
+		type Int2 = int;
+		var temp2 : int :=0;
+		begin
+			begin
+				type Int2 = int;
+				var temp2 : int :=0;
+				temp2 := 0;
+			end;
+		end;
+	end;
+end;
+
+/* TODO: Redefining a type */
+void function func7() 
+begin
+	begin
+		var temp2 : int :=0;
+		begin
+			begin
+				type Int = int;
+				var temp2 : int :=0;
+				temp2 := 0;
+			end;
+		end;
+	end;
+end;
+
+/* TODO: Redefining a type */
+void function func7() 
+begin
+	begin
+		var temp2 : int :=0;
+		begin
+			begin
+				type ArrayInt = array [100] of int;
+				var temp2 : int :=0;
+				temp2 := 0;
+			end;
+		end;
+	end;
+end;
+
+/* TODO: Redefining a type */
+void function func8() 
+begin
+	begin
+		var temp2 : int :=0;
+		begin
+			begin
+				type ArrayInt = int;
+				var temp2 : int :=0;
+				temp2 := 0;
+			end;
+		end;
+	end;
+end;
+
+
+
+/* TODO:  mixed literals assigned to int is legal? */
+void function func18() 
+begin
+	begin
+		var temp : int :=0;
+		temp := (5 * 7) / 5.0;
+	end;
+end;
+
+/* TODO:  mixed literals assigned to int is legal? */
+void function func19() 
+begin
+	begin
+		var temp : int :=0;
+		temp := (5 * 7.0) / 5;
+	end;
+end;
+
+/* TODO:  fixedpt literal assigned to int is legal? */
+void function func20() 
+begin
+	begin
+		var temp : int :=0;
+		temp := 5.8;
+	end;
+end;
+
+/* TODO:  fixedpt literal assigned to int is legal? */
+void function func21() 
+begin
+	begin
+		var temp : int :=0;
+		temp := 5.8;
+	end;
+end;
+
+/* TODO:  fixedpt var assigned to int var is legal? */
+void function func22() 
+begin
+	begin
+		var temp : int :=0;
+		var temp2 : fixedpt :=0;
+		temp := temp2;
+	end;
+end;
+
+/* TODO:  fixedpt assigned to int var is legal? */
+void function func14() 
+begin
+	begin
+		var temp, temp3 : int :=0;
+		var temp2 : fixedpt :=0;
+		temp := temp * temp3 / temp2;
+	end;
+end;
+
+
+/* TODO:  fixedpt assigned to int var is legal? */
+void function func15() 
+begin
+	begin
+		var temp, temp3 : int :=0;
+		var temp2 : fixedpt :=0;
+		temp := temp * 9.0 / temp3;
+	end;
+end;
+
+/* TODO:  fixedpt assigned to int var is legal? */
+void function func16() 
+begin
+	begin
+		var temp, temp3 : int :=0;
+		var temp2 : fixedpt :=0;
+		temp := temp * 9.0 + temp3;
+	end;
+end;
+
+/* TODO:  fixedpt assigned to int var is legal? */
+void function func17() 
+begin
+	begin
+		var temp, temp3 : int :=0;
+		var temp2 : fixedpt :=0;
+		temp := temp * 9.0 + temp2;
+	end;
+end;
+
+
+
+void function func20() 
+begin
+	begin
+		var temp, temp3 : int :=0;
+		var temp2 : fixedpt :=0;
+		temp2 := 0 + 9.0 / temp;
+	end;
+end;
+
+
+
+
+
+
+
 void function func5()
 begin
 	begin
@@ -7,6 +286,9 @@ begin
 		enddo;
 	end;
 end;
+
+
+
 
 void main()
 begin

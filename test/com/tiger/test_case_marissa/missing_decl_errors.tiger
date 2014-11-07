@@ -1,13 +1,4 @@
 
-/* TODO: Using undefined type */
-void function func1() 
-begin
-	begin
-		var temp1 : missingType :=0;
-		temp1 := 0;
-	end;
-end;
-
 /* Using undefined variable */ /*
 void function func2() 
 begin
@@ -15,7 +6,7 @@ begin
 		var temp2 : int :=0;
 		missingVar := 0;
 	end;
-end;*/
+end; */
 
 /* Calling undefined function */ /*
 void function func3() 
@@ -24,7 +15,24 @@ begin
 		var temp3 : int :=0;
 		missingFunc();
 	end;
-end;*/
+end; */
+
+/* Using undefined variable */ /*
+void function func3() 
+begin
+	begin
+		var temp1 : int :=0;
+		begin
+			begin
+				var temp2 : int :=0;
+				temp2 := 6;
+			end;
+			begin
+				temp2 := 6;			
+			end;
+		end;
+	end;
+end; */
 
 void main()
 begin

@@ -1,33 +1,30 @@
 
-
-/* WHAT ARE STRINGS IN TIGER??????????? */
-
-/* TODO allow library functions to compile */ /*
-void function func1()
-begin
-	begin
-		var x : fixedpt :=0;
-		flush();
-	end;
-end; */
-
-/* TODO (Error message does not contain line number) do not allow functions from the standard library to be redefined with same types */ /*
+/* TODO: Do not allow functions from the standard library to be redefined with same types */ 
 int function not(i:int)
 begin
 	begin
 		var x: int :=0;
-		x :=0;
+		return 0;
 	end;
-end; */
+end; 
 
-/* TODO (Error message does not contain line number) do not allow functions from the standard library to be redefined with different parameters */ /*
-void function print()
+/* TODO: do not allow functions from the standard library that are implemented to be redefined with different parameters or return type */ 
+fixedpt function printi()
 begin
 	begin
 		var x: int :=0;
-		x :=0;
+		return 5.0;
 	end;
-end; */
+end; 
+
+/* TODO: do not allow functions from the standard library that are not implemented to be redefined with different parameters or return type */ 
+fixedpt function print()
+begin
+	begin
+		var x: int :=0;
+		return 5.0;
+	end;
+end; 
 
 /* TODO (claims function is undefined) do not call library functions with bad parameters */ /*
 void function func2()
@@ -46,6 +43,8 @@ begin
 		x := flush();
 	end;
 end */
+
+
 
 void main()
 begin

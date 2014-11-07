@@ -49,7 +49,7 @@ begin
 	end;
 end; */
 
-/* array indexes should not be function calls */ /*
+/*  TODO: (Wrong error message) array indexes should not be function calls */ /*
 void function func6()
 begin
 	begin
@@ -57,9 +57,19 @@ begin
 		var i : int := 0;
 		i := X[testFunc()];
 	end;
-end;*/
+end; */
 
-/* TODO: arrays should not be used without an index. Not type compatible*/ 
+/*  TODO: (Wrong error message) array indexes should not be function calls */ /*
+void function func6()
+begin
+	begin
+		var X : ArrayInt := 10;
+		var i : int := 0;
+		X[testFunc()] = i;
+	end;
+end; */
+
+/* TODO: arrays should not be used without an index. Not type compatible */ 
 void function func7()
 begin
 	begin
@@ -69,7 +79,7 @@ begin
 	end;
 end;
 
-/* TODO!!!!!!!!!!!! arrays should not be used without an index. Wrong error message */ /*
+/* TODO: (Wrong error message) arrays should not be used without an index  */ /*
 void function func8()
 begin
 	begin
@@ -99,6 +109,24 @@ begin
 		var y : ArrayInt := 0;
 		var i : fixedpt := 3.5;
 		x[0] := y[i];
+	end;
+end; */
+
+/* TODO: (Wrong error message) Using an array as an index in another array should produce an error */ /* 
+void function func11()
+begin
+	begin
+		var X : ArrayInt := 10;
+		i := X[X];
+	end;
+end; */
+
+/* TODO: (Wrong error message) Using a value from an array as an index in another array should produce an error */ /* 
+void function func11()
+begin
+	begin
+		var X : ArrayInt := 10;
+		i := X[X[1]];
 	end;
 end; */
 
