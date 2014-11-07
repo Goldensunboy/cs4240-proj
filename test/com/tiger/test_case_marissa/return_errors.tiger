@@ -131,14 +131,14 @@ begin
 	end;
 end; */
 
-/* can't return a function */ /*
+/* TODO can't return a function */ 
 void function func11()
 begin
 	begin
 		var n : int := 5;
 		return testFunc(0);
 	end;
-end; */
+end; 
 
 void main()
 begin

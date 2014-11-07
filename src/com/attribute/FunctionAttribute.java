@@ -59,7 +59,7 @@ public class FunctionAttribute implements Attribute{
 	@Override
 	public Type getType() {
 		// TODO Auto-generated method stub
-		return null;
+		return returnType;
 	}
 	
 }

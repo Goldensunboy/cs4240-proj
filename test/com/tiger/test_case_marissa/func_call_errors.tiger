@@ -80,50 +80,50 @@ begin
 	end;
 end; */
 
-/* TODO: (Does not give a proper error message) Cannot call a function with missing parameters. */ /*
+/* TODO: (Does not give a proper error message) Cannot call a function with missing parameters. */ 
 void function func3ab()
 begin
 	begin
 		var x : fixedpt :=0;
 		testFunc4(x);
 	end;
-end; */
+end; 
 
-/* TODO: (Does not give a proper error message) Cannot call a function with missing parameters. */ /*
+/* Cannot call a function with missing parameters. */ 
 void function func4()
 begin
 	begin
 		var x : fixedpt :=0;
 		testFunc4();
 	end;
-end; */
+end; 
 
-/* TODO: (Does not give a proper error message) Cannot call a function with additional parameters. */ /*
+/* TODO: (Does not give a proper error message) Cannot call a function with additional parameters. */ 
 void function func5()
 begin
 	begin
 		var x : fixedpt :=0;
 		testFunc4(x,5,6);
 	end;
-end; */
+end; 
 
-/* TODO: (Does not give a proper error message) Cannot call a function with additional parameters that are variables. */ /*
+/* TODO: (Does not give a proper error message) Cannot call a function with additional parameters that are variables. */ 
 void function func6()
 begin
 	begin
 		var x : fixedpt :=0;
 		testFunc3(x);
 	end;
-end; */
+end; 
 
-/* TODO: (Does not give a proper error message) Cannot call a function with additional parameters that are literals. */ /*
+/* TODO: (Does not give a proper error message) Cannot call a function with additional parameters that are literals. */ 
 void function func7()
 begin
 	begin
 		var x : fixedpt :=0;
 		testFunc3(5);
 	end;
-end; */
+end; 
 
 /* TODO: (Does not give a proper error message) Cannot assign a void return value to a variable. */ /*
 void function func8()
@@ -152,25 +152,25 @@ begin
 	end;
 end; */
 
-/* TODO: Cannot assign the return value of a function to an undeclared variable. */ 
+/* TODO: Cannot assign the return value of a function to an undeclared variable. */ /*
 void function func13()
 begin
 	begin
 		var x : fixedpt :=0;
 		y := testFunc7(5);
 	end;
-end; 
+end; */
 
-/* TODO should not be able to pass an int instead of an array of ints */
+/* TODO should not be able to pass an int instead of an array of ints */ /*
 void function func14a()
 begin
 	begin
 		var Y : int := 0;
 		testFunc5(Y);
 	end;
-end; 
+end; */
 
-/* TODO should not be able to pass an int instead of an array of ints */
+/* TODO should not be able to pass an int instead of an array of ints */ /*
 void function func14b()
 begin
 	begin
@@ -178,18 +178,18 @@ begin
 		var x : int := 0;
 		x := testFunc5(Y);
 	end;
-end; 
+end; */
 
-/* TODO should not be able to pass a fixedpt instead of an array of ints */
+/* TODO should not be able to pass a fixedpt instead of an array of ints */ /*
 void function func15a()
 begin
 	begin
 		var Y : fixedpt := 0;
 		testFunc5(Y);
 	end;
-end;
+end; */
 
-/* TODO should not be able to pass a fixedpt instead of an array of ints */
+/* TODO should not be able to pass a fixedpt instead of an array of ints */ /*
 void function func15b()
 begin
 	begin
@@ -197,7 +197,7 @@ begin
 		var x : int := 0;
 		x := testFunc5(Y);
 	end;
-end;
+end; */
 
 /* Should not be able to assign a fixedpt return value to an int */ /*
 void function func16()

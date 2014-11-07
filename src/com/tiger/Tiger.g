@@ -456,29 +456,34 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
         if(params.size() != paramList.size()) {
           String expected = params.size() == 0 ? "[void]" : params.toString();
           List<String> foundList = new ArrayList<String>();
-          for(int i = params.size() - 1; i >= 0; --i) {
+          
+          int offset = Math.abs(params.size() - paramList.size());
+          for(int i = params.size() - offset - 1; i >= 0; --i) {
             foundList.add(paramList.get(i));
-          }
+            }
           String actual = paramList.size() == 0 ? "[void]" : foundList.toString();
           
           String customMessage = "Invalid invocation of function: [" + $s1.exp + "]";
           exceptionHandler.handleException(s1, customMessage, expected, actual,
             InvalidInvocationException.class);
-        }
-        for(int i = 0; i < params.size(); ++i) {
-          if("int".equals(params.get(i)) && "fixedpt".equals(paramList.get(params.size() - i - 1))) {
-            String expected = params.size() == 0 ? "[void]" : params.toString();
-            List<String> foundList = new ArrayList<String>();
-            for(int j = params.size() - 1; j >= 0; --j) {
-              foundList.add(paramList.get(j));
-            }
-            String actual = paramList.size() == 0 ? "[void]" : foundList.toString();
-
-	          String customMessage = "Invalid invocation of function: [" + $s1.exp + "]";
-	          exceptionHandler.handleException(s1, customMessage, expected, actual,
-	            InvalidInvocationException.class);
-          }
-        }
+        } else {
+	        for(int i = 0; i < params.size(); ++i) {
+	          if("int".equals(params.get(i)) && "fixedpt".equals(paramList.get(params.size() - i - 1))) {
+	            String expected = params.size() == 0 ? "[void]" : params.toString();
+	            List<String> foundList = new ArrayList<String>();
+	            System.out.println(paramList + " paramList");
+	            for(int j = params.size() - 1; j >= 0; --j) {
+	              foundList.add(paramList.get(j));
+//	              foundList.add(paramList.get(j));
+	            }
+	            String actual = paramList.size() == 0 ? "[void]" : foundList.toString();
+	
+		          String customMessage = "Invalid invocation of function: [" + $s1.exp + "]";
+		          exceptionHandler.handleException(s1, customMessage, expected, actual,
+		            InvalidInvocationException.class);
+	          }
+	        }
+	      }
 		  }
 		)
 		| KEY_IF 
@@ -1030,7 +1035,9 @@ binOp4[String label] returns [String exp, Type type, boolean myIsBool, boolean m
       if(params.size() != paramList.size()) {
         String expected = params.size() == 0 ? "[void]" : params.toString();
         List<String> foundList = new ArrayList<String>();
-        for(int i = paramList.size() - 1; i >= 0; --i) {
+        
+        int offset = Math.abs(params.size() - paramList.size());
+        for(int i = paramList.size() - offset - 1; i >= 0; --i) {
           foundList.add(paramList.get(i));
         }
         String actual = paramList.size() == 0 ? "[void]" : foundList.toString();
