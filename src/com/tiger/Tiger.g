@@ -354,12 +354,9 @@ scope
 :
 	KEY_VAR idList[IdType.VAR_NAME, true] OP_COLON myTypeId=typeId optionalInit OP_SCOLON
 	{
-//	  if(!symbolTableManager.isValidType($myTypeId.text)) {
-//	    String customMessage = "Type \"" + $myTypeId.text + "\" has never been defined"; 
-//	    exceptionHandler.handleException(myTypeId, customMessage, null, null, InvalidTypeException.class);
-//	  }
 	  putVariableAttributeMap($varDeclaration::aggregatedMyIdList,
-	                          $myTypeId.type, $functionName);
+	                              $myTypeId.type,
+	                              $functionName);
 	}
 ;
 
