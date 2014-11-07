@@ -632,16 +632,16 @@ expr[String startLabel, String endLabel] returns [String exp, Type type, boolean
         String customMessage = "Cannot perform operations on a function lvalue";
         exceptionHandler.handleException(s1, customMessage, null, null, InvalidInvocationException.class);
       }
-      // Convert default branch to end for OR
+      // Convert default branch to start for OR
       if(s2 == null) {
         String[] parts = IRList.pop().split(", ");
         switch(parts[0].hashCode()) {
-          case 3032381 : parts[0] = "brleq"; break;
-          case 3032536 : parts[0] = "brgeq"; break;
-          case 94003459: parts[0] = "brlt" ; break;
-          case 94008264: parts[0] = "brgt" ; break;
-          case 3032316 : parts[0] = "brneq"; break;
-          case 94010186: parts[0] = "breq" ; break;
+          case 0x02E44FC: parts[0] = "brneq"; break;
+          case 0x02E453D: parts[0] = "brleq"; break;
+          case 0x02E45D8: parts[0] = "brgeq"; break;
+          case 0x59A6103: parts[0] = "brlt" ; break;
+          case 0x59A73C8: parts[0] = "brgt" ; break;
+          case 0x59A7B4A: parts[0] = "breq" ; break;
           default: exceptionHandler.handleException(s1, "Internal error in popping branch for OR operation",
                      null, null, ShouldNotHappenException.class);
         }
