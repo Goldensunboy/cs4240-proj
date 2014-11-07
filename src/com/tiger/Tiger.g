@@ -76,9 +76,11 @@ import com.exception.NameSpaceConflictException;
   public static final String TYPE_NAMESPACE = "typeNameSpcae";
   public static final String FUNCTION_NAMESPACE = "functionNameSpcae";
   
-  private void putVariableAttributeMap(List<String> variableNameList, Type type, String declaringFunctionName) {
+  private void putVariableAttributeMap(List<String> variableNameList, Type type,
+      String declaringFunctionName) {
     for (String variableName : variableNameList) {
-        VariableAttribute variableAttribute = new VariableAttribute(variableName, type, declaringFunctionName);
+        VariableAttribute variableAttribute = new VariableAttribute(variableName,
+          type, declaringFunctionName);
         attributeMap.put(variableName, variableAttribute);
     }
   }
@@ -88,8 +90,10 @@ import com.exception.NameSpaceConflictException;
     attributeMap.put(functionName, functionAttribute);
   }
 
-  public void putTypeAttributeMap(int lineNumber /*TODO Testing, delete me*/,String aliasName, Type type, Type typeOfArray, boolean isTwoDimensionalArray, int dim1, int dim2) {
-    TypeAttribute typeAttribute = new TypeAttribute(aliasName, type, typeOfArray, isTwoDimensionalArray, dim1, dim2);
+  public void putTypeAttributeMap(int lineNumber ,String aliasName, Type type,
+      Type typeOfArray, boolean isTwoDimensionalArray, int dim1, int dim2) {
+    TypeAttribute typeAttribute = new TypeAttribute(aliasName, type, typeOfArray,
+      isTwoDimensionalArray, dim1, dim2);
     System.out.println("Line: " + lineNumber + " :: " + typeAttribute);
     attributeMap.put(aliasName, typeAttribute); 
   }
@@ -97,7 +101,8 @@ import com.exception.NameSpaceConflictException;
   public void printAttributeMap() {
     for (Entry<String, List<Symbol>> attr : symbolTableManager.getSymbolTable().entrySet()){
       for (Symbol symbol : attr.getValue() ) {
-        System.out.println(symbol + " :: Have access to: " + showAllReachableAttributes(symbol.getScope())); // TODO debug, delete me
+        System.out.println(symbol + " :: Have access to: " +
+          showAllReachableAttributes(symbol.getScope()));
       }
     }
   }
@@ -113,13 +118,9 @@ import com.exception.NameSpaceConflictException;
     return temp;
   }
   
-  public void printTheIRCode() {
-    System.out.println("IR code:\n**********");
+  public List<String> getIRCode() {
     Collections.reverse(IRList);
-    for(String s : IRList) {
-      System.out.println(s);
-    }
-    System.out.println("**********");
+    return IRList;
   }
 
   private boolean errorFlag = false;
@@ -282,17 +283,11 @@ paramListTail :
 ;
 
 blockList[String functionName] :
-	block[functionName]+ // block-list and block-tail are combined
+	block[functionName, ""]+ // block-list and block-tail are combined
 ;
 
-block[String functionName] :
-{
-  String endLabel = lf.nextLabel("BLOCK_END");
-}
-	key_begin declarationSegment[functionName] statSeq[functionName, endLabel] key_end OP_SCOLON
-{
-  IRList.addFirst(endLabel + ":");
-}
+block[String functionName, String endLoop] :
+	key_begin declarationSegment[functionName] statSeq[functionName, endLoop] key_end OP_SCOLON
 ;
 
 typeDeclarationList :
@@ -306,7 +301,8 @@ varDeclarationList[String functionName] :
 typeDeclaration :
 	KEY_TYPE myId=id[IdType.TYPE_NAME, true] OP_EQUAL myType=type OP_SCOLON
 	{
-	  putTypeAttributeMap($myId.start.getLine(), $myId.text, $myType.type, $myType.typeOfArray, $myType.isTwoDimensionalArray, $myType.dim1, $myType.dim2);
+	  putTypeAttributeMap($myId.start.getLine(), $myId.text, $myType.type,
+	    $myType.typeOfArray, $myType.isTwoDimensionalArray, $myType.dim1, $myType.dim2);
 	}
 ;
 
@@ -358,9 +354,12 @@ scope
 :
 	KEY_VAR idList[IdType.VAR_NAME, true] OP_COLON myTypeId=typeId optionalInit OP_SCOLON
 	{
+//	  if(!symbolTableManager.isValidType($myTypeId.text)) {
+//	    String customMessage = "Type \"" + $myTypeId.text + "\" has never been defined"; 
+//	    exceptionHandler.handleException(myTypeId, customMessage, null, null, InvalidTypeException.class);
+//	  }
 	  putVariableAttributeMap($varDeclaration::aggregatedMyIdList,
-	                              $myTypeId.type,
-	                              $functionName);
+	                          $myTypeId.type, $functionName);
 	}
 ;
 
@@ -380,11 +379,11 @@ optionalInit :
 	)?
 ;
 
-statSeq[String functionName, String endLabel] :
-	stat[functionName, endLabel]+
+statSeq[String functionName, String endLoop] :
+	stat[functionName, endLoop]+
 ;
 
-stat[String functionName, String endLabel] returns [Type statReturnType]
+stat[String functionName, String endLoop] returns [Type statReturnType]
 @init
 {
   List<String> paramList = new ArrayList<String>();
@@ -408,7 +407,7 @@ stat[String functionName, String endLabel] returns [Type statReturnType]
             String customMessage = "Assignment of fixedpt expression " + $s3.exp + " to int variable " + $s1.exp;
             exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
 		      }
-		      //Cannot assign a conditional to a variable
+		      // Cannot assign a conditional to a variable
 		      if($s3.myIsBool) {
 	          String customMessage = "Boolean values cannot be assigned to a variable.";
 	          exceptionHandler.handleException(s3, customMessage, null, null,InvalidTypeException.class);
@@ -416,6 +415,11 @@ stat[String functionName, String endLabel] returns [Type statReturnType]
 		      // Assignment statement
           IRList.addFirst("assign, " + $s1.exp + $s2.exp + ", " + $s3.exp);
 		    } else {
+		      if(att == null) {
+          // Variable not declared yet
+            String customMessage = "Assignment to undeclared variable: " + $s1.exp;
+            exceptionHandler.handleException(s1, customMessage, null, null, UndeclaredVariableException.class);
+          }
 		      // Function assignment
 		      String[] parts = $s3.exp.split("#");
 		      Type rettype = symbolTableManager.getFunctionReturnType(parts[0]);
@@ -424,7 +428,10 @@ stat[String functionName, String endLabel] returns [Type statReturnType]
 		        String customMessage = "Assignment of fixedpt function " + parts[0] + " to int variable " + $s1.exp;
             exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
 		      }
-		      IRList.addFirst("callr, " + $s1.exp + ", FUNC_" + parts[0] + ", " + parts[1]);
+		      IRList.addFirst("callr, " + $s1.exp + ", FUNC_" + parts[0] +
+		        // Be careful not to reference parts[1] which is out
+		        // of bounds for parameterless functions
+		        (parts.length == 1 ? "" : ", " + parts[1]));
 		    }
 		  }
 		  | OP_LPAREN s4=funcExprList[paramList] OP_RPAREN
@@ -455,7 +462,8 @@ stat[String functionName, String endLabel] returns [Type statReturnType]
           String actual = paramList.size() == 0 ? "[void]" : foundList.toString();
           
           String customMessage = "Invalid invocation of function: [" + $s1.exp + "]";
-          exceptionHandler.handleException(s1, customMessage, expected, actual, InvalidInvocationException.class);
+          exceptionHandler.handleException(s1, customMessage, expected, actual,
+            InvalidInvocationException.class);
         }
         for(int i = 0; i < params.size(); ++i) {
           if("int".equals(params.get(i)) && "fixedpt".equals(paramList.get(params.size() - i - 1))) {
@@ -467,7 +475,8 @@ stat[String functionName, String endLabel] returns [Type statReturnType]
             String actual = paramList.size() == 0 ? "[void]" : foundList.toString();
 
 	          String customMessage = "Invalid invocation of function: [" + $s1.exp + "]";
-	          exceptionHandler.handleException(s1, customMessage, expected, actual, InvalidInvocationException.class);
+	          exceptionHandler.handleException(s1, customMessage, expected, actual,
+	            InvalidInvocationException.class);
           }
         }
 		  }
@@ -476,31 +485,32 @@ stat[String functionName, String endLabel] returns [Type statReturnType]
 		{
 		  Type ifReturnType=Type.VOID, elseReturnType=Type.VOID;
 		  makeNewScope();
-		  String elseLabel = lf.nextLabel("ELSE");
-		  String endLabel2 = lf.nextLabel("BLOCK_END");
+		  String elseLabel = lf.nextLabel("ELSE_BEGIN");
 		}
 		myIfCond=expr[elseLabel]
 		  {
 		    if(!$myIfCond.myIsBool) {
 			    String customMessage = "If statement conditions must resolve to a boolean value";
-	        exceptionHandler.handleException(myReturnValue, customMessage, null, 
+	        exceptionHandler.handleException(myIfCond, customMessage, null, 
                                           null,InvalidTypeException.class);
 		    }
 		  }
-      KEY_THEN statSeq[functionName, endLabel2]
+      KEY_THEN statSeq[functionName, endLoop]
       {
         ifReturnType = symbolTableManager.getCurrentScopeReturnType();
+        String elseLabel2 = lf.nextLabel("ELSE_END");
+        IRList.addFirst("goto, " + elseLabel2);
         IRList.addFirst(elseLabel + ":");
       }
     (
       {
         goToEnclosingScope();
       }
-      KEY_ELSE
+      s5=KEY_ELSE
       {
         makeNewScope();
       }
-      statSeq[functionName, endLabel2]
+      statSeq[functionName, endLoop]
       {
         elseReturnType = symbolTableManager.getCurrentScopeReturnType();
       }
@@ -509,46 +519,69 @@ stat[String functionName, String endLabel] returns [Type statReturnType]
     {
       goToEnclosingScope();
       symbolTableManager.setCurrentScopeReturnType(ifReturnType == elseReturnType? ifReturnType : Type.VOID);
-      IRList.addFirst(endLabel2 + ":");
+      IRList.addFirst(elseLabel2 + ":");
     }
 		|
 		{
-		  String whileTop = lf.nextLabel("WHILE");
-		  String endLabel2 = lf.nextLabel("BLOCK_END");
+		  String whileTop = lf.nextLabel("WHILE_START");
+		  String endSubLoopWhile = lf.nextLabel("WHILE_END");
 		  IRList.addFirst(whileTop + ":");
 		}
-		KEY_WHILE myWhileCond=expr[endLabel2]
+		KEY_WHILE myWhileCond=expr[endSubLoopWhile]
 		{
 		  if(!$myWhileCond.myIsBool) {
         String customMessage = "while conditional statements must resolve to a boolean value";
-        exceptionHandler.handleException(myWhileCond, customMessage, null, null, InvalidTypeException.class);
+        exceptionHandler.handleException(myWhileCond, customMessage, null, null,
+          InvalidTypeException.class);
 		  }
 		}
-      KEY_DO statSeq[functionName, endLabel2] KEY_ENDDO
+      KEY_DO statSeq[functionName, endSubLoopWhile] KEY_ENDDO
     {
       IRList.addFirst("goto, " + whileTop);
-      IRList.addFirst(endLabel2 + ":");
+      IRList.addFirst(endSubLoopWhile + ":");
     }
 		|
 		{
-		  String endLabel2 = lf.nextLabel("BLOCK_END");
+		  String endSubLoop = lf.nextLabel("LOOP_END");
 		}
-		KEY_FOR id[IdType.NIY, false]
-		  OP_ASSIGN indexExpr KEY_TO indexExpr
-		  KEY_DO statSeq[functionName, endLabel2] KEY_ENDDO
-		{
-		  IRList.addFirst(endLabel2 +":");
-		}
+		sym_for=key_for s6=id[IdType.NIY, false]
+		  OP_ASSIGN s7=indexExpr KEY_TO s8=indexExpr
+		  {
+		    String forTop = lf.nextLabel("FOR_START");
+		    String endSubLoopFor = ("FOR_END");
+		    // Store upper bound
+		    String upperBoundTemp = tvf.nextTemp();
+		    IRList.addFirst("assign, " + upperBoundTemp + ", " + $s8.exp);
+		    // Generate index variable
+		    ArrayList<String> varList = new ArrayList<String>();
+		    varList.add($s6.text);
+		    putVariableAttributeMap(varList,
+                                Type.INT,
+                                $functionName);
+        IRList.addFirst("assign, " + $s6.text + ", " + $s7.exp);
+        // Begin loop here
+        IRList.addFirst(forTop + ":");
+        IRList.addFirst("brgt, " + $s6.text + ", " + upperBoundTemp);
+		  }
+		  KEY_DO statSeq[functionName, endSubLoopFor] KEY_ENDDO
+		  {
+		    // Increment index variable and return to top
+		    String incTemp = tvf.nextTemp();
+		    IRList.addFirst("add, " + $s6.text + ", 1, " + incTemp);
+		    IRList.addFirst("goto, " + forTop);
+		    IRList.addFirst(endSubLoopFor + ":");
+		    goToEnclosingScope();
+		  }
 		| brk=KEY_BREAK
 		{
 		  // Cannot be in the function-level scope
-		  if(symbolTableManager.isInFunctionScope()) {
-		    String customMessage = "Cannot break out of a function";
+		  if("".equals(endLoop)) {
+		    String customMessage = "Must be within a loop's scope to use break";
 		    exceptionHandler.handleException(brk, customMessage, 
 		                                      null, null,
 		                                      ShouldNotHappenException.class);
 		  } else {
-		    IRList.addFirst("goto, " + endLabel);
+		    IRList.addFirst("goto, " + endLoop);
 		  }
 		}
 		| KEY_RETURN myReturnValue=expr[null]
@@ -567,8 +600,15 @@ stat[String functionName, String endLabel] returns [Type statReturnType]
 		}
 	)
 	OP_SCOLON
-	| block[functionName]
-; 
+	| block[functionName, endLoop]
+;
+ 
+key_for :
+  KEY_FOR
+  {
+    makeNewScope();
+  }
+;
 
 optPrefix :
 	(
@@ -593,7 +633,7 @@ expr[String label] returns [String exp, Type type, boolean myIsBool, boolean myI
       if(label != null) {
         // Branch to the label on complement of condition
         String op = IRList.pop();
-        System.out.println("Popped operation: " + op);
+        //System.out.println("Popped operation: " + op);
         String[] parts = op.split(", ");
         if("leq".equals(parts[0])) {
           IRList.addFirst("brgt, " + parts[1] + ", " + parts[2] + ", " + label);

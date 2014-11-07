@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.List;
 
 import org.antlr.runtime.RecognitionException;
 
@@ -102,7 +103,12 @@ public class TigerTest {
 			break;
 			
 		case ANDREW:
-			parser.printTheIRCode();
+			List<String> IRList = parser.getIRCode();
+			System.out.println("IR code:\n**********");
+		    for(String s : IRList) {
+		      System.out.println(s);
+		    }
+		    System.out.println("**********");
 			break;
 		}
 	}

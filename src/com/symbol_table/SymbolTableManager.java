@@ -1,5 +1,10 @@
 package com.symbol_table;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.LinkedList;
@@ -26,13 +31,13 @@ import com.exception.ShouldNotHappenException;
 public class SymbolTableManager {
 	
 	// used for global types and function names
-	private Scope globalScope = new Scope(null, -1, null);
-	private Set<String> globalTypeFunctionNameSpace = new HashSet<>();
+	private Scope globalScope;
+	private Set<String> globalTypeFunctionNameSpace;
 	private Scope currentScope;	
-	private int scopeId = 0;
+	private int scopeId;
 	
 	// the symbol table that holds all symbol names and their actual symbols in the code
-	private Map<String, List<Symbol>> symbolTable = new Hashtable<String, List<Symbol>>();
+	private Map<String, List<Symbol>> symbolTable;
 
 	/*
 	 * Sorry I couldn't think of a good name. This set keep tracks of the names that 
@@ -41,7 +46,17 @@ public class SymbolTableManager {
 	 * of any scope.
 	 *  
 	 */
-	private Set<String> expiredFunctionName = new HashSet<>();
+	private Set<String> expiredFunctionName;
+	
+	public SymbolTableManager() {
+		globalScope = new Scope(null, -1, null);
+		globalTypeFunctionNameSpace = new HashSet<>();
+		scopeId = 0;
+		symbolTable = new Hashtable<String, List<Symbol>>();
+		expiredFunctionName = new HashSet<>();
+		populateReserved();
+	}
+	
 	/**
 	 * Takes the temporary attributeMap in the TigerParser and insert all of its values
 	 * into the symbolTable
@@ -294,5 +309,42 @@ public class SymbolTableManager {
 		}
 		
 		throw new ShouldNotHappenException();
+	}
+	
+	public boolean isValidType() {
+		return false;
+	}
+	
+	private void populateReserved() {
+		populateReservedTypes();
+	}
+	
+	private void populateReservedTypes() {
+		String path = "reserved/types";
+		Map<String, Attribute> attributeMap = new Hashtable<>();
+		for(String typeName : readReservedFile(path)) {			
+			Attribute typeAttribute = new TypeAttribute(typeName, Type.getType(typeName), null, false, -1, -1);
+			attributeMap.put(typeName, typeAttribute);
+			expiredFunctionName.add(typeName);
+			globalTypeFunctionNameSpace.add(typeName);
+		}
+		symbolTable.putAll(globalScope.putInScope(attributeMap));
+	}
+	
+	private List<String> readReservedFile(String path) {
+		File file = new File(path);
+		List<String> reservedValues = new ArrayList<String>();
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(file));
+			String line;
+			while ((line = br.readLine()) != null) {
+			   reservedValues.add(line);
+			}
+			br.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return reservedValues;
 	}
 }

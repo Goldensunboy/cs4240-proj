@@ -10,6 +10,6 @@ public class LabelFactory {
 		}
 		int i = counts.get(postfix);
 		counts.put(postfix, i + 1);
-		return "L_" + postfix + "_" + i;
+		return "LABEL_" + postfix + "_" + i;
 	}
 }
