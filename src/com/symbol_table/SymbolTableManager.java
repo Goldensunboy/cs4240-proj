@@ -54,7 +54,7 @@ public class SymbolTableManager {
 		scopeId = 0;
 		symbolTable = new Hashtable<String, List<Symbol>>();
 		expiredFunctionName = new HashSet<>();
-		populateReserved();
+//		populateReserved();
 	}
 	
 	/**
