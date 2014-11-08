@@ -178,7 +178,7 @@ public class Scope {
 		
 		Scope temp = this;
 		while (temp != null) {
-			boolean varNameConflict = idType == IdType.VAR_NAME ? false : temp.varNameSpace.contains(name);
+			boolean varNameConflict = idType == IdType.VARIABLE_DECLARATION ? false : temp.varNameSpace.contains(name);
 			if (varNameConflict || temp.typeNameSpace.contains(name)) {
 				return true;
 			}

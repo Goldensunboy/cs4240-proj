@@ -54,7 +54,7 @@ public class SymbolTableManager {
 		scopeId = 0;
 		symbolTable = new Hashtable<String, List<Symbol>>();
 		expiredFunctionName = new HashSet<>();
-//		populateReserved();
+		populateReserved();
 	}
 	
 	/**
@@ -281,8 +281,9 @@ public class SymbolTableManager {
 		}
 	}
 	
-	public boolean doesNameSpaceConflict(IdType idType, String name, Map<String, Set<String>> unregisteredNamespaceMap) {
+	public boolean doesNameSpaceConflict(int lineNumber, IdType idType, String name, Map<String, Set<String>> unregisteredNamespaceMap) {
 
+		int num = lineNumber;
 		Set<String> varNameSpace = unregisteredNamespaceMap.get(TigerParser.VAR_NAMESPACE);
 		Set<String> typeNameSpace = unregisteredNamespaceMap.get(TigerParser.TYPE_NAMESPACE);
 		Set<String> functionNameSpace = unregisteredNamespaceMap.get(TigerParser.FUNCTION_NAMESPACE);
@@ -300,11 +301,12 @@ public class SymbolTableManager {
 			return expiredFunctionName.contains(name);
 		}
 		
-		if(idType == IdType.VAR_NAME) {
+		if(idType == IdType.VARIABLE_DECLARATION ||
+		   idType == IdType.FUNCTION_PARAMETER) {
 			return functionNameConflict || typeNameConflict || varNameConflict;
 		}
 
-		if(idType == IdType.TYPE_NAME) {
+		if(idType == IdType.USER_DEFINED_TYPE) {
 			return functionNameConflict || varNameConflict || typeNameConflict;
 		}
 		
@@ -342,9 +344,55 @@ public class SymbolTableManager {
 			}
 			br.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return reservedValues;
 	}
+	
+	public TypeAttribute getTypeAttributeInCurrentScope(String idName, 
+			Map<String, Attribute> attributeMap) {
+		Attribute attribute = getAttributeInCurrentScope(idName, attributeMap);
+		if(attribute == null){
+			return null;			
+		}
+		
+		String aliasName = attribute.getTypeName();
+		TypeAttribute typeAttribute;
+		
+		try {
+			typeAttribute = (TypeAttribute)attributeMap.get(aliasName);
+			if(typeAttribute == null) {
+				List<Symbol> symbolList = symbolTable.get(aliasName);
+				if(symbolList == null) {
+					return null; //TODO this happens in cond checking. It should not happen
+				}
+				if(symbolList.size() > 1) {
+					throw new ShouldNotHappenException("Size of type: \"" + aliasName +
+							"\" list symbol is greater than 1. Name space is incorrect.");
+				}
+				Symbol symbol = symbolList.get(0);
+				typeAttribute = (TypeAttribute)symbol.getAttribute();
+			}
+			return typeAttribute;
+		} catch (ClassCastException e) {
+			throw new AttributeCastException();
+		}
+	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

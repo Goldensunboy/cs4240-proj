@@ -61,5 +61,11 @@ public class FunctionAttribute implements Attribute{
 		// TODO Auto-generated method stub
 		return returnType;
 	}
+
+	@Override
+	public String getTypeName() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 	
 }

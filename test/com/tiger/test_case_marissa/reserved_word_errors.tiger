@@ -1,3 +1,4 @@
+SKIP
 /* function called a reserved word should not be allowed */ /*
 void function function()
 begin

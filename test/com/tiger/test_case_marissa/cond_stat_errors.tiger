@@ -1,4 +1,4 @@
-
+SKIP
 type ArrayInt = array [100] of int;
 type ArrayFixedPt = array [100] of fixedpt;
 

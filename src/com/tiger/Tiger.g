@@ -79,7 +79,7 @@ import com.exception.NameSpaceConflictException;
   private void putVariableAttributeMap(List<String> variableNameList, Type type,
       String declaringFunctionName) {
     for (String variableName : variableNameList) {
-        VariableAttribute variableAttribute = new VariableAttribute(variableName,
+        VariableAttribute variableAttribute = new VariableAttribute(variableName, type.getName(),
           type, declaringFunctionName);
         attributeMap.put(variableName, variableAttribute);
     }
@@ -174,11 +174,12 @@ import com.exception.NameSpaceConflictException;
 }
 
 tigerProgram :
-	typeDeclarationList funcNext
+  skip["File"]
+	| typeDeclarationList funcNext
 ;
 
 funcNext:
-  myTypeId=typeId 
+  myTypeId=typeId[IdType.RETURN_TYPE]
   { if(!$myTypeId.type.isValidReturnType()) {
       String customMessage = "Invalid return type " + $myTypeId.text;
       exceptionHandler.handleException(myTypeId, customMessage, null, null, InvalidTypeException.class);
@@ -206,7 +207,7 @@ scope
   $funcDeclaration::myParams = new ArrayList<String>();
 }
 :
-  KEY_FUNCTION myFunctionName=id[IdType.FUNCTION_NAME, true]
+  KEY_FUNCTION myFunctionName=id[IdType.FUNCTION_NAME]
 {
   IRList.addFirst("FUNC_" + $id.text + ":");
 }
@@ -246,14 +247,14 @@ mainFunction [Type returnType]:
   key_begin blockList[$a.text] key_end OP_SCOLON EOF
 ;
 
-retType :
-	typeId
-	| KEY_VOID
-;
+//retType[] :
+//	typeId[IdType.RETURN_TYPE]
+//	| KEY_VOID
+//;
 
-typeId returns[Type type]:
+typeId[IdType idType] returns[Type type]:
 	baseType {$type=$baseType.type;}
-	| id[IdType.NIY, false] {$type=Type.OTHER;}
+	| id[idType] {$type=Type.OTHER;}
 ;
 
 baseType returns[Type type]:
@@ -262,7 +263,7 @@ baseType returns[Type type]:
 ;
 
 param :
-	id[IdType.NIY, false] OP_COLON typeId
+	id[IdType.FUNCTION_PARAMETER] OP_COLON typeId[IdType.VARIABLE_TYPE]
 	{
 	  $funcDeclaration::myParams.add($typeId.text);
 	}
@@ -297,7 +298,7 @@ varDeclarationList[String functionName] :
 ;
 
 typeDeclaration :
-	KEY_TYPE myId=id[IdType.TYPE_NAME, true] OP_EQUAL myType=type OP_SCOLON
+	KEY_TYPE myId=id[IdType.USER_DEFINED_TYPE] OP_EQUAL myType=type OP_SCOLON
 	{
 	  putTypeAttributeMap($myId.start.getLine(), $myId.text, $myType.type,
 	    $myType.typeOfArray, $myType.isTwoDimensionalArray, $myType.dim1, $myType.dim2);
@@ -350,7 +351,7 @@ scope
   $varDeclaration::aggregatedMyIdList = new ArrayList<String>();
 }
 :
-	KEY_VAR idList[IdType.VAR_NAME, true] OP_COLON myTypeId=typeId
+	KEY_VAR idList[IdType.VARIABLE_DECLARATION] OP_COLON myTypeId=typeId[IdType.VARIABLE_TYPE]
 	{
 	  putVariableAttributeMap($varDeclaration::aggregatedMyIdList,
 	                              $myTypeId.type,
@@ -359,10 +360,10 @@ scope
   optionalInit[$varDeclaration::aggregatedMyIdList] OP_SCOLON
 ;
 
-idList[IdType idType, boolean testNamespace] : 
-  myId=id[idType, testNamespace]
+idList[IdType idType] : 
+  myId=id[idType]
   (
-    OP_COMMA idList[idType, testNamespace]
+    OP_COMMA idList[idType]
   )?
 	{
 	  $varDeclaration::aggregatedMyIdList.add($myId.text);
@@ -397,7 +398,7 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 }
 : 
 	(
-		s1=id[IdType.NIY, false]
+		s1=id[IdType.VARIABLE_NAME] // Check this again 
 		(
 		  s2=valueTail OP_ASSIGN s3=expr[null, null]
 		  {
@@ -450,7 +451,7 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		        (parts.length == 1 ? "" : ", " + parts[1]));
 		    }
 		  }
-		  | OP_LPAREN s4=funcExprList[paramList] OP_RPAREN
+		  | OP_LPAREN s4=funcExprList[paramList, IdType.FUNCTION_ARGUMENT] OP_RPAREN
 		  {
 		    // Lone function call
 		    if("".equals($s4.exp)) {
@@ -566,7 +567,7 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		{
 		  String endSubLoop = lf.nextLabel("LOOP_END");
 		}
-		sym_for=key_for s6=id[IdType.NIY, false]
+		sym_for=key_for s6=id[IdType.NIY]
 		  OP_ASSIGN s7=indexExpr KEY_TO s8=indexExpr
 		  {
 		    String forTop = lf.nextLabel("FOR_START");
@@ -693,14 +694,14 @@ expr[String startLabel, String endLabel] returns [String exp, Type type, boolean
   }
 ;
 
-funcExpr returns [String exp, Type type, boolean myIsBool]:
-  s1=funcBinOp1
+funcExpr[IdType idType] returns [String exp, Type type, boolean myIsBool]:
+  s1=funcBinOp1[idType]
   (
     (
       s2=OP_AND
       | OP_OR
     )
-    s3=funcExpr
+    s3=funcExpr[IdType.NIY] //most likely I should pass idType
   )?
   {
     if($s3.exp == null) {
@@ -786,8 +787,8 @@ binOp1[String startLabel, String endLabel] returns [String exp, Type type, boole
   }
 ;
 
-funcBinOp1 returns [String exp, Type type, boolean myIsBool]:
-  s1=funcBinOp2
+funcBinOp1[IdType idType] returns [String exp, Type type, boolean myIsBool]:
+  s1=funcBinOp2[idType]
   (
     (
       s2=OP_LEQ
@@ -797,7 +798,7 @@ funcBinOp1 returns [String exp, Type type, boolean myIsBool]:
       | s6=OP_NEQ
       | OP_EQUAL
     )
-    s7=funcBinOp1
+    s7=funcBinOp1[IdType.NIY] //most likely it's idType
   )?
   {
     if($s7.exp == null) {
@@ -880,14 +881,14 @@ binOp2[String startLabel, String endLabel] returns [String exp, Type type, boole
   }
 ;
 
-funcBinOp2 returns [String exp, Type type, boolean myIsBool]:
-  s1=funcBinOp3
+funcBinOp2[IdType idType] returns [String exp, Type type, boolean myIsBool]:
+  s1=funcBinOp3[idType]
   (
     (
       s2=OP_PLUS
       | OP_MINUS
     )
-    s3=funcBinOp2
+    s3=funcBinOp2[IdType.NIY] //most likely it's idType
   )?
   {
     if($s3.exp == null) {
@@ -967,14 +968,14 @@ binOp3[String startLabel, String endLabel] returns [String exp, Type type, boole
   }
 ;
 
-funcBinOp3 returns [String exp, Type type, boolean myIsBool]:
-  s1=funcBinOp4
+funcBinOp3[IdType idType] returns [String exp, Type type, boolean myIsBool]:
+  s1=funcBinOp4[idType]
   (
     (
       s2=OP_DIV
       | OP_MULT
     )
-    s3=funcBinOp3
+    s3=funcBinOp3[IdType.NIY] //most likely it's idType
   )?
   {
     if($s3.exp == null) {
@@ -1018,7 +1019,7 @@ binOp4[String startLabel, String endLabel] returns [String exp, Type type, boole
 :
   s1=constant                             {$exp = $s1.exp; $type = $s1.type;}
   | OP_LPAREN s2=expr[startLabel, endLabel] OP_RPAREN {$exp = $s2.exp; $type = $s2.type; $myIsBool = $s2.myIsBool;}
-  | s3=id[IdType.NIY, false]
+  | s3=id[IdType.VARIABLE_NAME]
   (
     s4=valueTail
     {
@@ -1036,7 +1037,7 @@ binOp4[String startLabel, String endLabel] returns [String exp, Type type, boole
         $exp = arrTempVar;
       }
     }
-    | OP_LPAREN s5=funcExprList[paramList] OP_RPAREN {$exp = $s3.exp + "#" + $s5.exp; $type = $s3.type; $myIsFunc = true;}
+    | OP_LPAREN s5=funcExprList[paramList, IdType.NIY] OP_RPAREN {$exp = $s3.exp + "#" + $s5.exp; $type = $s3.type; $myIsFunc = true;}
   )
   {
     Attribute att = symbolTableManager.getAttributeInCurrentScope($s3.exp, attributeMap);
@@ -1082,10 +1083,10 @@ binOp4[String startLabel, String endLabel] returns [String exp, Type type, boole
   }
 ;
 
-funcBinOp4 returns [String exp, Type type, boolean myIsBool]:
+funcBinOp4[IdType idType] returns [String exp, Type type, boolean myIsBool]:
   s1=constant                      {$exp = $s1.exp; $type = $s1.type; $myIsBool = false;}
-  | OP_LPAREN s2=funcExpr OP_RPAREN    {$exp = $s2.exp; $type = $s2.type; $myIsBool = $s2.myIsBool;}
-  | s3=id[IdType.NIY, false] s4=valueTail {$exp = $s3.exp + $s4.exp; $type = $s3.type; $myIsBool = false;}
+  | OP_LPAREN s2=funcExpr[IdType.NIY]/*most likely it's idType*/ OP_RPAREN    {$exp = $s2.exp; $type = $s2.type; $myIsBool = $s2.myIsBool;}
+  | s3=id[idType] s4=valueTail {$exp = $s3.exp + $s4.exp; $type = $s3.type; $myIsBool = false;}
   {
     Attribute att = symbolTableManager.getAttributeInCurrentScope($s3.exp, attributeMap);
     if(att == null) {
@@ -1102,7 +1103,7 @@ constant returns [String exp, Type type]:
 ;
 
 value returns [String exp, Type type]:
-	s1=id[IdType.NIY, false] s2=valueTail
+	s1=id[IdType.NIY] s2=valueTail
 	{
 	  $exp = $s1.exp + "#" + $s2.exp;
 	  $type = $id.type;
@@ -1169,7 +1170,7 @@ indexExpr2 returns [String exp]:
 
 indexExpr3 returns [String exp]:
   INTLIT {$exp = $INTLIT.text;}
-  | myId=id[IdType.NIY, false]
+  | myId=id[IdType.NIY]
   {
     $exp = $id.exp;
     Attribute att = symbolTableManager.getAttributeInCurrentScope($id.exp, attributeMap);
@@ -1206,9 +1207,9 @@ exprList[List<String> paramList] returns [String exp]:
   }
 ;
 
-funcExprList[List<String> paramList] returns [String exp]:
+funcExprList[List<String> paramList, IdType functionArgument] returns [String exp]:
   (
-    s1=funcExpr s2=funcExprListTail[paramList]
+    s1=funcExpr[IdType.NIY] s2=funcExprListTail[paramList]
   )?
   {
     if($s1.exp == null) {
@@ -1241,7 +1242,7 @@ exprListTail[List<String> paramList] returns [String exp]:
 
 funcExprListTail[List<String> paramList] returns [String exp]:
   (
-    OP_COMMA s1=funcExpr s2=funcExprListTail[paramList]
+    OP_COMMA s1=funcExpr[IdType.NIY] s2=funcExprListTail[paramList]
   )?
   {
     if($s1.exp == null) {
@@ -1322,13 +1323,31 @@ FIXEDPTLIT :
 	INTLIT OP_PERIOD DIGIT (DIGIT? DIGIT)?
 ;
 
-id[IdType idType, boolean testNamespace] returns [String exp, Type type]:
+skip[String testCaseName]
+:
+  SKIP
+  {System.out.println(testCaseName + " skipped");}  
+;
+SKIP:
+  'SKIP'
+;
+id_replacement [IdType idType] returns [String exp, Type type]
+:
+  myId=id[idType]
+  {
+    $exp = $myId.exp;
+    $type = $myId.type;
+  } 
+;
+
+id[IdType idType] returns [String exp, Type type]:
   myId=ID
   {
-    
-    if (testNamespace) {
+    boolean isAlreadyDeclared = idType.isAlreadyDeclared();
+    //If not declared, check to see it would be valid in namespace or not 
+    if (!isAlreadyDeclared) {
 	    Map<String, Set<String>> unregisteredNameSpaceMap = getUnregisteredNamespacesMap();
-	    if(symbolTableManager.doesNameSpaceConflict(idType, $myId.text, unregisteredNameSpaceMap)) {
+	    if(symbolTableManager.doesNameSpaceConflict(myId.getLine(), idType, $myId.text, unregisteredNameSpaceMap)) {
 	      String customMessage = idType.getName() + " \"" + $myId.text + "\" is already in the namespace"; 
 	      exceptionHandler.handleException($myId, customMessage, null, null, NameSpaceConflictException.class);
 	    }
@@ -1336,20 +1355,20 @@ id[IdType idType, boolean testNamespace] returns [String exp, Type type]:
 	    if(idType == IdType.FUNCTION_NAME) {
 	      functionNamespace.add($myId.text);
 	    }
-	    if(idType == IdType.VAR_NAME) {
+	    else if(idType == IdType.VARIABLE_DECLARATION ||
+	            idType == IdType.FUNCTION_PARAMETER) {
 	      varNamespace.add($myId.text);
 	    }
-	    if(idType == IdType.TYPE_NAME) {
+	    else if(idType == IdType.USER_DEFINED_TYPE) {
 		    typeNamespace.add($myId.text);
 	    }
     }
     
     $exp = $ID.text;
-    Attribute att = symbolTableManager.getAttributeInCurrentScope($ID.text, attributeMap);
+    TypeAttribute att = symbolTableManager.getTypeAttributeInCurrentScope($myId.text, attributeMap);
+    
     if(att != null) {
-      $type = Type.INT.equals(att.getType())   ? Type.INT   :
-              Type.FIXPT.equals(att.getType()) ? Type.FIXPT :
-                                              Type.OTHER ;
+      $type = att.getType();
     } else {
       $type = Type.OTHER;
     }
@@ -1373,6 +1392,10 @@ ALPHANUM :
 
 COMMENT :
   '/*' ( options {greedy=false;} : . )* '*/' {$channel=HIDDEN;}
+;
+
+COMMENT2 :
+  'SKIP_S' ( options {greedy=false;} : . )* 'SKIP_E' {$channel=HIDDEN;}
 ;
 
 WS :

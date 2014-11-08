@@ -71,4 +71,9 @@ public class TypeAttribute implements Attribute{
 		
 		return retVal;
 	}
+
+	@Override
+	public String getTypeName() {
+		return aliasName;
+	}
 }

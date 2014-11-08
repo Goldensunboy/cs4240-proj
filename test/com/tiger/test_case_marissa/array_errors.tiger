@@ -1,12 +1,12 @@
 /* This file should compile */
 
+SKIP_S
 type Int = int;
 type ArrayInt = array [100] of int;
 type Array2DInt = array [100][100] of int;
 type FixedPt = fixedpt;
 type ArrayFixedPt = array [100] of fixedpt;
 type Array2DFixedPt = array [100][100] of fixedpt;
-
 int function testFunc(x:int) 
 begin
 	begin
@@ -14,6 +14,7 @@ begin
 		return b;
 	end;
 end;
+SKIP_E
 
 int function testFunc2(x:ArrayInt) 
 begin
@@ -23,6 +24,7 @@ begin
 	end;
 end;
 
+SKIP_S
 /* TODO: Should not be able to assign aggregate values more than once */
 void function funcName2() 
 begin
@@ -61,7 +63,7 @@ begin
 		x := y;
 	end;
 end; */
-
+SKIP_E
 
 /* TODO: Should not be able to pass an int instead of an int array */
 void function funcName6() 
@@ -72,6 +74,7 @@ begin
 	end;
 end;
 
+SKIP_S
 /* TODO: Should not be able to pass an int array instead of an int */ /*
 void function funcName7() 
 begin
@@ -80,6 +83,8 @@ begin
 		testFunc(x);
 	end;
 end; */
+
+SKIP_E
 
 void main()
 begin

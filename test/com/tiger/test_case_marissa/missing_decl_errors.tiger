@@ -1,4 +1,4 @@
-
+SKIP
 /* Using undefined variable */ /*
 void function func2() 
 begin

@@ -6,12 +6,14 @@ public class VariableAttribute implements Attribute{
 	
 	private String variableName;
 	private Type type;
-	private String declaringProcedure; 
+	private String declaringProcedure;
+	private String typeName;
 	
-	public VariableAttribute(String variableName, Type type, String declaringFunctionName){
+	public VariableAttribute(String variableName, String typeName, Type type /*soon this will be deprecated*/, String declaringFunctionName){
 		this.variableName = variableName;
 		this.type = type;
 		this.declaringProcedure = declaringFunctionName;
+		this.typeName = typeName;
 	}
 	
 	public String getVariableName() {
@@ -42,5 +44,10 @@ public class VariableAttribute implements Attribute{
 		buffer.append(", Declaring Procedure: ");
 		buffer.append(declaringProcedure);
 		return buffer.toString();
+	}
+
+	@Override
+	public String getTypeName() {
+		return typeName;
 	}
 }
