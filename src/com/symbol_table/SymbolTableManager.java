@@ -121,11 +121,11 @@ public class SymbolTableManager {
 			}
 		}
 		
-		Type returnType = currentScope.getReturnType();
+		TypeAttribute returnType = getCurrentScopeReturnType();
 		
 		currentScope = currentScope.getEnclosingScope();
 		if (currentScope != null) {			
-			currentScope.setReturnType(returnType);
+			currentScope.setReturnTypeName(returnType.getAliasName());
 		}
 		return currentScope;
 	}
@@ -217,9 +217,10 @@ public class SymbolTableManager {
 	/**
 	 * Given the function name returns the return type
 	 */
-	public Type getFunctionReturnType(String functionName) {
+	public TypeAttribute getFunctionReturnType(String functionName) {
 		FunctionAttribute functionNameAttribute = getFunctionAttribute(functionName);
-		return functionNameAttribute.getReturnType();
+		String returnTypeName = functionNameAttribute.getReturnTypeName();
+		return getTypeAttributeInCurrentScope(returnTypeName, new Hashtable<String, Attribute>());
 	}
 
 	/**
@@ -261,23 +262,25 @@ public class SymbolTableManager {
 	/**
 	 * return the return type of the current scope's function
 	 */
-	public Type getReturnType() {
+	public TypeAttribute getReturnType() {
 		String functionName = currentScope.getEnclosingFunctionName();
-		FunctionAttribute functionNameAttribute = getFunctionAttribute(functionName);
-		return functionNameAttribute.getReturnType();
+		return getFunctionReturnType(functionName);
 	}
 	
-	public Type getCurrentScopeReturnType() {
-		return currentScope.getReturnType();
+	public TypeAttribute getCurrentScopeReturnType() {
+		String returnTypeName = currentScope.getReturnTypeName();
+		TypeAttribute typeAttribute = getTypeAttributeInCurrentScope(returnTypeName, new Hashtable<String, Attribute>());
+		return typeAttribute;
 	}
 	
 	public boolean returnStatementSatisfied(String functionName) {
-		Type returnType = getReturnType();
-		return returnType == currentScope.getReturnType();
+		TypeAttribute returnType = getReturnType();
+		TypeAttribute currentScopeReturnTypeAttribute = getCurrentScopeReturnType();
+		return returnType.assignableBy(currentScopeReturnTypeAttribute);
 	}
 	
-	public void setCurrentScopeReturnType(Type returnType) {
-		currentScope.setReturnType(returnType);
+	public void setCurrentScopeReturnType(TypeAttribute returnType) {
+		currentScope.setReturnTypeName(returnType.getAliasName());
 	}
 	
 	public TypeAttribute getOtherType(Map<String, Attribute> attributeMap, String typeName) {

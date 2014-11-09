@@ -28,7 +28,6 @@ public class TypeAttribute implements Attribute{
 		return isArray && isTwoDimensionalArray;
 	}
 
-	@Override
 	public Type getType() {
 		return type;
 	}
@@ -87,7 +86,11 @@ public class TypeAttribute implements Attribute{
 	}
 	
 	public boolean assignableBy(TypeAttribute secondTypeAttribute) {
-		
+		// If RHS or LHS is user defined, but not both. RHS is not assignable to LHS
+		if(this.isPrimitive() == !secondTypeAttribute.isPrimitive()) {
+			return false;
+		}
+
 		// you can't assign anything to an array
 		if(isArray) {
 			return false;
@@ -108,10 +111,6 @@ public class TypeAttribute implements Attribute{
 			return true;
 		}
 		
-		// If RHS or LHS is user defined, but not both. RHS is not assignable to LHS
-		if(this.isPrimitive() == !secondTypeAttribute.isPrimitive()) {
-			return false;
-		}
 
 		throw new ShouldNotHappenException(
 				"Didn't consider an edge case for assignments");

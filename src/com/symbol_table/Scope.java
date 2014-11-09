@@ -19,13 +19,13 @@ public class Scope {
 	private Set<String> typeNameSpace;
 	private Set<String> functionNameSpace;
 	private Map<String, List<Symbol>> symbolMap = new LinkedHashMap<>();
-	private Type returnType;
+	private String returnTypeName;
 	
 	public Scope(Scope enclosingScope, int scopeId, String enclosingFunctionName){
 		this.enclosingScope = enclosingScope;
 		this.scopeId = scopeId;
 		this.enclosingFunctionName = enclosingFunctionName;
-		returnType = Type.VOID;
+		returnTypeName = Type.VOID.getName();
 		varNameSpace = new HashSet<>();
 		typeNameSpace = new HashSet<>();
 		functionNameSpace = new HashSet<>();
@@ -88,12 +88,12 @@ public class Scope {
 		this.enclosingFunctionName = enclosingFunctionName;
 	}
 
-	public Type getReturnType() {
-		return returnType;
+	public String getReturnTypeName() {
+		return returnTypeName;
 	}
 
-	public void setReturnType(Type returnType) {
-		this.returnType = returnType;
+	public void setReturnTypeName(String returnTypeName) {
+		this.returnTypeName = returnTypeName;
 	}
 	
 	public Set<String> getFunctionNameSpace() {

@@ -2,8 +2,6 @@ package com.attribute;
 
 import java.util.List;
 
-import com.compiler.Type;
-
 public class FunctionAttribute implements Attribute{
 	
 	// Enums for return type and param types
@@ -14,16 +12,14 @@ public class FunctionAttribute implements Attribute{
 	
 	// Attributes for function name
 	private String functionName;
-	private Type returnType;
+	private String returnTypeName;
 	private List<String> params;
 	private String typeName;
 	
-	public FunctionAttribute(String functionName, String typeName, 
-			Type returnType, List<String> params) {
+	public FunctionAttribute(String functionName, String returnTypeName, List<String> params) {
 		this.functionName = functionName;
-		this.returnType = returnType;
 		this.params = params;
-		this.typeName = typeName;
+		this.returnTypeName = returnTypeName;
 	}
 	
 	// Getters and setters. You know, because "encapsulation"...
@@ -32,12 +28,6 @@ public class FunctionAttribute implements Attribute{
 	}
 	public void setFunctionName(String functionName) {
 		this.functionName = functionName;
-	}
-	public Type getReturnType() {
-		return returnType;
-	}
-	public void setReturnType(Type returnType) {
-		this.returnType = returnType;
 	}
 	public List<String> getParams() {
 		return params;
@@ -51,8 +41,6 @@ public class FunctionAttribute implements Attribute{
 		StringBuffer buffer = new StringBuffer();
 		buffer.append("Function Name: ");
 		buffer.append(functionName);
-		buffer.append(", Return Type: ");
-		buffer.append(returnType);
 		buffer.append(", Parameters: ");
 		for(String parameter : params)
 			buffer.append(parameter).append(", ");
@@ -60,14 +48,16 @@ public class FunctionAttribute implements Attribute{
 	}
 
 	@Override
-	public Type getType() {
-		// TODO Auto-generated method stub
-		return returnType;
-	}
-
-	@Override
 	public String getTypeName() {
 		return typeName;
+	}
+
+	public String getReturnTypeName() {
+		return returnTypeName;
+	}
+
+	public void setReturnTypeName(String returnTypeName) {
+		this.returnTypeName = returnTypeName;
 	}
 	
 }
