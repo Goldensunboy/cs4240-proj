@@ -1,4 +1,4 @@
-SKIP_S
+
 type Int = int;
 type Int_Type = int;
 type Int_Type2 = int;
@@ -81,7 +81,7 @@ end;
 Int_Type function funcTest3(x:Int_Type) 
 begin
      begin
-          var a: Int_type := 0;
+          var a: Int_Type := 0;
           return a;
      end;
 end;
@@ -913,16 +913,6 @@ begin
 	end;
 end;
 
-
-
-
-
-
-
-
-
-
-SKIP_E
 
 
 

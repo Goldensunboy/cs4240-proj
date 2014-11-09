@@ -434,6 +434,10 @@ public class SymbolTableManager {
 			throw new AttributeCastException();
 		}
 	}
+	
+	public boolean isValidType(String typeName, Map<String, Attribute> attributeMap) {
+		return getTypeAttributeInCurrentScope(typeName, attributeMap) != null;
+	}
 }
 
 

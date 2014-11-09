@@ -25,7 +25,6 @@ import com.attribute.Attribute;
 import com.attribute.VariableAttribute;
 import com.attribute.FunctionAttribute;
 import com.attribute.TypeAttribute;
-import com.attribute.FunctionAttribute.ParamType;
 import com.symbol_table.SymbolTableManager;
 import com.symbol_table.Symbol;
 import com.symbol_table.Scope;
@@ -377,6 +376,7 @@ optionalInit[List<String> varNames] :
 	  {
 	    for(String varName : varNames) {
 	      TypeAttribute typeAttribute = symbolTableManager.getTypeAttributeInCurrentScope(varName, attributeMap);
+	      
 	      if(typeAttribute.isPrimitive()) {
 	        IRList.addFirst("assign, " + varName + ", " + $s1.exp);
 	      } else {
@@ -1312,6 +1312,11 @@ id[IdType idType] returns [String exp, TypeAttribute typeAttribute]:
 	    
 	    TypeAttribute tempTypeAttribute = new TypeAttribute();
       $typeAttribute = tempTypeAttribute;
+    } else if(idType == IdType.VARIABLE_TYPE) {
+      if(!symbolTableManager.isValidType($myId.text, attributeMap)) {
+        String customMessage = "Type " + $myId.text + " is not defined";
+        exceptionHandler.handleException(myId, customMessage, null, null, InvalidTypeException.class);
+      }
     } else {
 	    TypeAttribute attribute = symbolTableManager
 	                            .getTypeAttributeInCurrentScope($myId.text, attributeMap);

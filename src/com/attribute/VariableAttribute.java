@@ -32,6 +32,8 @@ public class VariableAttribute implements Attribute{
 		buffer.append(variableName);
 		buffer.append(", Declaring Procedure: ");
 		buffer.append(declaringProcedure);
+		buffer.append(", Type Name: ");
+		buffer.append(typeName);
 		return buffer.toString();
 	}
 

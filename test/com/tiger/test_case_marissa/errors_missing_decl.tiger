@@ -35,6 +35,34 @@ begin
 end; */
 
 
+
+/*  Using undefined type for a variable */
+void function func1() 
+begin
+	begin
+		var temp1 : missingType :=0;
+		temp1 := 0;
+	end;
+end;
+
+/*  Using undefined type for a variable */
+void function func2(x:missingType) 
+begin
+	begin
+		var temp1 : int :=0;
+		temp1 := 0;
+	end;
+end;
+
+/*  Using undefined type for a return */
+missingType function func3() 
+begin
+	begin
+		var temp1 : int :=0;
+		return 0;
+	end;
+end;
+
 SKIP_E
 void main()
 begin
