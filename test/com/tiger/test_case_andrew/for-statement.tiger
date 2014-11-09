@@ -1,0 +1,12 @@
+void main()
+begin
+	begin
+		var x : int := 0;
+		for i := 1 + 1 + 1 to 2 + 2 + 2 do
+			x := 1;
+			if i = 5 then
+				break;
+			endif;
+		enddo;
+	end;
+end;

@@ -1,0 +1,43 @@
+void function voidf()
+begin
+	begin
+		var a : int := 0;
+		a := a;
+	end;
+end;
+
+int function intf()
+begin
+	begin
+		var a : int := 0;
+		return a;
+	end;
+end;
+
+void function pf1(x : int)
+begin
+	begin
+		var a : int := 0;
+		a := x;
+	end;
+end;
+
+void function pf2(x : fixedpt)
+begin
+	begin
+		var a : fixedpt := 0;
+		a := x;
+	end;
+end;
+
+void main()
+begin
+	begin
+		var x : int := 9;
+		vf();
+		intf();
+		x := intf();
+		pf1(6);
+		pf2(7);
+	end;
+end;
