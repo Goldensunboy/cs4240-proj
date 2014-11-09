@@ -367,10 +367,10 @@ public class SymbolTableManager {
 			if(func.length > 2) {
 				String[] params = new String[func.length - 2];
 				System.arraycopy(func, 2, params, 0,  func.length - 2);
-				funcAttribute = new FunctionAttribute(func[0], Type.getType(func[1]), new ArrayList<String>(Arrays.asList(params)));
+				funcAttribute = new FunctionAttribute(func[0], func[1], new ArrayList<String>(Arrays.asList(params)));
 			}
 			else if(func.length == 2){
-				funcAttribute = new FunctionAttribute(func[0], Type.getType(func[1]), new ArrayList<String>());
+				funcAttribute = new FunctionAttribute(func[0], func[1], new ArrayList<String>());
 			}
 			else
 				continue;

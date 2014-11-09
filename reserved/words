@@ -1,0 +1,7 @@
+print
+getchar
+ord
+chr
+size
+substring
+concat
