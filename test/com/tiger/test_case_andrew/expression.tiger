@@ -1,0 +1,12 @@
+void main()
+begin
+	begin
+		var x : int := 9;
+		var y : fixedpt := 7.2;
+		x := 1 * 2 + 3;
+		x := 1 + 2 * 3;
+		x := (1 + 2) * 3;
+		x := 1 * (2 / 3);
+		y := ((x + 4) / 4 * 8.2 - x) * 14 + y * (1 - 9 / 3);
+	end;
+end;

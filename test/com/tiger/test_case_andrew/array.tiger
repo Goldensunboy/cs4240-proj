@@ -1,0 +1,11 @@
+type ArrayInt = array [100] of int;
+
+void main()
+begin
+	begin
+		var a : ArrayInt := 0;
+		var x : int := 5;
+		a[2 * 4 - 1 + 2 + 2 + 2] = x;
+		x := a[x * 8 + 3 + 5 + 5 + 5];
+	end;
+end;

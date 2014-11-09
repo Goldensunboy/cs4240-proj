@@ -1,0 +1,14 @@
+void main()
+begin
+	begin
+		var x : int := 0;
+		while 1 < 2 do
+			while 1 < 2 do
+				break;
+			enddo;
+			if 1 < 2 then
+				break;
+			endif;
+		enddo;
+	end;
+end;

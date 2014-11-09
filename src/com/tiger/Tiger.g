@@ -67,6 +67,9 @@ import com.exception.NameSpaceConflictException;
   private LabelFactory lf = new LabelFactory();
   private String enclosingFunctionName;
   private ExceptionHandler exceptionHandler = new ExceptionHandler();
+  private TypeAttribute VOID_TYPE_ATTRIBUTE = symbolTableManager.getTypeAttributeInCurrentScope(Type.VOID.getName(), attributeMap);
+  private TypeAttribute INT_TYPE_ATTRIBUTE = symbolTableManager.getTypeAttributeInCurrentScope(Type.INT.getName(), attributeMap);
+  private TypeAttribute FIXEDPT_TYPE_ATTRIBUTE = symbolTableManager.getTypeAttributeInCurrentScope(Type.FIXPT.getName(), attributeMap);
   
   private Set<String> varNamespace = new HashSet<String>();
   private Set<String> typeNamespace = new HashSet<String>();
@@ -76,17 +79,17 @@ import com.exception.NameSpaceConflictException;
   public static final String TYPE_NAMESPACE = "typeNameSpace";
   public static final String FUNCTION_NAMESPACE = "functionNameSpace";
   
-  private void putVariableAttributeMap(List<String> variableNameList, Type type,
-      String declaringFunctionName) {
+  private void putVariableAttributeMap(List<String> variableNameList, 
+      String typeName, TypeAttribute typeAttribute, String declaringFunctionName) {
     for (String variableName : variableNameList) {
-        VariableAttribute variableAttribute = new VariableAttribute(variableName,
-          type, declaringFunctionName);
+        VariableAttribute variableAttribute = new VariableAttribute(variableName, typeName, declaringFunctionName);
         attributeMap.put(variableName, variableAttribute);
     }
   }
   
-  private void putFunctionAttributeMap(String functionName, Type returnType, List<String> parameters) {
-    FunctionAttribute functionAttribute = new FunctionAttribute(functionName, returnType, parameters);
+  private void putFunctionAttributeMap(String functionName,  TypeAttribute returnTypeAttribute, List<String> parameters) {
+    String typeName = returnTypeAttribute.getAliasName();
+    FunctionAttribute functionAttribute = new FunctionAttribute(functionName, typeName, parameters);
     attributeMap.put(functionName, functionAttribute);
   }
 
@@ -174,29 +177,25 @@ import com.exception.NameSpaceConflictException;
 }
 
 tigerProgram :
-	typeDeclarationList funcNext
+  skip["File"]
+	| typeDeclarationList funcNext
 ;
 
 funcNext:
-  myTypeId=typeId 
-  { if(!$myTypeId.type.isValidReturnType()) {
-      String customMessage = "Invalid return type " + $myTypeId.text;
-      exceptionHandler.handleException(myTypeId, customMessage, null, null, InvalidTypeException.class);
-    }
-  } 
-  funcCurrent[$typeId.type]
+  myTypeId=typeId[IdType.RETURN_TYPE]
+  funcCurrent[$myTypeId.text, $typeId.typeAttribute]
   | KEY_VOID
-  (
-    funcCurrent[Type.VOID]
-    | mainFunction[Type.VOID]
+  ( 
+    funcCurrent[VOID_TYPE_ATTRIBUTE.getAliasName(), VOID_TYPE_ATTRIBUTE]
+    | mainFunction[VOID_TYPE_ATTRIBUTE]
   )
 ;
 
-funcCurrent[Type returnType] :
-	 funcDeclaration[returnType] funcNext
+funcCurrent[String typeName, TypeAttribute returnTypeAttribute] :
+	 funcDeclaration[typeName, returnTypeAttribute] funcNext
 ;
 
-funcDeclaration[Type returnType]
+funcDeclaration[String typeName, TypeAttribute returnTypeAttribute]
 scope
 {
   List<String> myParams;
@@ -206,18 +205,18 @@ scope
   $funcDeclaration::myParams = new ArrayList<String>();
 }
 :
-  KEY_FUNCTION myFunctionName=id[IdType.FUNCTION_NAME, true]
-{
-  IRList.addFirst("FUNC_" + $id.text + ":");
-}
-  OP_LPAREN paramList OP_RPAREN afterBegin[$myFunctionName.text, returnType]
+  KEY_FUNCTION myFunctionName=id[IdType.FUNCTION_NAME]
+	{
+	  IRList.addFirst("FUNC_" + $id.text + ":");
+	}
+  OP_LPAREN paramList OP_RPAREN afterBegin[$myFunctionName.text, typeName, returnTypeAttribute]
 ;
 
-afterBegin[String myFunctionName, Type returnType]
+afterBegin[String myFunctionName, String typeName, TypeAttribute returnTypeAttribute]
 @init
 {
   putFunctionAttributeMap(myFunctionName,
-                              returnType,
+                              returnTypeAttribute,
                               $funcDeclaration::myParams);
   enclosingFunctionName = myFunctionName;
 }
@@ -226,43 +225,46 @@ afterBegin[String myFunctionName, Type returnType]
   {
     if(!symbolTableManager.returnStatementSatisfied(myFunctionName)) {
       String customMessage = "Mismatch return statement for function " + myFunctionName;
-      Type expectedReturnType = symbolTableManager.getReturnType();
-      Type actualReturnType = symbolTableManager.getCurrentScopeReturnType();
-      exceptionHandler.handleException(myKey_begin, customMessage, expectedReturnType.getName(), 
-                                       actualReturnType.getName(), TypeMismatchException.class);
+      TypeAttribute expectedReturnType = symbolTableManager.getReturnType();
+      TypeAttribute actualReturnType = symbolTableManager.getCurrentScopeReturnType();
+      exceptionHandler.handleException(myKey_begin, customMessage, expectedReturnType.getAliasName(), 
+                                       actualReturnType.getAliasName(), TypeMismatchException.class);
     }
   }
   key_end OP_SCOLON
 ;
 
-mainFunction [Type returnType]:
+mainFunction [TypeAttribute returnTypeAttribute]:
   a=KEY_MAIN OP_LPAREN OP_RPAREN 
   {
 	  putFunctionAttributeMap($KEY_MAIN.text,
-	                              Type.VOID,
+	                              returnTypeAttribute,
 	                              new ArrayList<String>());
 	  enclosingFunctionName = $KEY_MAIN.text;
   }
   key_begin blockList[$a.text] key_end OP_SCOLON EOF
 ;
 
-retType :
-	typeId
-	| KEY_VOID
+typeId[IdType idType] returns[TypeAttribute typeAttribute]:
+	baseType {$typeAttribute=$baseType.typeAttribute;}
+	| id[idType] {$typeAttribute=$id.typeAttribute;}
 ;
 
-typeId returns[Type type]:
-	baseType {$type=$baseType.type;}
-	| id[IdType.NIY, false] {$type=Type.OTHER;}
-;
-
-baseType returns[Type type]:
-	KEY_INT {$type=Type.INT;}
-	| KEY_FIXEDPT {$type=Type.FIXPT;}
+baseType returns[TypeAttribute typeAttribute]:
+	KEY_INT 
+	{
+	  $typeAttribute=
+	          symbolTableManager.getTypeAttributeInCurrentScope(Type.INT.getName(), attributeMap);
+	}
+	| KEY_FIXEDPT 
+	{
+	  $typeAttribute=
+	          symbolTableManager.getTypeAttributeInCurrentScope(Type.FIXPT.getName(), attributeMap);
+	}
 ;
 
 param :
-	id[IdType.NIY, false] OP_COLON typeId
+	id[IdType.FUNCTION_PARAMETER] OP_COLON typeId[IdType.VARIABLE_TYPE]
 	{
 	  $funcDeclaration::myParams.add($typeId.text);
 	}
@@ -297,7 +299,7 @@ varDeclarationList[String functionName] :
 ;
 
 typeDeclaration :
-	KEY_TYPE myId=id[IdType.TYPE_NAME, true] OP_EQUAL myType=type OP_SCOLON
+	KEY_TYPE myId=id[IdType.USER_DEFINED_TYPE] OP_EQUAL myType=type OP_SCOLON
 	{
 	  putTypeAttributeMap($myId.start.getLine(), $myId.text, $myType.type,
 	    $myType.typeOfArray, $myType.isTwoDimensionalArray, $myType.dim1, $myType.dim2);
@@ -333,9 +335,9 @@ type returns [Type type, Type typeOfArray, boolean isTwoDimensionalArray, int di
 	myBaseType=baseType
 	{
 	  if(myIsTypeArray_var) {
-	    $typeOfArray = $myBaseType.type;
+	    $typeOfArray = $myBaseType.typeAttribute.getType();
 	  } else {
-	    $type = $myBaseType.type; 
+	    $type = $myBaseType.typeAttribute.getType(); 
 	  }
 	}
 ;
@@ -350,19 +352,19 @@ scope
   $varDeclaration::aggregatedMyIdList = new ArrayList<String>();
 }
 :
-	KEY_VAR idList[IdType.VAR_NAME, true] OP_COLON myTypeId=typeId
+	KEY_VAR idList[IdType.VARIABLE_DECLARATION] OP_COLON myTypeId=typeId[IdType.VARIABLE_TYPE]
 	{
 	  putVariableAttributeMap($varDeclaration::aggregatedMyIdList,
-	                              $myTypeId.type,
-	                              $functionName);
+	                          $myTypeId.text, $myTypeId.typeAttribute,
+	                          $functionName);
 	}
   optionalInit[$varDeclaration::aggregatedMyIdList] OP_SCOLON
 ;
 
-idList[IdType idType, boolean testNamespace] : 
-  myId=id[idType, testNamespace]
+idList[IdType idType] : 
+  myId=id[idType]
   (
-    OP_COMMA idList[idType, testNamespace]
+    OP_COMMA idList[idType]
   )?
 	{
 	  $varDeclaration::aggregatedMyIdList.add($myId.text);
@@ -374,8 +376,8 @@ optionalInit[List<String> varNames] :
 	  OP_ASSIGN s1=constant
 	  {
 	    for(String varName : varNames) {
-	      Attribute att = attributeMap.get(varName);
-	      if(att.getType() == Type.INT || att.getType() == Type.FIXPT) {
+	      TypeAttribute typeAttribute = symbolTableManager.getTypeAttributeInCurrentScope(varName, attributeMap);
+	      if(typeAttribute.isPrimitive()) {
 	        IRList.addFirst("assign, " + varName + ", " + $s1.exp);
 	      } else {
 	        // TODO 1D or 2D array? Must also get sizes
@@ -394,24 +396,27 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 @init
 {
   List<String> paramList = new ArrayList<String>();
+  
 }
 : 
 	(
-		s1=id[IdType.NIY, false]
+		s1=id[IdType.VARIABLE_NAME] 
 		(
 		  s2=valueTail OP_ASSIGN s3=expr[null, null]
 		  {
 		    // Verify that the assignment is valid
 		    Attribute att = symbolTableManager.getAttributeInCurrentScope($s1.exp, attributeMap);
-		    if(!$s3.exp.contains("#")) {
+		    TypeAttribute s1TypeAttribute = symbolTableManager.getTypeAttributeInCurrentScope($s1.text, attributeMap);
+        TypeAttribute s3TypeAttribute = $s3.typeAttribute;
+        if(!$s3.exp.contains("#")) {
 		      // Expr assignment
 		      if(att == null) {
 		        // Variable not declared yet
 		        String customMessage = "Assignment to undeclared variable: " + $s1.exp;
 		        exceptionHandler.handleException(s1, customMessage, null, null, UndeclaredVariableException.class);
-		      } else if($s1.type == Type.INT && $s3.type == Type.FIXPT) {
+		      } else if(!s1TypeAttribute.assignableBy(s3TypeAttribute)) {
 		        // Illegal assignment (fixpt to int)
-            String customMessage = "Assignment of fixedpt expression " + $s3.exp + " to int variable " + $s1.exp;
+            String customMessage = "Can't assign " + $s3.text + " to " + $s1.text;
             exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
 		      }
 		      // Cannot assign a conditional to a variable
@@ -438,8 +443,8 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
           }
 		      // Function assignment
 		      String[] parts = $s3.exp.split("#");
-		      Type rettype = symbolTableManager.getFunctionReturnType(parts[0]);
-		      if($s1.type == Type.INT && rettype == Type.FIXPT) {
+		      TypeAttribute rettype = symbolTableManager.getFunctionReturnType(parts[0]);
+		      if($s1.typeAttribute.assignableBy(rettype)) {
 		        // (fixpt to int)
 		        String customMessage = "Assignment of fixedpt function " + parts[0] + " to int variable " + $s1.exp;
             exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
@@ -503,7 +508,8 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		)
 		| KEY_IF 
 		{
-		  Type ifReturnType=Type.VOID, elseReturnType=Type.VOID;
+		  TypeAttribute ifReturnType=VOID_TYPE_ATTRIBUTE;
+		  TypeAttribute elseReturnType=VOID_TYPE_ATTRIBUTE;
 		  makeNewScope();
 		  String ifLabel = lf.nextLabel("IF_START");
 		  String elseLabel = lf.nextLabel("ELSE_BEGIN");
@@ -539,7 +545,7 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
     KEY_ENDIF
     {
       goToEnclosingScope();
-      symbolTableManager.setCurrentScopeReturnType(ifReturnType == elseReturnType? ifReturnType : Type.VOID);
+      symbolTableManager.setCurrentScopeReturnType(ifReturnType.equals(elseReturnType)? ifReturnType : VOID_TYPE_ATTRIBUTE);
       IRList.addFirst(elseLabel2 + ":");
     }
 		|
@@ -566,7 +572,7 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		{
 		  String endSubLoop = lf.nextLabel("LOOP_END");
 		}
-		sym_for=key_for s6=id[IdType.NIY, false]
+		sym_for=key_for s6=id[IdType.NIY]
 		  OP_ASSIGN s7=indexExpr KEY_TO s8=indexExpr
 		  {
 		    String forTop = lf.nextLabel("FOR_START");
@@ -577,9 +583,7 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		    // Generate index variable
 		    ArrayList<String> varList = new ArrayList<String>();
 		    varList.add($s6.text);
-		    putVariableAttributeMap(varList,
-                                Type.INT,
-                                $functionName);
+		    putVariableAttributeMap(varList, Type.INT.getName() , INT_TYPE_ATTRIBUTE, $functionName);
         IRList.addFirst("assign, " + $s6.text + ", " + $s7.exp);
         // Begin loop here
         IRList.addFirst(forTop + ":");
@@ -609,13 +613,13 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		}
 		| KEY_RETURN myReturnValue=expr[null, null]
 		{
-		  Type expectedReturnType = symbolTableManager.getReturnType();
-		  Type actualReturnType = $myReturnValue.type;
+		  TypeAttribute expectedReturnType = symbolTableManager.getReturnType();
+		  TypeAttribute actualReturnType = $myReturnValue.typeAttribute;
 		  if(actualReturnType != expectedReturnType || $myReturnValue.myIsBool) {
 		    String customMessage = "Type doesn't match the expected return type";
 		    exceptionHandler.handleException(myReturnValue, customMessage, 
-		                                      expectedReturnType.getName(), 
-		                                      ($myReturnValue.myIsBool)? "boolean":actualReturnType.getName(), 
+		                                      expectedReturnType.getAliasName(), 
+		                                      ($myReturnValue.myIsBool)? "boolean":actualReturnType.getAliasName(), 
 		                                      TypeMismatchException.class);
 		  } else {
 		    symbolTableManager.setCurrentScopeReturnType(actualReturnType);
@@ -633,13 +637,7 @@ key_for :
   }
 ;
 
-optPrefix :
-	(
-	  value OP_ASSIGN
-	)?
-;
-
-expr[String startLabel, String endLabel] returns [String exp, Type type, boolean myIsBool, boolean myIsFunc] :
+expr[String startLabel, String endLabel] returns [String exp, TypeAttribute typeAttribute, boolean myIsBool, boolean myIsFunc] :
   s1=binOp1[startLabel, endLabel]
   (
     (
@@ -677,7 +675,7 @@ expr[String startLabel, String endLabel] returns [String exp, Type type, boolean
   {
     if($s3.exp == null) {
       $exp = $s1.exp;
-      $type = $s1.type;
+      $typeAttribute = $s1.typeAttribute;
       $myIsBool = $s1.myIsBool;
     } else {
       if(!$s3.myIsBool) {
@@ -693,48 +691,16 @@ expr[String startLabel, String endLabel] returns [String exp, Type type, boolean
   }
 ;
 
-funcExpr returns [String exp, Type type, boolean myIsBool]:
-  s1=funcBinOp1
-  (
-    (
-      s2=OP_AND
-      | OP_OR
-    )
-    s3=funcExpr
-  )?
+funcExpr[IdType idType] returns [String exp, TypeAttribute typeAttribute, boolean myIsBool]:
+  s1=funcBinOp1[idType]
   {
-    if($s3.exp == null) {
-      $exp = $s1.exp;
-      $type = $s1.type;
-      $myIsBool = $s1.myIsBool;
-    } else {
-      if($s1.myIsBool == false || $s3.myIsBool == false){
-        if(s2 != null) {
-	        String customMessage = "Cannot use '&' on non-boolean values";
-	        exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
-        } else {
-          String customMessage = "Cannot use '|' on non-boolean values";
-          exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
-        }
-      }
-      $myIsBool = true;
-      String temp = tvf.nextTemp();
-      if(s2 != null) {
-        IRList.addFirst("and, " + $s1.exp + ", " + $s3.exp + ", " + temp);
-      } else {
-        IRList.addFirst("or, "  + $s1.exp + ", " + $s3.exp + ", " + temp);
-      }
-      $exp = temp;
-      if($s1.type == Type.FIXPT || $s3.type == Type.FIXPT) {
-        $type = Type.FIXPT;
-      } else {
-        $type = Type.INT;
-      }
-    }
+    $exp = $s1.exp;
+    $typeAttribute = $s1.typeAttribute;
+    $myIsBool = $s1.myIsBool;
   }
 ;
 
-binOp1[String startLabel, String endLabel] returns [String exp, Type type, boolean myIsBool, boolean myIsFunc]:
+binOp1[String startLabel, String endLabel] returns [String exp, TypeAttribute typeAttribute, boolean myIsBool, boolean myIsFunc]:
   s1=binOp2[startLabel, endLabel]
   (
     (
@@ -748,12 +714,20 @@ binOp1[String startLabel, String endLabel] returns [String exp, Type type, boole
     s7=binOp1[startLabel, endLabel]
   )?
   {
+    TypeAttribute s1TypeAttribute = $s1.typeAttribute;
+    TypeAttribute s7TypeAttribute;
     if($s7.exp == null) {
       $exp = $s1.exp;
-      $type = $s1.type;
+      $typeAttribute = s1TypeAttribute;
       $myIsBool = $s1.myIsBool;
       $myIsFunc = $s1.myIsFunc;
     } else {
+      s7TypeAttribute = $s7.typeAttribute;
+      if(!s1TypeAttribute.canBeInOperationWith(s7TypeAttribute)) {
+        String customMessage = $s1.text + " and " + $s7.text + " are not comparable";
+        exceptionHandler.handleException(s1, customMessage, null, null, TypeMismatchException.class);
+      }
+      
       if($s1.myIsBool == true || $s7.myIsBool == true){
          String customMessage = "Cannot compare using a boolean value";
          exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
@@ -777,64 +751,25 @@ binOp1[String startLabel, String endLabel] returns [String exp, Type type, boole
         IRList.addFirst("brneq, " + $s1.exp + ", " + $s7.exp + ", " + endLabel);
       }
       $exp = "";
-      if($s1.type == Type.FIXPT || $s7.type == Type.FIXPT) {
-        $type = Type.FIXPT;
+      if(s1TypeAttribute.getType() == Type.FIXPT || (s7TypeAttribute == null ? false : s7TypeAttribute.getType() == Type.FIXPT)) {
+        $typeAttribute = FIXEDPT_TYPE_ATTRIBUTE;
       } else {
-        $type = Type.INT;
+        $typeAttribute = INT_TYPE_ATTRIBUTE;
       }
     }
   }
 ;
 
-funcBinOp1 returns [String exp, Type type, boolean myIsBool]:
-  s1=funcBinOp2
-  (
-    (
-      s2=OP_LEQ
-      | s3=OP_GEQ
-      | s4=OP_LTHAN
-      | s5=OP_GTHAN
-      | s6=OP_NEQ
-      | OP_EQUAL
-    )
-    s7=funcBinOp1
-  )?
+funcBinOp1[IdType idType] returns [String exp, TypeAttribute typeAttribute, boolean myIsBool]:
+  s1=funcBinOp2[idType]
   {
-    if($s7.exp == null) {
-      $exp = $s1.exp;
-      $type = $s1.type;
-      $myIsBool = $s1.myIsBool;
-    } else {
-      if($s1.myIsBool == true || $s7.myIsBool == true){
-        String customMessage = "Cannot compare using a boolean value";
-        exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
-      }
-      $myIsBool = true;
-      String temp = tvf.nextTemp();
-      if(s2 != null) {
-        IRList.addFirst("leq, "    + $s1.exp + ", " + $s7.exp + ", " + temp);
-      } else if(s3 != null) {
-        IRList.addFirst("geq, "    + $s1.exp + ", " + $s7.exp + ", " + temp);
-      } else if(s4 != null) {
-        IRList.addFirst("lthan, "  + $s1.exp + ", " + $s7.exp + ", " + temp);
-      } else if(s5 != null) {
-        IRList.addFirst("gthan, "  + $s1.exp + ", " + $s7.exp + ", " + temp);
-      } else if(s6 != null) {
-        IRList.addFirst("neq, "    + $s1.exp + ", " + $s7.exp + ", " + temp);
-      } else {
-        IRList.addFirst("equals, " + $s1.exp + ", " + $s7.exp + ", " + temp);
-      }
-      $exp = temp;
-      if($s1.type == Type.FIXPT || $s7.type == Type.FIXPT) {
-        $type = Type.FIXPT;
-      } else {
-        $type = Type.INT;
-      }
-    }
+    $exp = $s1.exp;
+    $typeAttribute = $s1.typeAttribute;
+    $myIsBool = $s1.myIsBool;
   }
 ;
 
-binOp2[String startLabel, String endLabel] returns [String exp, Type type, boolean myIsBool, boolean myIsFunc]:
+binOp2[String startLabel, String endLabel] returns [String exp, TypeAttribute typeAttribute, boolean myIsBool, boolean myIsFunc]:
   s1=binOp3[startLabel, endLabel]
   (
     (
@@ -844,20 +779,24 @@ binOp2[String startLabel, String endLabel] returns [String exp, Type type, boole
     s3=binOp2[startLabel, endLabel]
   )?
   {
+    TypeAttribute s1TypeAttribute = $s1.typeAttribute;
+    TypeAttribute s3TypeAttribute;
     if($s3.exp == null) {
       $exp = $s1.exp;
-      $type = $s1.type;
+      $typeAttribute = s1TypeAttribute;
       $myIsBool = $s1.myIsBool;
       $myIsFunc = $s1.myIsFunc;
     } else {
+      s3TypeAttribute = $s3.typeAttribute;
+      String addSubtract = s2 == null ? "subtracted" : "added" ;
+      if(!s1TypeAttribute.canBeInOperationWith(s3TypeAttribute)) {
+        String customMessage = $s1.text + " and " + $s3.text + " cannot be " + addSubtract;
+        exceptionHandler.handleException(s1, customMessage, null, null, TypeMismatchException.class);
+      }
+      
       if($s1.myIsBool == true || $s3.myIsBool == true){
-        if(s2 != null) {
-          String customMessage = "Cannot add using a boolean value";
+          String customMessage = "Boolean values cannot be " + addSubtract;
           exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
-        } else {
-          String customMessage = "Cannot subtract using a boolean value";
-          exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
-        }
       } else if($s1.myIsFunc || $s3.myIsFunc) {
           String customMessage = "Cannot perform operations on a function rvalue";
           exceptionHandler.handleException(s1, customMessage, null, null, InvalidInvocationException.class);
@@ -871,30 +810,33 @@ binOp2[String startLabel, String endLabel] returns [String exp, Type type, boole
         IRList.addFirst("sub, " + $s1.exp + ", " + $s3.exp + ", " + temp);
       }
       $exp = temp;
-      if($s1.type == Type.FIXPT || $s3.type == Type.FIXPT) {
-        $type = Type.FIXPT;
+      if(s1TypeAttribute.getType() == Type.FIXPT || (s3TypeAttribute == null ? false : s3TypeAttribute.getType() == Type.FIXPT)){
+        $typeAttribute = FIXEDPT_TYPE_ATTRIBUTE;
       } else {
-        $type = Type.INT;
+        $typeAttribute = INT_TYPE_ATTRIBUTE;
       }
     }
   }
 ;
 
-funcBinOp2 returns [String exp, Type type, boolean myIsBool]:
-  s1=funcBinOp3
+funcBinOp2[IdType idType] returns [String exp, TypeAttribute typeAttribute, boolean myIsBool]:
+  s1=funcBinOp3[idType]
   (
     (
       s2=OP_PLUS
       | OP_MINUS
     )
-    s3=funcBinOp2
+    s3=funcBinOp2[IdType.NIY] //most likely it's idType
   )?
   {
+    TypeAttribute s1TypeAttribute = $s1.typeAttribute;
+    TypeAttribute s3TypeAttribute;
     if($s3.exp == null) {
       $exp = $s1.exp;
-      $type = $s1.type;
+      $typeAttribute = $s1.typeAttribute;
       $myIsBool = $s1.myIsBool;
     } else {
+      s3TypeAttribute = $s3.typeAttribute;
       if($s1.myIsBool == true || $s3.myIsBool == true){
         if(s2 != null) {
           String customMessage = "Cannot add using a boolean value";
@@ -912,16 +854,16 @@ funcBinOp2 returns [String exp, Type type, boolean myIsBool]:
         IRList.addFirst("sub, " + $s1.exp + ", " + $s3.exp + ", " + temp);
       }
       $exp = temp;
-      if($s1.type == Type.FIXPT || $s3.type == Type.FIXPT) {
-        $type = Type.FIXPT;
+      if(s1TypeAttribute.getType() == Type.FIXPT || s3TypeAttribute == null ? false : s3TypeAttribute.getType() == Type.FIXPT) {
+        $typeAttribute = FIXEDPT_TYPE_ATTRIBUTE;
       } else {
-        $type = Type.INT;
+        $typeAttribute = INT_TYPE_ATTRIBUTE;
       }
     }
   }
 ;
 
-binOp3[String startLabel, String endLabel] returns [String exp, Type type, boolean myIsBool, boolean myIsFunc]:
+binOp3[String startLabel, String endLabel] returns [String exp, TypeAttribute typeAttribute, boolean myIsBool, boolean myIsFunc]:
   s1=binOp4[startLabel, endLabel]
   (
     (
@@ -931,23 +873,27 @@ binOp3[String startLabel, String endLabel] returns [String exp, Type type, boole
     s3=binOp3[startLabel, endLabel]
   )?
   {
+    TypeAttribute s1TypeAttribute = $s1.typeAttribute;
+    TypeAttribute s3TypeAttribute;
     if($s3.exp == null) {
       $exp = $s1.exp;
-      $type = $s1.type;
+      $typeAttribute = s1TypeAttribute;
       $myIsBool = $s1.myIsBool;
       $myIsFunc = $s1.myIsFunc;
     } else {
+      s3TypeAttribute = $s3.typeAttribute;
+      String divMult = s2 == null ? "multiplied" : "divided";
+      if(!s1TypeAttribute.canBeInOperationWith(s3TypeAttribute)) {
+        String customMessage = $s1.text + " and " + $s3.text + " cannot be " + divMult;
+        exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
+      }
+      
       if($s1.myIsBool || $s3.myIsBool){
-        if(s2 != null) {
-          String customMessage = "Cannot divide using a boolean value";
-          exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
-        } else {
-          String customMessage = "Cannot multiply using a boolean value";
-          exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
-        }
+	      String customMessage = "Boolean values cannot be " + divMult;
+	      exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
       } else if($s1.myIsFunc || $s3.myIsFunc) {
-          String customMessage = "Cannot perform operations on a function rvalue";
-          exceptionHandler.handleException(s1, customMessage, null, null, InvalidInvocationException.class);
+        String customMessage = "Cannot perform operations on a function rvalue";
+        exceptionHandler.handleException(s1, customMessage, null, null, InvalidInvocationException.class);
       }
       $myIsBool = false;
       $myIsFunc = false;
@@ -958,30 +904,33 @@ binOp3[String startLabel, String endLabel] returns [String exp, Type type, boole
         IRList.addFirst("mult, " + $s1.exp + ", " + $s3.exp + ", " + temp);
       }
       $exp = temp;
-      if($s1.type == Type.FIXPT || $s3.type == Type.FIXPT) {
-        $type = Type.FIXPT;
+      if(s1TypeAttribute.getType() == Type.FIXPT || (s3TypeAttribute == null ? false : s3TypeAttribute.getType() == Type.FIXPT)) {
+        $typeAttribute = FIXEDPT_TYPE_ATTRIBUTE;
       } else {
-        $type = Type.INT;
+        $typeAttribute = INT_TYPE_ATTRIBUTE;
       }
     }
   }
 ;
 
-funcBinOp3 returns [String exp, Type type, boolean myIsBool]:
-  s1=funcBinOp4
+funcBinOp3[IdType idType] returns [String exp, TypeAttribute typeAttribute, boolean myIsBool]:
+  s1=funcBinOp4[idType]
   (
     (
       s2=OP_DIV
       | OP_MULT
     )
-    s3=funcBinOp3
+    s3=funcBinOp3[IdType.NIY] //most likely it's idType
   )?
   {
+    TypeAttribute s1TypeAttribute  = $s1.typeAttribute;
+    TypeAttribute s3TypeAttribute;
     if($s3.exp == null) {
       $exp = $s1.exp;
-      $type = $s1.type;
+      $typeAttribute = $s1.typeAttribute;
       $myIsBool = $s1.myIsBool;
     } else {
+      s3TypeAttribute = $s3.typeAttribute;
       if($s1.myIsBool || $s3.myIsBool){
         if(s2 != null) {
           String customMessage = "Cannot divide using a boolean value";
@@ -999,16 +948,16 @@ funcBinOp3 returns [String exp, Type type, boolean myIsBool]:
         IRList.addFirst("mult, " + $s1.exp + ", " + $s3.exp + ", " + temp);
       }
       $exp = temp;
-      if($s1.type == Type.FIXPT || $s3.type == Type.FIXPT) {
-        $type = Type.FIXPT;
+      if(s1TypeAttribute.getType() == Type.FIXPT || s3TypeAttribute == null ? false : s3TypeAttribute.getType() == Type.FIXPT) {
+        $typeAttribute = FIXEDPT_TYPE_ATTRIBUTE;
       } else {
-        $type = Type.INT;
+        $typeAttribute = INT_TYPE_ATTRIBUTE;
       }
     }
   }
 ;
 
-binOp4[String startLabel, String endLabel] returns [String exp, Type type, boolean myIsBool, boolean myIsFunc]
+binOp4[String startLabel, String endLabel] returns [String exp, TypeAttribute typeAttribute, boolean myIsBool, boolean myIsFunc]
 @init
 {
   List<String> paramList = new ArrayList<String>();
@@ -1016,13 +965,13 @@ binOp4[String startLabel, String endLabel] returns [String exp, Type type, boole
   $myIsFunc = false;
 }
 :
-  s1=constant                             {$exp = $s1.exp; $type = $s1.type;}
-  | OP_LPAREN s2=expr[startLabel, endLabel] OP_RPAREN {$exp = $s2.exp; $type = $s2.type; $myIsBool = $s2.myIsBool;}
-  | s3=id[IdType.NIY, false]
+  s1=constant {$exp = $s1.exp; $typeAttribute = $s1.typeAttribute;}
+  | OP_LPAREN s2=expr[startLabel, endLabel] OP_RPAREN {$exp = $s2.exp; $typeAttribute = $s2.typeAttribute; $myIsBool = $s2.myIsBool;}
+  | s3=id[IdType.VARIABLE_NAME]
   (
     s4=valueTail
     {
-      $type = $s3.type;
+      $typeAttribute = $s3.typeAttribute;
       if("".equals($s4.exp)) {
         $exp = $s3.exp;
       } else {
@@ -1036,7 +985,12 @@ binOp4[String startLabel, String endLabel] returns [String exp, Type type, boole
         $exp = arrTempVar;
       }
     }
-    | OP_LPAREN s5=funcExprList[paramList] OP_RPAREN {$exp = $s3.exp + "#" + $s5.exp; $type = $s3.type; $myIsFunc = true;}
+    | OP_LPAREN s5=funcExprList[paramList] OP_RPAREN 
+    {
+      $exp = $s3.exp + "#" + $s5.exp; 
+      $typeAttribute = $s3.typeAttribute; 
+      $myIsFunc = true;
+    }
   )
   {
     Attribute att = symbolTableManager.getAttributeInCurrentScope($s3.exp, attributeMap);
@@ -1082,10 +1036,10 @@ binOp4[String startLabel, String endLabel] returns [String exp, Type type, boole
   }
 ;
 
-funcBinOp4 returns [String exp, Type type, boolean myIsBool]:
-  s1=constant                      {$exp = $s1.exp; $type = $s1.type; $myIsBool = false;}
-  | OP_LPAREN s2=funcExpr OP_RPAREN    {$exp = $s2.exp; $type = $s2.type; $myIsBool = $s2.myIsBool;}
-  | s3=id[IdType.NIY, false] s4=valueTail {$exp = $s3.exp + $s4.exp; $type = $s3.type; $myIsBool = false;}
+funcBinOp4[IdType idType] returns [String exp, TypeAttribute typeAttribute, boolean myIsBool]:
+  s1=constant                      {$exp = $s1.exp; $typeAttribute = $s1.typeAttribute; $myIsBool = false;}
+  | OP_LPAREN s2=funcExpr[IdType.NIY]/*most likely it's idType*/ OP_RPAREN    {$exp = $s2.exp; $typeAttribute = $s2.typeAttribute; $myIsBool = $s2.myIsBool;}
+  | s3=id[idType] s4=valueTail {$exp = $s3.exp + $s4.exp; $typeAttribute = $s3.typeAttribute; $myIsBool = false;}
   {
     Attribute att = symbolTableManager.getAttributeInCurrentScope($s3.exp, attributeMap);
     if(att == null) {
@@ -1096,17 +1050,9 @@ funcBinOp4 returns [String exp, Type type, boolean myIsBool]:
   }
 ;
 
-constant returns [String exp, Type type]:
-	FIXEDPTLIT {$exp = $FIXEDPTLIT.text; $type = Type.FIXPT;}
-	| INTLIT   {$exp = $INTLIT.text;     $type = Type.INT;  }
-;
-
-value returns [String exp, Type type]:
-	s1=id[IdType.NIY, false] s2=valueTail
-	{
-	  $exp = $s1.exp + "#" + $s2.exp;
-	  $type = $id.type;
-	}
+constant returns [String exp, TypeAttribute typeAttribute]:
+	FIXEDPTLIT {$exp = $FIXEDPTLIT.text; $typeAttribute = FIXEDPT_TYPE_ATTRIBUTE;}
+	| INTLIT   {$exp = $INTLIT.text;     $typeAttribute = INT_TYPE_ATTRIBUTE;  }
 ;
 
 valueTail returns [String exp]:
@@ -1169,7 +1115,7 @@ indexExpr2 returns [String exp]:
 
 indexExpr3 returns [String exp]:
   INTLIT {$exp = $INTLIT.text;}
-  | myId=id[IdType.NIY, false]
+  | myId=id[IdType.NIY]
   {
     $exp = $id.exp;
     Attribute att = symbolTableManager.getAttributeInCurrentScope($id.exp, attributeMap);
@@ -1179,7 +1125,7 @@ indexExpr3 returns [String exp]:
       exceptionHandler.handleException(myId, customMessage, null, null, 
                                        UndeclaredVariableException.class);
     }
-    if(!"int".equals($id.type.getName())) {
+    if(!"int".equals($id.typeAttribute.getType().getName())) {
       // Invalid type (must be int)
       String customMessage = "Use of fixedpt variable in array index expression: \"" + $id.exp + "\""; 
       exceptionHandler.handleException(myId, customMessage, null, null, 
@@ -1201,14 +1147,14 @@ exprList[List<String> paramList] returns [String exp]:
       $exp = "";
     } else {
       $exp = $s1.exp + $s2.exp;
-      paramList.add($s1.type == Type.INT ? "int" : "fixedpt");
+      paramList.add($s1.typeAttribute.getType() == Type.INT ? Type.INT.getName() : Type.FIXPT.getName());
     }
   }
 ;
 
 funcExprList[List<String> paramList] returns [String exp]:
   (
-    s1=funcExpr s2=funcExprListTail[paramList]
+    s1=funcExpr[IdType.FUNCTION_ARGUMENT] s2=funcExprListTail[paramList]
   )?
   {
     if($s1.exp == null) {
@@ -1220,7 +1166,7 @@ funcExprList[List<String> paramList] returns [String exp]:
           exceptionHandler.handleException(s1, customMessage, null, 
                                           null,InvalidTypeException.class);
       }
-      paramList.add($s1.type == Type.INT ? "int" : "fixedpt");
+      paramList.add($s1.typeAttribute.getType() == Type.INT ? "int" : "fixedpt");
     }
   }
 ;
@@ -1234,21 +1180,21 @@ exprListTail[List<String> paramList] returns [String exp]:
       $exp = "";
     } else {
       $exp = ", " + $s1.exp + $s2.exp;
-      paramList.add($s1.type == Type.INT ? "int" : "fixedpt");
+      paramList.add($s1.typeAttribute.getType() == Type.INT ? Type.INT.getName() : Type.FIXPT.getName());
     }
   }
 ;
 
 funcExprListTail[List<String> paramList] returns [String exp]:
   (
-    OP_COMMA s1=funcExpr s2=funcExprListTail[paramList]
+    OP_COMMA s1=funcExpr[IdType.NIY] s2=funcExprListTail[paramList]
   )?
   {
     if($s1.exp == null) {
       $exp = "";
     } else {
       $exp = ", " + $s1.exp + $s2.exp;
-      paramList.add($s1.type == Type.INT ? "int" : "fixedpt");
+      paramList.add($s1.typeAttribute.getType() == Type.INT ? "int" : "fixedpt");
     }
   }
 ;
@@ -1322,13 +1268,33 @@ FIXEDPTLIT :
 	INTLIT OP_PERIOD DIGIT (DIGIT? DIGIT)?
 ;
 
-id[IdType idType, boolean testNamespace] returns [String exp, Type type]:
+skip[String testCaseName]
+:
+  SKIP
+  {System.out.println(testCaseName + " skipped");}  
+;
+SKIP:
+  'SKIP'
+;
+id_replacement [IdType idType] returns [String exp, Type type]
+:
+  myId=id[idType]
+  {
+    $exp = $myId.exp;
+    $type = $myId.typeAttribute.getType();
+  } 
+;
+
+id[IdType idType] returns [String exp, TypeAttribute typeAttribute]:
   myId=ID
   {
-    
-    if (testNamespace) {
+    TypeAttribute testType;
+    $exp = $ID.text;
+    boolean isAlreadyDeclared = idType.isAlreadyDeclared();
+    //If not declared, check to see it would be valid in namespace or not 
+    if (!isAlreadyDeclared) {
 	    Map<String, Set<String>> unregisteredNameSpaceMap = getUnregisteredNamespacesMap();
-	    if(symbolTableManager.doesNameSpaceConflict(idType, $myId.text, unregisteredNameSpaceMap)) {
+	    if(symbolTableManager.doesNameSpaceConflict(myId.getLine(), idType, $myId.text, unregisteredNameSpaceMap)) {
 	      String customMessage = idType.getName() + " \"" + $myId.text + "\" is already in the namespace"; 
 	      exceptionHandler.handleException($myId, customMessage, null, null, NameSpaceConflictException.class);
 	    }
@@ -1336,22 +1302,20 @@ id[IdType idType, boolean testNamespace] returns [String exp, Type type]:
 	    if(idType == IdType.FUNCTION_NAME) {
 	      functionNamespace.add($myId.text);
 	    }
-	    if(idType == IdType.VAR_NAME) {
+	    else if(idType == IdType.VARIABLE_DECLARATION ||
+	            idType == IdType.FUNCTION_PARAMETER) {
 	      varNamespace.add($myId.text);
 	    }
-	    if(idType == IdType.TYPE_NAME) {
+	    else if(idType == IdType.USER_DEFINED_TYPE) {
 		    typeNamespace.add($myId.text);
 	    }
-    }
-    
-    $exp = $ID.text;
-    Attribute att = symbolTableManager.getAttributeInCurrentScope($ID.text, attributeMap);
-    if(att != null) {
-      $type = Type.INT.equals(att.getType())   ? Type.INT   :
-              Type.FIXPT.equals(att.getType()) ? Type.FIXPT :
-                                              Type.OTHER ;
+	    
+	    TypeAttribute tempTypeAttribute = new TypeAttribute();
+      $typeAttribute = tempTypeAttribute;
     } else {
-      $type = Type.OTHER;
+	    TypeAttribute attribute = symbolTableManager
+	                            .getTypeAttributeInCurrentScope($myId.text, attributeMap);
+      $typeAttribute = attribute;
     }
   }
 ;
