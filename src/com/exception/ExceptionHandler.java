@@ -45,8 +45,8 @@ public class ExceptionHandler {
 				errorMessage.append("\"");
 			}
 			RuntimeException exception = constructor.newInstance(errorMessage.toString());
-			exception.printStackTrace();
-//			System.out.println(errorMessage);
+			System.out.println(exception.getMessage());
+//			exception.printStackTrace();
 			System.out.println();
 //			throw constructor.newInstance(errorMessage.toString());
 			

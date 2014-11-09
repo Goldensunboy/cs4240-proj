@@ -1,3 +1,4 @@
+SKIP
 type a = int;
 
 int function func1() 

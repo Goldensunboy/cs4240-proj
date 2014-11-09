@@ -54,7 +54,7 @@ public class SymbolTableManager {
 		scopeId = 0;
 		symbolTable = new Hashtable<String, List<Symbol>>();
 		expiredFunctionName = new HashSet<>();
-//		populateReserved();
+		populateReserved();
 	}
 	
 	/**
@@ -121,11 +121,11 @@ public class SymbolTableManager {
 			}
 		}
 		
-		Type returnType = currentScope.getReturnType();
+		TypeAttribute returnType = getCurrentScopeReturnType();
 		
 		currentScope = currentScope.getEnclosingScope();
 		if (currentScope != null) {			
-			currentScope.setReturnType(returnType);
+			currentScope.setReturnTypeName(returnType.getAliasName());
 		}
 		return currentScope;
 	}
@@ -165,13 +165,27 @@ public class SymbolTableManager {
 			return null;
 		}
 		
+		// if the symbol is in the nested scopes of a function
 		for(Symbol symbol : symbolList) {
 			if(haveSameParentScope(symbol.getScope())) {
 				return symbol.getAttribute();
 			}
 		}
 		
-		return null;
+		/* if the symbol is in the global scope
+		 * Note: symbolList of the global scope is always singleton
+		 * reason being we either have types and functions in the 
+		 * global scope, therefore we can't have a non-singleton
+		 * symbolList
+		 */
+		symbolList = globalScope.getSymbolMap().get(attributeName);
+		if(symbolList == null) {
+			return null;
+		} else if (symbolList.size() > 1){
+			throw new ShouldNotHappenException("The global scope's symbolList is not a singleton");
+		} else {
+			return symbolList.get(0).getAttribute();
+		}
 	}
 	
 	/**
@@ -188,6 +202,7 @@ public class SymbolTableManager {
 			}
 			tempScope = tempScope.getEnclosingScope();
 		}
+		
 		return false;
 	}
 
@@ -202,9 +217,10 @@ public class SymbolTableManager {
 	/**
 	 * Given the function name returns the return type
 	 */
-	public Type getFunctionReturnType(String functionName) {
+	public TypeAttribute getFunctionReturnType(String functionName) {
 		FunctionAttribute functionNameAttribute = getFunctionAttribute(functionName);
-		return functionNameAttribute.getReturnType();
+		String returnTypeName = functionNameAttribute.getReturnTypeName();
+		return getTypeAttributeInCurrentScope(returnTypeName, new Hashtable<String, Attribute>());
 	}
 
 	/**
@@ -246,23 +262,25 @@ public class SymbolTableManager {
 	/**
 	 * return the return type of the current scope's function
 	 */
-	public Type getReturnType() {
+	public TypeAttribute getReturnType() {
 		String functionName = currentScope.getEnclosingFunctionName();
-		FunctionAttribute functionNameAttribute = getFunctionAttribute(functionName);
-		return functionNameAttribute.getReturnType();
+		return getFunctionReturnType(functionName);
 	}
 	
-	public Type getCurrentScopeReturnType() {
-		return currentScope.getReturnType();
+	public TypeAttribute getCurrentScopeReturnType() {
+		String returnTypeName = currentScope.getReturnTypeName();
+		TypeAttribute typeAttribute = getTypeAttributeInCurrentScope(returnTypeName, new Hashtable<String, Attribute>());
+		return typeAttribute;
 	}
 	
 	public boolean returnStatementSatisfied(String functionName) {
-		Type returnType = getReturnType();
-		return returnType == currentScope.getReturnType();
+		TypeAttribute returnType = getReturnType();
+		TypeAttribute currentScopeReturnTypeAttribute = getCurrentScopeReturnType();
+		return returnType.assignableBy(currentScopeReturnTypeAttribute);
 	}
 	
-	public void setCurrentScopeReturnType(Type returnType) {
-		currentScope.setReturnType(returnType);
+	public void setCurrentScopeReturnType(TypeAttribute returnType) {
+		currentScope.setReturnTypeName(returnType.getAliasName());
 	}
 	
 	public TypeAttribute getOtherType(Map<String, Attribute> attributeMap, String typeName) {
@@ -281,7 +299,7 @@ public class SymbolTableManager {
 		}
 	}
 	
-	public boolean doesNameSpaceConflict(IdType idType, String name, Map<String, Set<String>> unregisteredNamespaceMap) {
+	public boolean doesNameSpaceConflict(int lineNumber, IdType idType, String name, Map<String, Set<String>> unregisteredNamespaceMap) {
 
 		Set<String> varNameSpace = unregisteredNamespaceMap.get(TigerParser.VAR_NAMESPACE);
 		Set<String> typeNameSpace = unregisteredNamespaceMap.get(TigerParser.TYPE_NAMESPACE);
@@ -300,19 +318,16 @@ public class SymbolTableManager {
 			return expiredFunctionName.contains(name);
 		}
 		
-		if(idType == IdType.VAR_NAME) {
+		if(idType == IdType.VARIABLE_DECLARATION ||
+		   idType == IdType.FUNCTION_PARAMETER) {
 			return functionNameConflict || typeNameConflict || varNameConflict;
 		}
 
-		if(idType == IdType.TYPE_NAME) {
+		if(idType == IdType.USER_DEFINED_TYPE) {
 			return functionNameConflict || varNameConflict || typeNameConflict;
 		}
 		
 		throw new ShouldNotHappenException();
-	}
-	
-	public boolean isValidType() {
-		return false;
 	}
 	
 	private void populateReserved() {
@@ -342,9 +357,55 @@ public class SymbolTableManager {
 			}
 			br.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return reservedValues;
 	}
+	
+	public TypeAttribute getTypeAttributeInCurrentScope(String idName, 
+			Map<String, Attribute> attributeMap) {
+		Attribute attribute = getAttributeInCurrentScope(idName, attributeMap);
+		if(attribute == null){
+			return null;			
+		}
+		
+		String aliasName = attribute.getTypeName();
+		TypeAttribute typeAttribute;
+		
+		try {
+			typeAttribute = (TypeAttribute)attributeMap.get(aliasName);
+			if(typeAttribute == null) {
+				List<Symbol> symbolList = symbolTable.get(aliasName);
+				if(symbolList == null) {
+					return null; //TODO this happens in cond checking. It should not happen
+				}
+				if(symbolList.size() > 1) {
+					throw new ShouldNotHappenException("Size of type: \"" + aliasName +
+							"\" list symbol is greater than 1. Name space is incorrect.");
+				}
+				Symbol symbol = symbolList.get(0);
+				typeAttribute = (TypeAttribute)symbol.getAttribute();
+			}
+			return typeAttribute;
+		} catch (ClassCastException e) {
+			throw new AttributeCastException();
+		}
+	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

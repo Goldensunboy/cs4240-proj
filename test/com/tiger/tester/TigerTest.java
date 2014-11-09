@@ -52,7 +52,6 @@ public class TigerTest {
 	
 					TigerCompiler compiler = new TigerCompiler();
 					String input = new String(data, "UTF-8");
-					
 					compiler.compile(input);
 					
 					CompilerErrorReport errorReport = compiler.getErrorReport(); 
@@ -136,7 +135,9 @@ public class TigerTest {
 			if(preferedName.equals(MARISSA.getActualName())) {
 				return new DeveloperName[]{MARISSA};
 			} else if (preferedName.equals(SAMAN.getPreferedName())) {
-				return new DeveloperName[]{SAMAN};
+//				DeveloperName[] testCases = new DeveloperName[]{SAMAN,MARISSA};
+				DeveloperName[] testCases = new DeveloperName[]{SAMAN};
+				return testCases;
 			} else if (preferedName.equals(ANDREW.getPreferedName())) {
 				return new DeveloperName[]{ANDREW};
 			}
