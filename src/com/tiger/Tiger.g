@@ -67,6 +67,7 @@ import com.exception.NameSpaceConflictException;
   private LabelFactory lf = new LabelFactory();
   private String enclosingFunctionName;
   private ExceptionHandler exceptionHandler = new ExceptionHandler();
+  private TypeAttribute voidTypeAttribute = symbolTableManager.getTypeAttributeInCurrentScope(Type.VOID.getName(), attributeMap);
   
   private Set<String> varNamespace = new HashSet<String>();
   private Set<String> typeNamespace = new HashSet<String>();
@@ -180,21 +181,16 @@ tigerProgram :
 
 funcNext:
   myTypeId=typeId[IdType.RETURN_TYPE]
-  { if(!$myTypeId.type.isValidReturnType()) {
-      String customMessage = "Invalid return type " + $myTypeId.text;
-      exceptionHandler.handleException(myTypeId, customMessage, null, null, InvalidTypeException.class);
-    }
-  } 
-  funcCurrent[$myTypeId.text, $typeId.type]
+  funcCurrent[$myTypeId.text, $typeId.typeAttribute]
   | KEY_VOID
-  (
-    funcCurrent[Type.VOID.getName(), Type.VOID]
-    | mainFunction[Type.VOID]
+  ( 
+    funcCurrent[voidTypeAttribute.getAliasName(), voidTypeAttribute]
+    | mainFunction[voidTypeAttribute]
   )
 ;
 
-funcCurrent[String typeName, Type returnType] :
-	 funcDeclaration[typeName, returnType] funcNext
+funcCurrent[String typeName, TypeAttribute returnTypeAttribute] :
+	 funcDeclaration[typeName, returnTypeAttribute.getType()] funcNext
 ;
 
 funcDeclaration[String typeName, Type returnType]
@@ -236,25 +232,34 @@ afterBegin[String myFunctionName, String typeName, Type returnType]
   key_end OP_SCOLON
 ;
 
-mainFunction [Type returnType]:
+mainFunction [TypeAttribute returnTypeAttribute]:
   a=KEY_MAIN OP_LPAREN OP_RPAREN 
   {
 	  putFunctionAttributeMap($KEY_MAIN.text,
-	                              Type.VOID.getName(), Type.VOID,
+	                              returnTypeAttribute.getType().getName(), 
+	                              returnTypeAttribute.getType(),
 	                              new ArrayList<String>());
 	  enclosingFunctionName = $KEY_MAIN.text;
   }
   key_begin blockList[$a.text] key_end OP_SCOLON EOF
 ;
 
-typeId[IdType idType] returns[Type type]:
-	baseType {$type=$baseType.type;}
-	| id[idType] {$type=$id.type.getType();}
+typeId[IdType idType] returns[TypeAttribute typeAttribute]:
+	baseType {$typeAttribute=$baseType.typeAttribute;}
+	| id[idType] {$typeAttribute=$id.type;}
 ;
 
-baseType returns[Type type]:
-	KEY_INT {$type=Type.INT;}
-	| KEY_FIXEDPT {$type=Type.FIXPT;}
+baseType returns[TypeAttribute typeAttribute]:
+	KEY_INT 
+	{
+	  $typeAttribute=
+	          symbolTableManager.getTypeAttributeInCurrentScope(Type.INT.getName(), attributeMap);
+	}
+	| KEY_FIXEDPT 
+	{
+	  $typeAttribute=
+	          symbolTableManager.getTypeAttributeInCurrentScope(Type.FIXPT.getName(), attributeMap);
+	}
 ;
 
 param :
@@ -329,9 +334,9 @@ type returns [Type type, Type typeOfArray, boolean isTwoDimensionalArray, int di
 	myBaseType=baseType
 	{
 	  if(myIsTypeArray_var) {
-	    $typeOfArray = $myBaseType.type;
+	    $typeOfArray = $myBaseType.typeAttribute.getType();
 	  } else {
-	    $type = $myBaseType.type; 
+	    $type = $myBaseType.typeAttribute.getType(); 
 	  }
 	}
 ;
@@ -349,7 +354,7 @@ scope
 	KEY_VAR idList[IdType.VARIABLE_DECLARATION] OP_COLON myTypeId=typeId[IdType.VARIABLE_TYPE]
 	{
 	  putVariableAttributeMap($varDeclaration::aggregatedMyIdList,
-	                          $myTypeId.text, $myTypeId.type,
+	                          $myTypeId.text, $myTypeId.typeAttribute.getType(),
 	                          $functionName);
 	}
   optionalInit[$varDeclaration::aggregatedMyIdList] OP_SCOLON

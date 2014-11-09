@@ -2,29 +2,23 @@ package com.compiler;
 
 
 public enum Type {
-  INT("int", true, true),
-  FIXPT("fixedpt", true, true),
-  VOID("void", false, true),
-  ARRAY("array", true, true), //TODO isValidReturnType == true?
-//  OTHER("user_defined", true, true),
-  TEMPORARY("temp", false /*should never be needed*/, false),
+  INT("int", true),
+  FIXPT("fixedpt", true),
+  VOID("void", false),
+  ARRAY("array", true), //TODO isValidReturnType == true?
+  TEMPORARY("temp", false /*should never be needed*/),
   
-  INVALID("", false, false); //temporary for testing
+  INVALID("", false); //temporary for testing
   
   private String name;
-  private boolean isValidVarType, isValidReturnType;
-  Type(String name, boolean isValidVarType, boolean isValidReturnType) {
+  private boolean isValidVarType;
+  Type(String name, boolean isValidVarType) {
 	  this.name = name;
-	  this.isValidReturnType = isValidReturnType;
 	  this.isValidVarType = isValidVarType; 
   }
   
   public String getName() {
 	  return name;
-  }
-  
-  public boolean isValidReturnType() {
-	  return isValidReturnType;
   }
   
   public boolean isValidVarType() {
@@ -42,6 +36,10 @@ public enum Type {
 	  
 	  if(typeName.equals(ARRAY.getName())) {
 		  return ARRAY;
+	  }
+	  
+	  if(typeName.equals(VOID.getName())) {
+		  return VOID;
 	  }
 	  
 	  return INVALID;
