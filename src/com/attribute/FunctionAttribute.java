@@ -4,17 +4,10 @@ import java.util.List;
 
 public class FunctionAttribute implements Attribute{
 	
-	// Enums for return type and param types
-	public enum ParamType {
-		INT,
-		FIX_PT
-	};
-	
 	// Attributes for function name
 	private String functionName;
 	private String returnTypeName;
 	private List<String> params;
-	private String typeName;
 	
 	public FunctionAttribute(String functionName, String returnTypeName, List<String> params) {
 		this.functionName = functionName;
@@ -41,6 +34,8 @@ public class FunctionAttribute implements Attribute{
 		StringBuffer buffer = new StringBuffer();
 		buffer.append("Function Name: ");
 		buffer.append(functionName);
+		buffer.append(", Return type name: ");
+		buffer.append(returnTypeName);
 		buffer.append(", Parameters: ");
 		for(String parameter : params)
 			buffer.append(parameter).append(", ");
