@@ -67,7 +67,8 @@ import com.exception.NameSpaceConflictException;
   private LabelFactory lf = new LabelFactory();
   private String enclosingFunctionName;
   private ExceptionHandler exceptionHandler = new ExceptionHandler();
-  private TypeAttribute voidTypeAttribute = symbolTableManager.getTypeAttributeInCurrentScope(Type.VOID.getName(), attributeMap);
+  private TypeAttribute VOID_TYPE_ATTRIBUTE = symbolTableManager.getTypeAttributeInCurrentScope(Type.VOID.getName(), attributeMap);
+  private TypeAttribute INT_TYPE_ATTRIBUTE = symbolTableManager.getTypeAttributeInCurrentScope(Type.INT.getName(), attributeMap);
   
   private Set<String> varNamespace = new HashSet<String>();
   private Set<String> typeNamespace = new HashSet<String>();
@@ -78,16 +79,17 @@ import com.exception.NameSpaceConflictException;
   public static final String FUNCTION_NAMESPACE = "functionNameSpace";
   
   private void putVariableAttributeMap(List<String> variableNameList, 
-      String typeName, Type type, String declaringFunctionName) {
+      String typeName, TypeAttribute typeAttribute, String declaringFunctionName) {
     for (String variableName : variableNameList) {
         VariableAttribute variableAttribute = new VariableAttribute(variableName, typeName,
-          type, declaringFunctionName);
+          typeAttribute.getType(), declaringFunctionName);
         attributeMap.put(variableName, variableAttribute);
     }
   }
   
-  private void putFunctionAttributeMap(String functionName, String typeName, Type returnType, List<String> parameters) {
-    FunctionAttribute functionAttribute = new FunctionAttribute(functionName, typeName, returnType, parameters);
+  private void putFunctionAttributeMap(String functionName,  TypeAttribute returnTypeAttribute, List<String> parameters) {
+    String typeName = returnTypeAttribute.getAliasName();
+    FunctionAttribute functionAttribute = new FunctionAttribute(functionName, typeName, returnTypeAttribute.getType(), parameters);
     attributeMap.put(functionName, functionAttribute);
   }
 
@@ -184,16 +186,16 @@ funcNext:
   funcCurrent[$myTypeId.text, $typeId.typeAttribute]
   | KEY_VOID
   ( 
-    funcCurrent[voidTypeAttribute.getAliasName(), voidTypeAttribute]
-    | mainFunction[voidTypeAttribute]
+    funcCurrent[VOID_TYPE_ATTRIBUTE.getAliasName(), VOID_TYPE_ATTRIBUTE]
+    | mainFunction[VOID_TYPE_ATTRIBUTE]
   )
 ;
 
 funcCurrent[String typeName, TypeAttribute returnTypeAttribute] :
-	 funcDeclaration[typeName, returnTypeAttribute.getType()] funcNext
+	 funcDeclaration[typeName, returnTypeAttribute] funcNext
 ;
 
-funcDeclaration[String typeName, Type returnType]
+funcDeclaration[String typeName, TypeAttribute returnTypeAttribute]
 scope
 {
   List<String> myParams;
@@ -204,17 +206,17 @@ scope
 }
 :
   KEY_FUNCTION myFunctionName=id[IdType.FUNCTION_NAME]
-{
-  IRList.addFirst("FUNC_" + $id.text + ":");
-}
-  OP_LPAREN paramList OP_RPAREN afterBegin[$myFunctionName.text, typeName, returnType]
+	{
+	  IRList.addFirst("FUNC_" + $id.text + ":");
+	}
+  OP_LPAREN paramList OP_RPAREN afterBegin[$myFunctionName.text, typeName, returnTypeAttribute]
 ;
 
-afterBegin[String myFunctionName, String typeName, Type returnType]
+afterBegin[String myFunctionName, String typeName, TypeAttribute returnTypeAttribute]
 @init
 {
   putFunctionAttributeMap(myFunctionName,
-                              typeName, returnType,
+                              returnTypeAttribute,
                               $funcDeclaration::myParams);
   enclosingFunctionName = myFunctionName;
 }
@@ -236,8 +238,7 @@ mainFunction [TypeAttribute returnTypeAttribute]:
   a=KEY_MAIN OP_LPAREN OP_RPAREN 
   {
 	  putFunctionAttributeMap($KEY_MAIN.text,
-	                              returnTypeAttribute.getType().getName(), 
-	                              returnTypeAttribute.getType(),
+	                              returnTypeAttribute,
 	                              new ArrayList<String>());
 	  enclosingFunctionName = $KEY_MAIN.text;
   }
@@ -354,7 +355,7 @@ scope
 	KEY_VAR idList[IdType.VARIABLE_DECLARATION] OP_COLON myTypeId=typeId[IdType.VARIABLE_TYPE]
 	{
 	  putVariableAttributeMap($varDeclaration::aggregatedMyIdList,
-	                          $myTypeId.text, $myTypeId.typeAttribute.getType(),
+	                          $myTypeId.text, $myTypeId.typeAttribute,
 	                          $functionName);
 	}
   optionalInit[$varDeclaration::aggregatedMyIdList] OP_SCOLON
@@ -580,7 +581,7 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		    // Generate index variable
 		    ArrayList<String> varList = new ArrayList<String>();
 		    varList.add($s6.text);
-		    putVariableAttributeMap(varList, Type.INT.getName() , Type.INT, $functionName);
+		    putVariableAttributeMap(varList, Type.INT.getName() , INT_TYPE_ATTRIBUTE, $functionName);
         IRList.addFirst("assign, " + $s6.text + ", " + $s7.exp);
         // Begin loop here
         IRList.addFirst(forTop + ":");
