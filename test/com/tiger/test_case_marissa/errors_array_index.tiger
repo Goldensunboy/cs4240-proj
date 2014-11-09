@@ -17,7 +17,7 @@ begin
 	end;
 end; 
 
-/* array indexes should not be negative */ /*
+/* array indexes should not be negative */ 
 void function func1()
 begin
 	begin
@@ -25,10 +25,10 @@ begin
 		var i : int := 0;
 		i := X[-1];
 	end;
-end; */
+end; 
  
 
-/* array indexes should not be fixed point numbers */ /*
+/* array indexes should not be fixed point numbers */ 
 void function func4()
 begin
 	begin
@@ -36,9 +36,9 @@ begin
 		var i : int := 0;
 		i := X[5.0];
 	end;
-end; */
+end; 
 
-/* array indexes should not be fixed point numbers */ /*
+/* array indexes should not be fixed point numbers */ 
 void function func5()
 begin
 	begin
@@ -47,9 +47,9 @@ begin
 		var f : fixedpt := 0;
 		i := X[f];
 	end;
-end; */
+end; 
 
-/*  TODO: (Wrong error message) array indexes should not be function calls */ /*
+/*   (Wrong error message) array indexes should not be function calls */ /*
 void function func6()
 begin
 	begin
@@ -59,7 +59,7 @@ begin
 	end;
 end; */
 
-/*  TODO: (Wrong error message) array indexes should not be function calls */ /*
+/*   (Wrong error message) array indexes should not be function calls */ /*
 void function func6()
 begin
 	begin
@@ -69,7 +69,7 @@ begin
 	end;
 end; */
 
-/* TODO: arrays should not be used without an index. Not type compatible */ 
+/*  arrays should not be used without an index. Not type compatible */ 
 void function func7()
 begin
 	begin
@@ -79,7 +79,7 @@ begin
 	end;
 end;
 
-/* TODO: (Wrong error message) arrays should not be used without an index  */ /*
+/*  (Wrong error message) arrays should not be used without an index  */ 
 void function func8()
 begin
 	begin
@@ -91,7 +91,7 @@ begin
 	end;
 end; */
 
-/* TODO: arrays should not be used with aggregate operations */ 
+/*  arrays should not be used with aggregate operations */ 
 void function func9()
 begin
 	begin
@@ -112,23 +112,23 @@ begin
 	end;
 end; */
 
-/* TODO: (Wrong error message) Using an array as an index in another array should produce an error */ /* 
+/*  (Wrong error message) Using an array as an index in another array should produce an error */ 
 void function func11()
 begin
 	begin
 		var X : ArrayInt := 10;
 		i := X[X];
 	end;
-end; */
+end; 
 
-/* TODO: (Wrong error message) Using a value from an array as an index in another array should produce an error */ /* 
+/*  (Wrong error message) Using a value from an array as an index in another array should produce an error */ 
 void function func11()
 begin
 	begin
 		var X : ArrayInt := 10;
 		i := X[X[1]];
 	end;
-end; */
+end; 
 
 void main()
 begin

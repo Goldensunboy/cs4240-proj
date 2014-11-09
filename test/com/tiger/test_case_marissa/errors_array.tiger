@@ -23,7 +23,7 @@ begin
 	end;
 end;
 
-/* TODO: Should not be able to assign aggregate values more than once */
+/*  Should not be able to assign aggregate values more than once */
 void function funcName2() 
 begin
 	begin
@@ -33,7 +33,7 @@ begin
 end;
 
 
-/* TODO: Cannot assign arrays of different types to each other  */
+/*  Cannot assign arrays of different types to each other  */
 void function funcName3() 
 begin
 	begin
@@ -43,7 +43,7 @@ begin
 	end;
 end;
 
-/* TODO: Cannot assign arrays of different types to each other  */
+/*  Cannot assign arrays of different types to each other  */
 void function funcName4() 
 begin
 	begin
@@ -53,17 +53,17 @@ begin
 	end;
 end;
 
-/* Cannot instantiate an array without using a type  */ /*
+/* Cannot instantiate an array without using a type  */ 
 void function funcName5() 
 begin
 	begin
 		var x : array [99] of int := 0;
 		x := y;
 	end;
-end; */
+end; 
 
 
-/* TODO: Should not be able to pass an int instead of an int array */
+/*  Should not be able to pass an int instead of an int array */
 void function funcName6() 
 begin
 	begin
@@ -72,14 +72,52 @@ begin
 	end;
 end;
 
-/* TODO: Should not be able to pass an int array instead of an int */ /*
+/*  Should not be able to pass an int array instead of an int */
 void function funcName7() 
 begin
 	begin
 		var x : ArrayInt := 9;
 		testFunc(x);
 	end;
-end; */
+end;
+
+/* Cannot assign values after declaration */
+void function funcName8() 
+begin
+	begin
+		var y : ArrayInt := 9;
+		y := 10;
+	end;
+end;
+
+/* Cannot read values from array before initialized */
+void function funcName9a() 
+begin
+	begin
+		var y : ArrayInt;
+		var x : int;
+		x := y[2];
+	end;
+end;
+
+/* Cannot set values from array before initialized? */
+void function funcName9b() 
+begin
+	begin
+		var y : ArrayInt;
+		y[2] = 5;
+	end;
+end;
+
+
+/* returning an array instead of the default type */
+int function funcName10() 
+begin
+	begin
+		var x : ArrayInt := 6;
+		return x;
+	end;
+end;
 
 void main()
 begin

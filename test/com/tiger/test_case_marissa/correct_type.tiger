@@ -1,0 +1,421 @@
+
+type Int = int;
+type Int_Type = int;
+type Int_Type2 = int;
+type ArrayInt = array [100] of int;
+type Array2DInt = array [100][100] of int;
+type FixedPtLit = fixedpt;
+type Fixedpt_Type = fixedpt;
+type Fixedpt_Type2 = fixedpt;
+type ArrayFixedPtLit = array [100] of fixedpt;
+type Array2DFixedPtLit = array [100][100] of fixedpt;
+
+/* Used in testing */
+int function funcTest1(x:int) 
+begin
+     begin
+          var a: int :=0;
+          return a;
+     end;
+end;
+ 
+fixedpt function funcTest2(x:fixedpt) 
+begin
+     begin
+          var a: fixedpt :=0;
+          return a;
+     end;
+end;
+ 
+Int_Type function funcTest3(x:Int_Type) 
+begin
+     begin
+          var a: Int_type := 0;
+          return a;
+     end;
+end;
+ 
+Fixedpt_Type function funcTest4(x:Fixedpt_Type) 
+begin
+     begin
+          var a: Fixedpt_Type := 0.0;
+          return a;
+     end;
+end;
+
+
+/* Using defined type for a variable */
+void function func1a() 
+begin
+	begin
+		var temp1 :Int :=0;
+		temp1 := 0;
+	end;
+end;
+
+/* Using defined type for a variable */
+void function func1b() 
+begin
+	begin
+		type Int2 = int;
+		var temp1 :Int2 :=0;
+		temp1 := 0;
+	end;
+end;
+
+/* Using defined type for a variable */
+void function func2(x:Int) 
+begin
+	begin
+		var temp1 : int :=0;
+		temp1 := 0;
+	end;
+end;
+
+
+/* Using defined type for a return */
+Int function func3b() 
+begin
+	begin
+		var temp1 : Int :=0;
+		return temp1;
+	end;
+end;
+
+/* Using defined type for a return */
+int function func3c() 
+begin
+	begin
+		var temp1 : int :=0;
+		return 0;
+	end;
+end;
+
+/* Using defined type for a return */
+int function func3d() 
+begin
+	begin
+		var temp1 : int :=0;
+		return temp1;
+	end;
+end;
+
+/* Legal? should truncate?  */
+void function func4() 
+begin
+	begin
+		var temp1 : int :=0;
+		temp1 := (5 * 7) / 5;
+	end;
+end;
+
+
+void function func5() 
+begin
+	begin
+		var temp1 : int :=0;
+		temp1 := 5;
+	end;
+end;
+
+void function func6() 
+begin
+	begin
+		var temp1 : fixedpt :=0.0;
+		temp1 := 5.9;
+	end;
+end;
+
+void function func7() 
+begin
+	begin
+		var temp1 : fixedpt :=0;
+		temp1 := 5;
+	end;
+end;
+
+void function func8() 
+begin
+	begin
+		var temp : int :=0;
+		var temp2 : fixedpt :=0;
+		temp2 := temp;
+	end;
+end;
+
+
+void function func9() 
+begin
+	begin
+		var temp, temp3 : int :=0;
+		var temp2 : fixedpt :=0;
+		temp2 := temp * temp3;
+	end;
+end;
+
+void function func10() 
+begin
+	begin
+		var temp, temp3 : int :=0;
+		var temp2 : fixedpt :=0;
+		temp2 := temp * temp3 / 9;
+	end;
+end;
+
+void function func11() 
+begin
+	begin
+		var temp, temp3 : int :=0;
+		var temp2 : fixedpt :=0;
+		temp2 := temp * 9.0 + temp3 / 4.0 + temp2;
+	end;
+end;
+
+void function func12() 
+begin
+	begin
+		var temp, temp3 : int :=0;
+		var temp2 : fixedpt :=0;
+		temp2 := temp * 9.0 + temp2;
+	end;
+end;
+
+void function func13() 
+begin
+	begin
+		var temp, temp3 : int :=0;
+		var temp2 : fixedpt :=0;
+		temp2 := 0 * 9.0 + temp2;
+	end;
+end;
+
+
+
+/*   fixedpt assigned to int var is legal? */
+void function func14() 
+begin
+	begin
+		var temp, temp3 : int :=0;
+		var temp2 : fixedpt :=0;
+		temp2 := 0 + 9.0 * temp2;
+	end;
+end;
+
+/*   fixedpt assigned to int var is legal? */
+void function func15() 
+begin
+	begin
+		var temp, temp3 : int :=0;
+		var temp2 : fixedpt :=0;
+		temp2 := 0 + 9.0 / temp;
+	end;
+end;
+
+void function func16()
+begin
+	begin
+		var int_type_var : Int_Type := 5;
+		var int_type_var2 : Int_Type := 6;
+		int_type_var := int_type_var2;
+	end;
+end;
+
+void function func17()
+begin
+	begin
+		var int_type_var : Int_Type := 5;
+		int_type_var := int_type_var;
+	end;
+end;
+
+void function func18()
+begin
+	begin
+		var int_type_var : Int_Type := 5;
+		var int_type_var2 : Int_Type := 6;
+		int_type_var := int_type_var2*int_type_var2;
+	end;
+end;
+
+void function func19()
+begin
+	begin
+		var int_type_var : Int_Type := 5;
+		var int_type_var2 : Int_Type := 6;
+		int_type_var := int_type_var2 + int_type_var2;
+	end;
+end;
+
+
+void function func20()
+begin
+	begin
+		var int_var : int := 5;
+		var fixedpt_var : fixedpt := 5.0;
+		var int_type_var : Int_Type := 5;
+		var fixedpt_var2 : fixedpt := 5.0;
+		var int_var2 : Int_Type := 5;
+		var fixedpt_type_var : Fixedpt_Type := 5.0;
+		var int_type_var2 : Int_Type := 5;
+		var fixedpt_type_var2 : Fixedpt_Type := 5.0;
+		
+		if int_var < 5 then
+			int_var := 0;
+		endif;
+		
+		if int_var < int_var2 then
+			int_var := 0;
+		endif;
+		
+		if fixedpt_var < 3.0 then
+			fixedpt_var := 0;
+		endif;
+		
+		if fixedpt_var < 3 then
+			fixedpt_var := 0;
+		endif;
+		
+		if fixedpt_var < fixedpt_var2 then
+			fixedpt_var := 0.0;
+		endif;
+		
+		if fixedpt_var < int_var then
+			fixedpt_var := 0.0;
+		endif;
+		
+		if fixedpt_var < int_var + 5.4 then
+			fixedpt_var := 0.0;
+		endif;
+		
+		if int_var < int_var + 5.4 then
+			int_var := 0;
+		endif;
+		
+		if int_var < int_var + 5 then
+			int_var := 0;
+		endif;
+		
+		if fixedpt_var < fixedpt_var2 + 5 then
+			fixedpt_var := 0.0;
+		endif;
+		
+		if fixedpt_var < fixedpt_var2 + 5.3 then
+			fixedpt_var := 0.0;
+		endif;
+		
+		if int_type_var < int_type_var then
+			int_type_var := int_type_var;
+		endif;
+		
+		if fixedpt_type_var < fixedpt_type_var then
+			fixedpt_type_var := fixedpt_type_var;
+		endif;
+		
+		while int_var < 5 do
+			int_var := 0;
+		enddo;
+		
+		while int_var < int_var2 do
+			int_var := 0;
+		enddo;
+		
+		while fixedpt_var < 3.0 do
+			fixedpt_var := 0;
+		enddo;
+		
+		while fixedpt_var < 3 do
+			fixedpt_var := 0;
+		enddo;
+		
+		while fixedpt_var < fixedpt_var2 do
+			fixedpt_var := 0.0;
+		enddo;
+		
+		while fixedpt_var < int_var do
+			fixedpt_var := 0.0;
+		enddo;
+		
+		while fixedpt_var < int_var + 5.4 do
+			fixedpt_var := 0.0;
+		enddo;
+		
+		while int_var < int_var + 5.4 do
+			int_var := 0;
+		enddo;
+		
+		while int_var < int_var + 5 do
+			int_var := 0;
+		enddo;
+		
+		while fixedpt_var < fixedpt_var2 + 5 do
+			fixedpt_var := 0.0;
+		enddo;
+		
+		while fixedpt_var < fixedpt_var2 + 5.3 do
+			fixedpt_var := 0.0;
+		enddo;
+		
+		while int_type_var < int_type_var do
+			int_type_var := int_type_var;
+		enddo;
+		
+		while fixedpt_type_var < fixedpt_type_var do
+			fixedpt_type_var := fixedpt_type_var;
+		enddo;
+	end;
+end;
+
+
+void function func21()
+begin
+	begin
+		var int_var : int := 5;
+		var fixedpt_var : fixedpt := 5.0;
+		var int_type_var : Int_Type := 5;
+		var fixedpt_var2 : fixedpt := 5.0;
+		var int_var2 : Int_Type := 5;
+		var fixedpt_type_var : Fixedpt_Type := 5.0;
+		var int_type_var2 : Int_Type := 5;
+		var fixedpt_type_var2 : Fixedpt_Type := 5.0;
+		
+		funcTest1(5);
+		funcTest1(int_var);
+		funcTest1(5 + int_var);
+		
+		int_var := funcTest1(5);
+		fixedpt_var := funcTest1(5);
+		
+		funcTest2(5.0);
+		funcTest2(5);
+		funcTest2(fixedpt_var);
+		funcTest2(int_var);
+		funcTest2(5.0 + fixedpt_var);
+		funcTest2(5 + fixedpt_var);
+		funcTest2(5.0 + int_var);
+		funcTest2(5 + int_var);
+		
+		fixedpt_var := funcTest2(5.0);
+		
+		funcTest3(int_type_var); 
+		funcTest3(int_type_var2);
+		
+		int_type_var := funcTest3(int_type_var); 
+		int_type_var2 := funcTest3(int_type_var); 
+		
+		funcTest4(fixedpt_type_var); 
+		funcTest4(fixedpt_type_var2);
+		
+		fixedpt_type_var := funcTest4(fixedpt_type_var);
+		fixedpt_type_var2 := funcTest4(fixedpt_type_var);
+	end;
+end;
+
+
+void main()
+begin
+	begin
+		var x : int := 10;
+		x := 2;
+	end;
+end;
+

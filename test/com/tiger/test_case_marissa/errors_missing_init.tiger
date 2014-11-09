@@ -1,0 +1,377 @@
+
+/* Used in testing */
+type Int = int;
+type Int_Type = int;
+type Int_Type2 = int;
+type ArrayInt = array [100] of int;
+type Array2DInt = array [100][100] of int;
+type FixedPtLit = fixedpt;
+type Fixedpt_Type = fixedpt;
+type Fixedpt_Type2 = fixedpt;
+type ArrayFixedPtLit = array [100] of fixedpt;
+type Array2DFixedPtLit = array [100][100] of fixedpt;
+
+void function testFunc1(x:int) 
+begin
+	begin
+		var a : int :=0;
+		a := 8;
+	end;
+end;
+
+void function testFunc2(x:fixedpt) 
+begin
+	begin
+		var a : int :=0;
+		a := 8;
+	end;
+end;
+void function testFunc3(x:int, y:fixedpt) 
+begin
+	begin
+		var a : int :=0;
+		a := 8;
+	end;
+end;
+void function testFunc4(x:ArrayInt) 
+begin
+	begin
+		var a : int :=0;
+		a := 8;
+	end;
+end; 
+void function testFunc5(x:ArrayFixedPtLit) 
+begin
+	begin
+		var a : int :=0;
+		a := 8;
+	end;
+end; 
+
+
+
+
+
+void function func1a()
+begin
+	begin
+		var a : int;
+		var b : int := 10;
+		b := a;
+	end;
+end; 
+
+void function func1m()
+begin
+	begin
+		var a : int;
+		begin
+			var b : int := 10;
+			b := a;
+		end;
+	end;
+end; 
+
+void function func1b()
+begin
+	begin
+		var a : int;
+		var b : int := 10;
+		b := a * 10;
+	end;
+end; 
+
+void function func1n()
+begin
+	begin
+		var a : int;
+		begin 
+			var b : int := 10;
+			b := a * 10;
+		end;
+	end;
+end; 
+
+
+void function func1c()
+begin
+	begin
+		var a : int;
+		var b : int := 10;
+		b := 10 * a;
+	end;
+end; 
+
+void function func1o()
+begin
+	begin
+		var a : int;
+		begin
+			var b : int := 10;
+			b := 10 * a;
+		end;
+	end;
+end; 
+
+void function func3()
+begin
+	begin
+		var a : int;
+		var b : int := 10;
+		if a = b then
+			a := 1;
+		endif;
+	end;
+end;
+
+void function func4()
+begin
+	begin
+		var a : int;
+		var b : int := 10;
+		if b = a then
+			a := 1;
+		endif;
+	end;
+end;
+
+void function func5()
+begin
+	begin
+		var a : int;
+		var b : int := 10;
+		if 3 < 4 & b = a then
+			a := 1;
+		endif;
+	end;
+end;
+
+void function func6()
+begin
+	begin
+		var a : int;
+		var b : int := 10;
+		if b = a | 3 <> 0 then
+			a := 1;
+		endif;
+	end;
+end;
+
+void function func7()
+begin
+	begin
+		var a : int;
+		var b : int := 10;
+		if a = b | 3 <> 0 then
+			a := 1;
+		endif;
+	end;
+end;
+
+
+void function func3b()
+begin
+	begin
+		var a : int;
+		var b : int := 10;
+		while a = b do
+			a := 1;
+		enddo;
+	end;
+end;
+
+void function func4b()
+begin
+	begin
+		var a : int;
+		var b : int := 10;
+		while b = a do
+			a := 1;
+		enddo;
+	end;
+end;
+
+void function func5b()
+begin
+	begin
+		var a : int;
+		var b : int := 10;
+		while 3 < 4 & b = a do
+			a := 1;
+		enddo;
+	end;
+end;
+
+void function func6b()
+begin
+	begin
+		var a : int;
+		var b : int := 10;
+		while b = a | 3 <> 0 do
+			a := 1;
+		enddo;
+	end;
+end;
+
+void function func7b()
+begin
+	begin
+		var a : int;
+		var b : int := 10;
+		while a = b | 3 <> 0 do
+			a := 1;
+		enddo;
+	end;
+end;
+
+
+
+void function func8()
+begin
+	begin
+		var a : int;
+		var b : int := 10;
+		for i := a to b do
+			b := b + 1;
+		enddo;
+	end;
+end; 
+
+void function func9()
+begin
+	begin
+		var a : int;
+		var b : int := 10;
+		for i := b to a do
+			b := b + 1;
+		enddo;
+	end;
+end; 
+
+
+
+void function func10()
+begin
+	begin
+		var a : int;
+		var b : int := 10;
+		for i := a to 10 do
+			b := b + 1;
+		enddo;
+	end;
+end; 
+
+void function func11()
+begin
+	begin
+		var a : int;
+		var b : int := 10;
+		for i := 10 to a do
+			b := b + 1;
+		enddo;
+	end;
+end; 
+
+void function func12() 
+begin
+	begin
+		var a : int;
+		testFunc1(a);
+	end;
+end;
+
+void function func13() 
+begin
+	begin
+		var b : fixedpt;
+		testFunc2(b);
+	end;
+end;
+
+void function func14() 
+begin
+	begin
+		var a : int := 0;
+		var b : fixedpt;
+		testFunc3(a,b);
+	end;
+end;
+
+void function func15() 
+begin
+	begin
+		var a : int;
+		var b : fixedpt := 0;
+		testFunc3(a,b);
+	end;
+end;
+
+void function func16() 
+begin
+	begin
+		var a : int;
+		var b : fixedpt;
+		testFunc3(a,b);
+	end;
+end;
+
+void function func17() 
+begin
+	begin
+		var a : int;
+		var b : fixedpt;
+		testFunc3(10,b);
+	end;
+end;
+
+void function func18() 
+begin
+	begin
+		var a : int;
+		var b : fixedpt;
+		testFunc3(a,9);
+	end;
+end;
+
+int function func19() 
+begin
+	begin
+		var a : int;
+		return a;
+	end;
+end;
+
+fixedpt function func20() 
+begin
+	begin
+		var a : fixedpt;
+		return a;
+	end;
+end;
+
+Int_Type function func21() 
+begin
+	begin
+		var a : Int_Type;
+		return a;
+	end;
+end;
+
+Fixedpt_Type function func22() 
+begin
+	begin
+		var a : Fixedpt_Type;
+		return a;
+	end;
+end;
+
+
+
+
+void main()
+begin
+	begin
+		var x : int := 10;
+		x := 2;
+	end;
+end;

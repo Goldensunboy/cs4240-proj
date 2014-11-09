@@ -18,7 +18,7 @@ begin
 	end;
 end; */
 
-/* TODO: If a for loop goes from a higher number to a lower number, then the loop should compile but not execute!! */
+/*  If a for loop goes from a higher number to a lower number, then the loop should compile but not execute!! */
 void function func2()
 begin
 	begin

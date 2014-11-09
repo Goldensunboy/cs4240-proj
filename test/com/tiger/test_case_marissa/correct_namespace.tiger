@@ -1,0 +1,75 @@
+type name1 = int;
+type name2 = int;
+
+
+int function func1() 
+begin
+	begin
+		var name3, name6 : int :=0;
+		begin
+			var name3 : int :=0;
+			begin
+				var name3 : int :=0;
+				begin
+					var name3 : int :=0;
+					name3 :=0;
+				end;
+				name3 :=0;
+			end;
+			name3 :=0;
+		end;
+		name3 := 0;
+		
+		begin
+			var name4 : int :=0;
+			name4 :=0;
+			begin
+				var name3 : int :=0;
+				begin
+					var name4 : int :=0;
+					name4 :=0;
+				end;
+				name3 :=0;
+			end;
+		end;
+		begin
+			var name4 : int :=0;
+			begin
+				var name3 : int :=0;
+				begin
+					var name4 : int :=0;
+					begin
+						var name3 : int :=0;
+						name6 :=0;
+					end;
+					name4 :=0;
+					begin
+						var name3 : int :=0;
+						begin
+							var name4 : int :=0;
+							begin
+								var name3 : int :=0;
+								name6 :=0;
+							end;
+							name4 :=0;
+						end;
+						name3 :=0;
+					end;
+					name4 :=0;
+				end;
+				name3 :=0;
+			end;
+			name4 :=0;
+		end;
+		return 5;
+	end;
+end;
+
+
+void main()
+begin
+	begin
+		var x : int := 10;
+		x := 2;
+	end;
+end;

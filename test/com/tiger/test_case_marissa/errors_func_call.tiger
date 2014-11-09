@@ -80,7 +80,7 @@ begin
 	end;
 end; */
 
-/* TODO: (Does not give a proper error message) Cannot call a function with missing parameters. */ 
+/*  (Does not give a proper error message) Cannot call a function with missing parameters. */ 
 void function func3ab()
 begin
 	begin
@@ -98,7 +98,7 @@ begin
 	end;
 end; 
 
-/* TODO: (Does not give a proper error message) Cannot call a function with additional parameters. */ 
+/*  (Does not give a proper error message) Cannot call a function with additional parameters. */ 
 void function func5()
 begin
 	begin
@@ -107,7 +107,7 @@ begin
 	end;
 end; 
 
-/* TODO: (Does not give a proper error message) Cannot call a function with additional parameters that are variables. */ 
+/*  (Does not give a proper error message) Cannot call a function with additional parameters that are variables. */ 
 void function func6()
 begin
 	begin
@@ -116,7 +116,7 @@ begin
 	end;
 end; 
 
-/* TODO: (Does not give a proper error message) Cannot call a function with additional parameters that are literals. */ 
+/*  (Does not give a proper error message) Cannot call a function with additional parameters that are literals. */ 
 void function func7()
 begin
 	begin
@@ -125,7 +125,7 @@ begin
 	end;
 end; 
 
-/* TODO: (Does not give a proper error message) Cannot assign a void return value to a variable. */ /*
+/*  (Does not give a proper error message) Cannot assign a void return value to a variable. */ /*
 void function func8()
 begin
 	begin
@@ -152,7 +152,7 @@ begin
 	end;
 end; */
 
-/* TODO: Cannot assign the return value of a function to an undeclared variable. */ /*
+/*  Cannot assign the return value of a function to an undeclared variable. */ /*
 void function func13()
 begin
 	begin
@@ -208,7 +208,7 @@ begin
 	end;
 end; */
 
-/* TODO: Bad error message for using a function as a parameter to another function when the return value is NOT assigned to a variable */ /*
+/*  Bad error message for using a function as a parameter to another function when the return value is NOT assigned to a variable */ /*
 void function func17()
 begin
 	begin

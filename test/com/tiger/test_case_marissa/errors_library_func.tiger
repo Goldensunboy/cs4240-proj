@@ -1,5 +1,5 @@
 
-/* TODO: Do not allow functions from the standard library to be redefined with same types */ 
+/*  Do not allow functions from the standard library to be redefined with same types */ 
 int function not(i:int)
 begin
 	begin
@@ -8,7 +8,7 @@ begin
 	end;
 end; 
 
-/* TODO: do not allow functions from the standard library that are implemented to be redefined with different parameters or return type */ 
+/*  do not allow functions from the standard library that are implemented to be redefined with different parameters or return type */ 
 fixedpt function printi()
 begin
 	begin
@@ -17,7 +17,7 @@ begin
 	end;
 end; 
 
-/* TODO: do not allow functions from the standard library that are not implemented to be redefined with different parameters or return type */ 
+/*  do not allow functions from the standard library that are not implemented to be redefined with different parameters or return type */ 
 fixedpt function print()
 begin
 	begin

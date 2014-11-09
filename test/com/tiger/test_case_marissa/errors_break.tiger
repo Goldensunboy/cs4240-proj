@@ -1,0 +1,64 @@
+
+int function testFunc(x:int) 
+begin
+	begin
+		var a, b : int :=0;
+		return a;
+	end;
+end; 
+
+/* should not be able to put a break randomly in a function */ 
+void function func1()
+begin
+	begin
+		var a, b : int :=0;
+		break;
+	end;
+end; 
+
+/* should not be able to put a break randomly outside of a loop */ 
+void function func2()
+begin
+	begin
+		var a, b : int :=0;
+		if a = b then
+			break;
+		endif;
+	end;
+end; 
+
+/* should not be able to put a break randomly outside of a loop */ 
+void function func3()
+begin
+	begin
+		var a, b : int :=0;
+		if a = b then
+			if a = b then
+				break;
+			endif;
+		endif;
+	end;
+end; 
+
+/* should not be able to put a break randomly outside of a loop */ 
+void function func4()
+begin
+	begin
+		var a, b : int :=0;
+		while a <> b do
+			if a = b then
+				a := 0;
+			endif;
+		enddo;
+		break;
+	end;
+end; 
+
+
+void main()
+begin
+	begin
+		var x : int := 10;
+		x := 2;
+	end;
+end;

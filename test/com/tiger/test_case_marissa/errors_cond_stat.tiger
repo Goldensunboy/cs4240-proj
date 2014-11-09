@@ -18,7 +18,7 @@ begin
 	end;
 end; 
 
-/* TODO: (wrong error message) if condition statement does not contain a boolean value */ /*
+/*  (wrong error message) if condition statement does not contain a boolean value */ /*
 void function func1a()
 begin
 	begin
@@ -29,7 +29,7 @@ begin
 	end;
 end; */
 
-/* TODO: (wrong error message) while condition statement does not contain a boolean value */ /*
+/*  (wrong error message) while condition statement does not contain a boolean value */ /*
 void function func1b()
 begin
 	begin
@@ -41,7 +41,7 @@ begin
 	end;
 end; */
 
-/* TODO: (wrong error message) if then else condition statement does not contain a boolean value */ /*
+/*  (wrong error message) if then else condition statement does not contain a boolean value */ /*
 void function func2()
 begin
 	begin
@@ -76,7 +76,7 @@ begin
 	end;
 end; */
 
-/* TODO: (wrong error message) while condition statement does not contains (fixedpt | int) */  /*
+/*  (wrong error message) while condition statement does not contains (fixedpt | int) */  /*
 int function func5()
 begin
 	begin
@@ -163,7 +163,7 @@ begin
 	end;
 end; */
 
-/* TODO: Cannot perform a comparison of two arrays */
+/*  Cannot perform a comparison of two arrays */
 void function func14() 
 begin
 	begin
@@ -174,7 +174,7 @@ begin
 	end;
 end;
 
-/* TODO: Cannot perform a comparison of an array and an int */
+/*  Cannot perform a comparison of an array and an int */
 void function func15() 
 begin
 	begin
@@ -185,7 +185,7 @@ begin
 	end;
 end;
 
-/* TODO: Cannot perform a comparison of an fixedpt variable and an int literal */
+/*  Cannot perform a comparison of an fixedpt variable and an int literal */
 void function func16() 
 begin
 	begin
@@ -197,7 +197,7 @@ begin
 	end;
 end;
 
-/* TODO: Cannot perform a comparison of an int variable and an fixedpt literal */
+/*  Cannot perform a comparison of an int variable and an fixedpt literal */
 void function func17() 
 begin
 	begin
