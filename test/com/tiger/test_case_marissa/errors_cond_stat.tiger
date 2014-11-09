@@ -1,4 +1,4 @@
-
+SKIP_S
 type ArrayInt = array [100] of int;
 type ArrayFixedPt = array [100] of fixedpt;
 
@@ -220,6 +220,8 @@ begin
 		endif;
 	end;
 end;
+
+SKIP_E
 
 void main()
 begin

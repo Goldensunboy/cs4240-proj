@@ -1,4 +1,4 @@
-/* This file should compile */
+SKIP_S
 
 type Int = int;
 type ArrayInt = array [100] of int;
@@ -118,6 +118,8 @@ begin
 		return x;
 	end;
 end;
+
+SKIP_E
 
 void main()
 begin

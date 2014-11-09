@@ -1,4 +1,4 @@
-
+SKIP_S
 /* Using undefined variable */ /*
 void function func2() 
 begin
@@ -34,6 +34,8 @@ begin
 	end;
 end; */
 
+
+SKIP_E
 void main()
 begin
 	begin

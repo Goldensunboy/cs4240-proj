@@ -1,5 +1,4 @@
-
-/* Should contain no more TODOs */
+SKIP_S
 
 /* Used in testing */
 int function testFunc()
@@ -65,7 +64,7 @@ begin
 	end;
 end; 
 
-
+SKIP_E
 
 void main()
 begin

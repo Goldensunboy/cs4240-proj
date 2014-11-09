@@ -1,4 +1,5 @@
 
+SKIP_S
 int function testFunc(x:int) 
 begin
 	begin
@@ -289,6 +290,8 @@ begin
 		endif;
 	end;
 end; 
+
+SKIP_E
 
 void main()
 begin

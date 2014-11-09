@@ -1,4 +1,4 @@
-
+SKIP_S
 int function testFunc() 
 begin
 	begin
@@ -87,6 +87,8 @@ begin
 		enddo;
 	end;
 end; */
+
+SKIP_E
 
 void main()
 begin

@@ -1,4 +1,4 @@
-
+SKIP_S
 type ArrayInt = array [100] of int;
 
 /* Used in testing */
@@ -216,6 +216,8 @@ begin
 		testFunc7(testFunc7(a));
 	end;
 end; */
+
+SKIP_E
 
 void main()
 begin

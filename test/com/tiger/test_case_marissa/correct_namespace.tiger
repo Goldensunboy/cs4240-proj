@@ -1,3 +1,5 @@
+SKIP_S
+
 type name1 = int;
 type name2 = int;
 
@@ -64,6 +66,8 @@ begin
 		return 5;
 	end;
 end;
+
+SKIP_E
 
 
 void main()

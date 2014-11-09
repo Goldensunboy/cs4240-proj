@@ -1,4 +1,4 @@
-
+SKIP_S
 type ArrayInt = array [100] of int;
 
 /* Used in testing */
@@ -97,13 +97,15 @@ begin
 end; 
 
 
-void function func3()
+void function func6()
 begin
 	begin
 		var x : ArrayInt :=0;
 		x[0] := testFunc7(8);
 	end;
 end; 
+
+SKIP_E
 
 void main()
 begin
