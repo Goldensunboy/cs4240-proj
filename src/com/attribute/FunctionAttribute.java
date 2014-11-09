@@ -49,7 +49,7 @@ public class FunctionAttribute implements Attribute{
 
 	@Override
 	public String getTypeName() {
-		return typeName;
+		return getReturnTypeName();
 	}
 
 	public String getReturnTypeName() {

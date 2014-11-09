@@ -1,32 +1,12 @@
 void main()
 begin
 	begin
-		var x : int := 0;
-		if(x < 1) then
-			x := 1;
-		else
-			x := 2;
-		endif;
-		if(x > 1) then
-			x := 3;
-		endif;
-		if(x = 1) then
-			x := 4;
-		endif;
-		if(x <> 1) then
-			x := 5;
-		endif;
-		if(x >= 1) then
-			x := 6;
-		endif;
-		if(x >= 1) then
-			x := 7;
-		endif;
-		if(1 + 1 + 1 < 2 + 2 + 2 & 3 + 3 + 3 < 4 + 4 + 4) then
-			x := 8;
-		endif;
-		if(1 + 1 + 1 < 2 + 2 + 2 | 3 + 3 + 3 < 4 + 4 + 4) then
-			x := 9;
-		endif;
+		var x : int := 10;
+		while x > 1 do
+			x := x - 1;
+		enddo;
+		while 1 + 1 + 1 < 2 + 2 + 2 & 3 + 3 + 3 < 4 + 4 + 4 | 5 + 5 + 5 < 6 + 6 + 6 do
+			x := x - 1;
+		enddo;
 	end;
 end;
