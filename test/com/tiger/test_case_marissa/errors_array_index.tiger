@@ -1,3 +1,6 @@
+
+SKIP_S
+
 type ArrayInt = array [100] of int;
 type Array2DInt = array [100][100] of int;
 
@@ -129,6 +132,8 @@ begin
 		i := X[X[1]];
 	end;
 end; 
+
+SKIP_E
 
 void main()
 begin

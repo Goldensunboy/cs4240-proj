@@ -1,4 +1,4 @@
-
+SKIP_S
 type Int = int;
 type Int_Type = int;
 type Int_Type2 = int;
@@ -7,8 +7,8 @@ type Array2DInt = array [100][100] of int;
 type FixedPtLit = fixedpt;
 type Fixedpt_Type = fixedpt;
 type Fixedpt_Type2 = fixedpt;
-type ArrayFixedPtLit = array [100] of fixedpt;
-type Array2DFixedPtLit = array [100][100] of fixedpt;
+type ArrayFixedPt = array [100] of fixedpt;
+type Array2DFixedPt = array [100][100] of fixedpt;
 
 /* Used in testing */
 void function testFunc()
@@ -655,7 +655,274 @@ begin
 	end;
 end;
 
+int function func11() 
+begin
+	begin
+		var a : int :=0;
+		return 5.0;
+	end;
+end;
 
+int function func12() 
+begin
+	begin
+		var a : fixedpt :=0;
+		return a;
+	end;
+end;
+
+int function func13() 
+begin
+	begin
+		var a : Int_Type :=0;
+		return a;
+	end;
+end;
+
+int function func14() 
+begin
+	begin
+		var a : Fixedpt_Type :=0;
+		return a;
+	end;
+end;
+
+int function func15() 
+begin
+	begin
+		var a : ArrayInt :=0;
+		return a;
+	end;
+end;
+
+int function func16() 
+begin
+	begin
+		var a : ArrayFixedPt :=0;
+		return a;
+	end;
+end;
+
+int function func17() 
+begin
+	begin
+		var a : Array2DInt :=0;
+		return a;
+	end;
+end;
+
+int function func18() 
+begin
+	begin
+		var a : Array2DFixedPt :=0;
+		return a;
+	end;
+end;
+
+fixedpt function func11b() 
+begin
+	begin
+		var a : int :=0;
+		return 5;
+	end;
+end;
+
+fixedpt function func12b() 
+begin
+	begin
+		var a : int :=0;
+		return a;
+	end;
+end;
+
+fixedpt function func13b() 
+begin
+	begin
+		var a : Int_Type :=0;
+		return a;
+	end;
+end;
+
+fixedpt function func14b() 
+begin
+	begin
+		var a : Fixedpt_Type :=0;
+		return a;
+	end;
+end;
+
+fixedpt function func15b() 
+begin
+	begin
+		var a : ArrayInt :=0;
+		return a;
+	end;
+end;
+
+fixedpt function func16b() 
+begin
+	begin
+		var a : ArrayFixedPt :=0;
+		return a;
+	end;
+end;
+
+fixedpt function func17b() 
+begin
+	begin
+		var a : Array2DInt :=0;
+		return a;
+	end;
+end;
+
+fixedpt function func18b() 
+begin
+	begin
+		var a : Array2DFixedPt :=0;
+		return a;
+	end;
+end;
+
+
+Int_Type function func11ca() 
+begin
+	begin
+		var a : int :=0;
+		return 5;
+	end;
+end;
+
+Int_Type function func11cb() 
+begin
+	begin
+		var a : int :=0;
+		return 5.0;
+	end;
+end;
+
+Int_Type function func12c() 
+begin
+	begin
+		var a : fixedpt :=0;
+		return a;
+	end;
+end;
+
+Int_Type function func14c() 
+begin
+	begin
+		var a : Fixedpt_Type :=0;
+		return a;
+	end;
+end;
+
+Int_Type function func15c() 
+begin
+	begin
+		var a : ArrayInt :=0;
+		return a;
+	end;
+end;
+
+Int_Type function func16c() 
+begin
+	begin
+		var a : ArrayFixedPt :=0;
+		return a;
+	end;
+end;
+
+Int_Type function func17c() 
+begin
+	begin
+		var a : Array2DInt :=0;
+		return a;
+	end;
+end;
+
+Int_Type function func18c() 
+begin
+	begin
+		var a : Array2DFixedPt :=0;
+		return a;
+	end;
+end;
+
+
+Fixedpt_Type function func11da() 
+begin
+	begin
+		var a : int :=0;
+		return 5;
+	end;
+end;
+
+Fixedpt_Type function func11db() 
+begin
+	begin
+		var a : int :=0;
+		return 5.0;
+	end;
+end;
+
+Fixedpt_Type function func12d() 
+begin
+	begin
+		var a : fixedpt :=0;
+		return a;
+	end;
+end;
+
+Fixedpt_Type function func14d() 
+begin
+	begin
+		var a : Int_Type :=0;
+		return a;
+	end;
+end;
+
+Fixedpt_Type function func15d() 
+begin
+	begin
+		var a : ArrayInt :=0;
+		return a;
+	end;
+end;
+
+Fixedpt_Type function func16d() 
+begin
+	begin
+		var a : ArrayFixedPt :=0;
+		return a;
+	end;
+end;
+
+Int_Type function func17d() 
+begin
+	begin
+		var a : Array2DInt :=0;
+		return a;
+	end;
+end;
+
+Int_Type function func18d() 
+begin
+	begin
+		var a : Array2DFixedPt :=0;
+		return a;
+	end;
+end;
+
+
+
+
+
+
+
+
+
+
+SKIP_E
 
 
 

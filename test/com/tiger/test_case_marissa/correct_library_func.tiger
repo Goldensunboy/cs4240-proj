@@ -1,5 +1,6 @@
 
-/* TODO flush */ 
+SKIP_S
+/*  flush */ 
 void function func1()
 begin
 	begin
@@ -8,7 +9,7 @@ begin
 	end;
 end; 
 
-/* TODO printi */ 
+/*  printi */ 
 void function func2a()
 begin
 	begin
@@ -17,7 +18,7 @@ begin
 	end;
 end; 
 
-/* TODO printi */ 
+/*  printi */ 
 void function func2b()
 begin
 	begin
@@ -26,7 +27,7 @@ begin
 	end;
 end; 
 
-/* TODO exit */ 
+/*  exit */ 
 void function func4()
 begin
 	begin
@@ -35,7 +36,7 @@ begin
 	end;
 end; 
 
-/* TODO exit */ 
+/*  exit */ 
 void function func5()
 begin
 	begin
@@ -44,7 +45,7 @@ begin
 	end;
 end; 
 
-/* TODO not */ 
+/*  not */ 
 void function func6()
 begin
 	begin
@@ -53,7 +54,7 @@ begin
 	end;
 end; 
 
-/* TODO not */ 
+/*  not */ 
 void function func7()
 begin
 	begin
@@ -62,7 +63,7 @@ begin
 	end;
 end; */
 
-/* TODO not */ 
+/*  not */ 
 void function func8()
 begin
 	begin
@@ -71,7 +72,7 @@ begin
 	end;
 end; 
 
-/* TODO not */ 
+/*  not */ 
 void function func9()
 begin
 	begin
@@ -80,6 +81,7 @@ begin
 	end;
 end; 
 
+SKIP_E
 
 void main()
 begin
