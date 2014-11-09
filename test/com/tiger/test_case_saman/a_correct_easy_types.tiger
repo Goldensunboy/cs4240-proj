@@ -1,0 +1,51 @@
+SKIP_S
+type Int = int;
+type Int_Type = int;
+type Int_Type2 = int;
+type ArrayInt = array [100] of int;
+type Array2DInt = array [100][100] of int;
+type FixedPtLit = fixedpt;
+type Fixedpt_Type = fixedpt;
+type Fixedpt_Type2 = fixedpt;
+type ArrayFixedPtLit = array [100] of fixedpt;
+type Array2DFixedPtLit = array [100][100] of fixedpt;
+
+void function func() 
+begin
+	begin
+		var int_var : int := 5;
+		var fixedpt_var : fixedpt := 5.0;
+		var int_type_var : Int_Type := 5;
+		var int_var2 : Int_Type := 5;
+		var fixedpt_type_var : Fixedpt_Type := 5.0;
+		var int_type_var2 : Int_Type := 5;
+		var fixedpt_type_var2 : Fixedpt_Type := 5.0;
+		var int_type2_var : Int_Type2 := 5;
+		var fixedpt_type2_var : Fixedpt_Type2 := 5.0;
+		
+		int_var := 5;
+		fixedpt_var := 5.0;
+		fixedpt_var := 5;
+		int_var := int_var;
+		fixedpt_var := fixedpt_var;
+		fixedpt_var := int_var;
+		int_var := int_var + 5;
+		fixedpt_var := fixedpt_var + 5.0;
+		fixedpt_var := fixedpt_var + 5;
+		fixedpt_var := fixedpt_var + int_var;
+		int_type_var := int_type_var;
+		fixedpt_type_var := fixedpt_type_var;
+		int_type_var := int_type_var2; 
+		fixedpt_type_var := fixedpt_type_var2;   
+	end;
+end;
+
+SKIP_E
+void main()
+begin
+	begin
+		var x : int := 10;
+		x := 2;
+	end;
+end;
+
