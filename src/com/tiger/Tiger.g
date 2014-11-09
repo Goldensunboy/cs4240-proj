@@ -1375,6 +1375,10 @@ COMMENT :
   '/*' ( options {greedy=false;} : . )* '*/' {$channel=HIDDEN;}
 ;
 
+COMMENT2 :
+  'SKIP_S' ( options {greedy=false;} : . )* 'SKIP_E' {$channel=HIDDEN;}
+;
+
 WS :
   ( ' '
   | '\t'

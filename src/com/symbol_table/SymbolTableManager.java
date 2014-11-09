@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.LinkedList;
@@ -35,6 +36,7 @@ public class SymbolTableManager {
 	private Set<String> globalTypeFunctionNameSpace;
 	private Scope currentScope;	
 	private int scopeId;
+	private List<String> reservedWords;
 	
 	// the symbol table that holds all symbol names and their actual symbols in the code
 	private Map<String, List<Symbol>> symbolTable;
@@ -54,7 +56,7 @@ public class SymbolTableManager {
 		scopeId = 0;
 		symbolTable = new Hashtable<String, List<Symbol>>();
 		expiredFunctionName = new HashSet<>();
-//		populateReserved();
+		populateReserved();
 	}
 	
 	/**
@@ -286,6 +288,9 @@ public class SymbolTableManager {
 		Set<String> varNameSpace = unregisteredNamespaceMap.get(TigerParser.VAR_NAMESPACE);
 		Set<String> typeNameSpace = unregisteredNamespaceMap.get(TigerParser.TYPE_NAMESPACE);
 		Set<String> functionNameSpace = unregisteredNamespaceMap.get(TigerParser.FUNCTION_NAMESPACE);
+
+		if(reservedWords.contains(name))
+			return true;
 		
 		boolean functionNameConflict = globalScope.isInFunctionNameSpace(name, functionNameSpace, globalTypeFunctionNameSpace); 
 		boolean typeNameConflict = currentScope == null ? typeNameSpace.contains(name): currentScope.isInTypeNameSpace(idType, name, typeNameSpace, globalTypeFunctionNameSpace);
@@ -317,6 +322,8 @@ public class SymbolTableManager {
 	
 	private void populateReserved() {
 		populateReservedTypes();
+		populateReservedFunctions();
+		populateReservedWords();
 	}
 	
 	private void populateReservedTypes() {
@@ -329,6 +336,42 @@ public class SymbolTableManager {
 			globalTypeFunctionNameSpace.add(typeName);
 		}
 		symbolTable.putAll(globalScope.putInScope(attributeMap));
+	}
+	
+	/**
+	 * Reads in a list of reserved functions. The functions that are read in are in the format
+	 * "funcName:returnType:optionalParameter", if there is no parameter, the ":optionalParameter"
+	 * is left off.
+	 */
+	private void populateReservedFunctions() {
+		String path = "reserved/functions";
+		Map<String, Attribute> attributeMap = new Hashtable<>();
+		for(String funcName : readReservedFile(path)) {	
+			String[] func = funcName.split(":");
+			Attribute funcAttribute;
+			if(func.length > 2) {
+				String[] params = new String[func.length - 2];
+				System.arraycopy(func, 2, params, 0,  func.length - 2);
+				funcAttribute = new FunctionAttribute(func[0], Type.getType(func[1]), new ArrayList<String>(Arrays.asList(params)));
+			}
+			else if(func.length == 2){
+				funcAttribute = new FunctionAttribute(func[0], Type.getType(func[1]), new ArrayList<String>());
+			}
+			else
+				continue;
+			attributeMap.put(func[0], funcAttribute);
+			expiredFunctionName.add(func[0]);
+			globalTypeFunctionNameSpace.add(func[0]);
+		}
+		symbolTable.putAll(globalScope.putInScope(attributeMap));
+	}
+	
+	private void populateReservedWords() {
+		String path = "reserved/words";
+		reservedWords = new ArrayList<String>();
+		for(String word : readReservedFile(path)) {	
+			reservedWords.add(word);
+		}
 	}
 	
 	private List<String> readReservedFile(String path) {

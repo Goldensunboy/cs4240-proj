@@ -1,5 +1,5 @@
-
 SKIP_S
+
 /*  flush */ 
 void function func1()
 begin
@@ -61,7 +61,7 @@ begin
 		var x: int :=0;
 		not(x);
 	end;
-end; */
+end; 
 
 /*  not */ 
 void function func8()
@@ -80,8 +80,8 @@ begin
 		x := not(x);
 	end;
 end; 
-
 SKIP_E
+
 
 void main()
 begin

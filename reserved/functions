@@ -1,11 +1,4 @@
-print
-printi
-flush
-getchar
-ord
-chr
-size
-substring
-concat
-not
-exit
+printi:void:int
+flush:void
+not:int:int
+exit:void:int

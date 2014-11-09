@@ -1,24 +1,24 @@
-SKIP_S
 
-/* function called a reserved word should not be allowed */ /*
+SKIP_S
+/* function called a reserved word should not be allowed */ 
 void function function()
 begin
 	begin
 		var x : fixedpt :=0;
 		x := 3;
 	end;
-end; */
+end; 
 
-/* variable named a reserved word should not be allowed */ /*
+/* variable named a reserved word should not be allowed */ 
 void function func2()
 begin
 	begin
 		var then : fixedpt :=0;
 		then := 3;
 	end;
-end; */
+end; 
 
-/* type named a reserved word should not be allowed */ /*
+/* type named a reserved word should not be allowed */ 
 void function func3()
 begin
 	begin
@@ -26,7 +26,7 @@ begin
 		var id : fixedpt :=0;
 		id := 3;
 	end;
-end; */
+end; 
 
 SKIP_E
 

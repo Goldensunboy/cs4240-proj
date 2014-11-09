@@ -41,6 +41,10 @@ public enum Type {
 	  if(typeName.equals(ARRAY.getName())) {
 		  return ARRAY;
 	  }
+
+	  if(typeName.equals(VOID.getName())) {
+		  return VOID;
+	  }
 	  
 	  return OTHER;
   }
