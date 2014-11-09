@@ -165,13 +165,27 @@ public class SymbolTableManager {
 			return null;
 		}
 		
+		// if the symbol is in the nested scopes of a function
 		for(Symbol symbol : symbolList) {
 			if(haveSameParentScope(symbol.getScope())) {
 				return symbol.getAttribute();
 			}
 		}
 		
-		return null;
+		/* if the symbol is in the global scope
+		 * Note: symbolList of the global scope is always singleton
+		 * reason being we either have types and functions in the 
+		 * global scope, therefore we can't have a non-singleton
+		 * symbolList
+		 */
+		symbolList = globalScope.getSymbolMap().get(attributeName);
+		if(symbolList == null) {
+			return null;
+		} else if (symbolList.size() > 1){
+			throw new ShouldNotHappenException("The global scope's symbolList is not a singleton");
+		} else {
+			return symbolList.get(0).getAttribute();
+		}
 	}
 	
 	/**
@@ -188,6 +202,7 @@ public class SymbolTableManager {
 			}
 			tempScope = tempScope.getEnclosingScope();
 		}
+		
 		return false;
 	}
 
@@ -283,7 +298,6 @@ public class SymbolTableManager {
 	
 	public boolean doesNameSpaceConflict(int lineNumber, IdType idType, String name, Map<String, Set<String>> unregisteredNamespaceMap) {
 
-		int num = lineNumber;
 		Set<String> varNameSpace = unregisteredNamespaceMap.get(TigerParser.VAR_NAMESPACE);
 		Set<String> typeNameSpace = unregisteredNamespaceMap.get(TigerParser.TYPE_NAMESPACE);
 		Set<String> functionNameSpace = unregisteredNamespaceMap.get(TigerParser.FUNCTION_NAMESPACE);
@@ -311,10 +325,6 @@ public class SymbolTableManager {
 		}
 		
 		throw new ShouldNotHappenException();
-	}
-	
-	public boolean isValidType() {
-		return false;
 	}
 	
 	private void populateReserved() {

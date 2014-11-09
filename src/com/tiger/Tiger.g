@@ -76,17 +76,17 @@ import com.exception.NameSpaceConflictException;
   public static final String TYPE_NAMESPACE = "typeNameSpace";
   public static final String FUNCTION_NAMESPACE = "functionNameSpace";
   
-  private void putVariableAttributeMap(List<String> variableNameList, Type type,
-      String declaringFunctionName) {
+  private void putVariableAttributeMap(List<String> variableNameList, 
+      String typeName, Type type, String declaringFunctionName) {
     for (String variableName : variableNameList) {
-        VariableAttribute variableAttribute = new VariableAttribute(variableName, type.getName(),
+        VariableAttribute variableAttribute = new VariableAttribute(variableName, typeName,
           type, declaringFunctionName);
         attributeMap.put(variableName, variableAttribute);
     }
   }
   
-  private void putFunctionAttributeMap(String functionName, Type returnType, List<String> parameters) {
-    FunctionAttribute functionAttribute = new FunctionAttribute(functionName, returnType, parameters);
+  private void putFunctionAttributeMap(String functionName, String typeName, Type returnType, List<String> parameters) {
+    FunctionAttribute functionAttribute = new FunctionAttribute(functionName, typeName, returnType, parameters);
     attributeMap.put(functionName, functionAttribute);
   }
 
@@ -185,19 +185,19 @@ funcNext:
       exceptionHandler.handleException(myTypeId, customMessage, null, null, InvalidTypeException.class);
     }
   } 
-  funcCurrent[$typeId.type]
+  funcCurrent[$myTypeId.text, $typeId.type]
   | KEY_VOID
   (
-    funcCurrent[Type.VOID]
+    funcCurrent[Type.VOID.getName(), Type.VOID]
     | mainFunction[Type.VOID]
   )
 ;
 
-funcCurrent[Type returnType] :
-	 funcDeclaration[returnType] funcNext
+funcCurrent[String typeName, Type returnType] :
+	 funcDeclaration[typeName, returnType] funcNext
 ;
 
-funcDeclaration[Type returnType]
+funcDeclaration[String typeName, Type returnType]
 scope
 {
   List<String> myParams;
@@ -211,14 +211,14 @@ scope
 {
   IRList.addFirst("FUNC_" + $id.text + ":");
 }
-  OP_LPAREN paramList OP_RPAREN afterBegin[$myFunctionName.text, returnType]
+  OP_LPAREN paramList OP_RPAREN afterBegin[$myFunctionName.text, typeName, returnType]
 ;
 
-afterBegin[String myFunctionName, Type returnType]
+afterBegin[String myFunctionName, String typeName, Type returnType]
 @init
 {
   putFunctionAttributeMap(myFunctionName,
-                              returnType,
+                              typeName, returnType,
                               $funcDeclaration::myParams);
   enclosingFunctionName = myFunctionName;
 }
@@ -240,21 +240,16 @@ mainFunction [Type returnType]:
   a=KEY_MAIN OP_LPAREN OP_RPAREN 
   {
 	  putFunctionAttributeMap($KEY_MAIN.text,
-	                              Type.VOID,
+	                              Type.VOID.getName(), Type.VOID,
 	                              new ArrayList<String>());
 	  enclosingFunctionName = $KEY_MAIN.text;
   }
   key_begin blockList[$a.text] key_end OP_SCOLON EOF
 ;
 
-//retType[] :
-//	typeId[IdType.RETURN_TYPE]
-//	| KEY_VOID
-//;
-
 typeId[IdType idType] returns[Type type]:
 	baseType {$type=$baseType.type;}
-	| id[idType] {$type=Type.OTHER;}
+	| id[idType] {$type=$id.type.getType();}
 ;
 
 baseType returns[Type type]:
@@ -354,8 +349,8 @@ scope
 	KEY_VAR idList[IdType.VARIABLE_DECLARATION] OP_COLON myTypeId=typeId[IdType.VARIABLE_TYPE]
 	{
 	  putVariableAttributeMap($varDeclaration::aggregatedMyIdList,
-	                              $myTypeId.type,
-	                              $functionName);
+	                          $myTypeId.text, $myTypeId.type,
+	                          $functionName);
 	}
   optionalInit[$varDeclaration::aggregatedMyIdList] OP_SCOLON
 ;
@@ -395,13 +390,15 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 @init
 {
   List<String> paramList = new ArrayList<String>();
+  
 }
 : 
 	(
-		s1=id[IdType.VARIABLE_NAME] // Check this again 
+		s1=id[IdType.VARIABLE_NAME] {}// Check this again 
 		(
 		  s2=valueTail OP_ASSIGN s3=expr[null, null]
 		  {
+		    
 		    // Verify that the assignment is valid
 		    Attribute att = symbolTableManager.getAttributeInCurrentScope($s1.exp, attributeMap);
 		    if(!$s3.exp.contains("#")) {
@@ -410,7 +407,7 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		        // Variable not declared yet
 		        String customMessage = "Assignment to undeclared variable: " + $s1.exp;
 		        exceptionHandler.handleException(s1, customMessage, null, null, UndeclaredVariableException.class);
-		      } else if($s1.type == Type.INT && $s3.type == Type.FIXPT) {
+		      } else if($s1.type.getType() == Type.INT && $s3.type == Type.FIXPT) {
 		        // Illegal assignment (fixpt to int)
             String customMessage = "Assignment of fixedpt expression " + $s3.exp + " to int variable " + $s1.exp;
             exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
@@ -440,7 +437,7 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		      // Function assignment
 		      String[] parts = $s3.exp.split("#");
 		      Type rettype = symbolTableManager.getFunctionReturnType(parts[0]);
-		      if($s1.type == Type.INT && rettype == Type.FIXPT) {
+		      if($s1.type.getType() == Type.INT && rettype == Type.FIXPT) {
 		        // (fixpt to int)
 		        String customMessage = "Assignment of fixedpt function " + parts[0] + " to int variable " + $s1.exp;
             exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
@@ -451,7 +448,7 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		        (parts.length == 1 ? "" : ", " + parts[1]));
 		    }
 		  }
-		  | OP_LPAREN s4=funcExprList[paramList, IdType.FUNCTION_ARGUMENT] OP_RPAREN
+		  | OP_LPAREN s4=funcExprList[paramList] OP_RPAREN
 		  {
 		    // Lone function call
 		    if("".equals($s4.exp)) {
@@ -578,9 +575,7 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		    // Generate index variable
 		    ArrayList<String> varList = new ArrayList<String>();
 		    varList.add($s6.text);
-		    putVariableAttributeMap(varList,
-                                Type.INT,
-                                $functionName);
+		    putVariableAttributeMap(varList, Type.INT.getName() , Type.INT, $functionName);
         IRList.addFirst("assign, " + $s6.text + ", " + $s7.exp);
         // Begin loop here
         IRList.addFirst(forTop + ":");
@@ -1023,7 +1018,7 @@ binOp4[String startLabel, String endLabel] returns [String exp, Type type, boole
   (
     s4=valueTail
     {
-      $type = $s3.type;
+      $type = $s3.type.getType();
       if("".equals($s4.exp)) {
         $exp = $s3.exp;
       } else {
@@ -1037,7 +1032,7 @@ binOp4[String startLabel, String endLabel] returns [String exp, Type type, boole
         $exp = arrTempVar;
       }
     }
-    | OP_LPAREN s5=funcExprList[paramList, IdType.NIY] OP_RPAREN {$exp = $s3.exp + "#" + $s5.exp; $type = $s3.type; $myIsFunc = true;}
+    | OP_LPAREN s5=funcExprList[paramList] OP_RPAREN {$exp = $s3.exp + "#" + $s5.exp; $type = $s3.type.getType(); $myIsFunc = true;}
   )
   {
     Attribute att = symbolTableManager.getAttributeInCurrentScope($s3.exp, attributeMap);
@@ -1086,7 +1081,7 @@ binOp4[String startLabel, String endLabel] returns [String exp, Type type, boole
 funcBinOp4[IdType idType] returns [String exp, Type type, boolean myIsBool]:
   s1=constant                      {$exp = $s1.exp; $type = $s1.type; $myIsBool = false;}
   | OP_LPAREN s2=funcExpr[IdType.NIY]/*most likely it's idType*/ OP_RPAREN    {$exp = $s2.exp; $type = $s2.type; $myIsBool = $s2.myIsBool;}
-  | s3=id[idType] s4=valueTail {$exp = $s3.exp + $s4.exp; $type = $s3.type; $myIsBool = false;}
+  | s3=id[idType] s4=valueTail {$exp = $s3.exp + $s4.exp; $type = $s3.type.getType(); $myIsBool = false;}
   {
     Attribute att = symbolTableManager.getAttributeInCurrentScope($s3.exp, attributeMap);
     if(att == null) {
@@ -1106,7 +1101,7 @@ value returns [String exp, Type type]:
 	s1=id[IdType.NIY] s2=valueTail
 	{
 	  $exp = $s1.exp + "#" + $s2.exp;
-	  $type = $id.type;
+	  $type = $id.type.getType();
 	}
 ;
 
@@ -1180,7 +1175,7 @@ indexExpr3 returns [String exp]:
       exceptionHandler.handleException(myId, customMessage, null, null, 
                                        UndeclaredVariableException.class);
     }
-    if(!"int".equals($id.type.getName())) {
+    if(!"int".equals($id.type.getType().getName())) {
       // Invalid type (must be int)
       String customMessage = "Use of fixedpt variable in array index expression: \"" + $id.exp + "\""; 
       exceptionHandler.handleException(myId, customMessage, null, null, 
@@ -1207,9 +1202,9 @@ exprList[List<String> paramList] returns [String exp]:
   }
 ;
 
-funcExprList[List<String> paramList, IdType functionArgument] returns [String exp]:
+funcExprList[List<String> paramList] returns [String exp]:
   (
-    s1=funcExpr[IdType.NIY] s2=funcExprListTail[paramList]
+    s1=funcExpr[IdType.FUNCTION_ARGUMENT] s2=funcExprListTail[paramList]
   )?
   {
     if($s1.exp == null) {
@@ -1336,13 +1331,15 @@ id_replacement [IdType idType] returns [String exp, Type type]
   myId=id[idType]
   {
     $exp = $myId.exp;
-    $type = $myId.type;
+    $type = $myId.type.getType();
   } 
 ;
 
-id[IdType idType] returns [String exp, Type type]:
+id[IdType idType] returns [String exp, TypeAttribute type]:
   myId=ID
   {
+    TypeAttribute testType;
+    $exp = $ID.text;
     boolean isAlreadyDeclared = idType.isAlreadyDeclared();
     //If not declared, check to see it would be valid in namespace or not 
     if (!isAlreadyDeclared) {
@@ -1362,15 +1359,13 @@ id[IdType idType] returns [String exp, Type type]:
 	    else if(idType == IdType.USER_DEFINED_TYPE) {
 		    typeNamespace.add($myId.text);
 	    }
-    }
-    
-    $exp = $ID.text;
-    TypeAttribute att = symbolTableManager.getTypeAttributeInCurrentScope($myId.text, attributeMap);
-    
-    if(att != null) {
-      $type = att.getType();
+	    
+	    TypeAttribute tempTypeAttribute = new TypeAttribute();
+      $type = tempTypeAttribute;
     } else {
-      $type = Type.OTHER;
+	    TypeAttribute attribute = symbolTableManager
+	                            .getTypeAttributeInCurrentScope($myId.text, attributeMap);
+      $type = attribute;
     }
   }
 ;

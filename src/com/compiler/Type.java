@@ -6,7 +6,9 @@ public enum Type {
   FIXPT("fixedpt", true, true),
   VOID("void", false, true),
   ARRAY("array", true, true), //TODO isValidReturnType == true?
-  OTHER("user_defined", true, true),
+//  OTHER("user_defined", true, true),
+  TEMPORARY("temp", false /*should never be needed*/, false),
+  
   INVALID("", false, false); //temporary for testing
   
   private String name;
@@ -42,6 +44,6 @@ public enum Type {
 		  return ARRAY;
 	  }
 	  
-	  return OTHER;
+	  return INVALID;
   }
 }

@@ -16,11 +16,14 @@ public class FunctionAttribute implements Attribute{
 	private String functionName;
 	private Type returnType;
 	private List<String> params;
+	private String typeName;
 	
-	public FunctionAttribute(String functionName, Type returnType, List<String> params) {
+	public FunctionAttribute(String functionName, String typeName, 
+			Type returnType, List<String> params) {
 		this.functionName = functionName;
 		this.returnType = returnType;
 		this.params = params;
+		this.typeName = typeName;
 	}
 	
 	// Getters and setters. You know, because "encapsulation"...
@@ -64,8 +67,7 @@ public class FunctionAttribute implements Attribute{
 
 	@Override
 	public String getTypeName() {
-		// TODO Auto-generated method stub
-		return null;
+		return typeName;
 	}
 	
 }

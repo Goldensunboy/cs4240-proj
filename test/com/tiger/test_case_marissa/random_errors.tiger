@@ -1,4 +1,3 @@
-SKIP
 int function testFunc(x:int) 
 begin
 	begin
