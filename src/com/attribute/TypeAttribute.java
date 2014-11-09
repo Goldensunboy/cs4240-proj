@@ -87,7 +87,8 @@ public class TypeAttribute implements Attribute{
 	
 	public boolean assignableBy(TypeAttribute secondTypeAttribute) {
 		// If RHS or LHS is user defined, but not both. RHS is not assignable to LHS
-		if(this.isPrimitive() == !secondTypeAttribute.isPrimitive()) {
+		if(this.isPrimitive() == 
+				!secondTypeAttribute.isPrimitive()) {
 			return false;
 		}
 

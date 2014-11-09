@@ -198,17 +198,19 @@ funcDeclaration[String typeName, TypeAttribute returnTypeAttribute]
 scope
 {
   List<String> myParams;
+  List<VariableAttribute> parameterList;
 }
 @init
 {
   $funcDeclaration::myParams = new ArrayList<String>();
+  $funcDeclaration::parameterList = new ArrayList<VariableAttribute>();
 }
 :
   KEY_FUNCTION myFunctionName=id[IdType.FUNCTION_NAME]
 	{
 	  IRList.addFirst("FUNC_" + $id.text + ":");
 	}
-  OP_LPAREN paramList OP_RPAREN afterBegin[$myFunctionName.text, typeName, returnTypeAttribute]
+  OP_LPAREN paramList[$myFunctionName.text] OP_RPAREN afterBegin[$myFunctionName.text, typeName, returnTypeAttribute]
 ;
 
 afterBegin[String myFunctionName, String typeName, TypeAttribute returnTypeAttribute]
@@ -220,7 +222,13 @@ afterBegin[String myFunctionName, String typeName, TypeAttribute returnTypeAttri
   enclosingFunctionName = myFunctionName;
 }
 :
-  myKey_begin=key_begin blockList[myFunctionName] 
+  myKey_begin=key_begin 
+  {
+    for(VariableAttribute attribute : $funcDeclaration::parameterList) {
+      attributeMap.put(attribute.getVariableName(), attribute);
+    }
+  }
+  blockList[myFunctionName] 
   {
     if(!symbolTableManager.returnStatementSatisfied(myFunctionName)) {
       String customMessage = "Mismatch return statement for function " + myFunctionName;
@@ -240,6 +248,7 @@ mainFunction [TypeAttribute returnTypeAttribute]:
 	                              returnTypeAttribute,
 	                              new ArrayList<String>());
 	  enclosingFunctionName = $KEY_MAIN.text;
+	  IRList.addFirst("FUNC_main:");
   }
   key_begin blockList[$a.text] key_end OP_SCOLON EOF
 ;
@@ -262,22 +271,25 @@ baseType returns[TypeAttribute typeAttribute]:
 	}
 ;
 
-param :
+param[String declaringFunctionName] :
 	id[IdType.FUNCTION_PARAMETER] OP_COLON typeId[IdType.VARIABLE_TYPE]
 	{
-	  $funcDeclaration::myParams.add($typeId.text);
+    $funcDeclaration::myParams.add($typeId.text);
+    
+	  VariableAttribute variableAttribute = new VariableAttribute($id.text, $typeId.text, declaringFunctionName);
+    $funcDeclaration::parameterList.add(variableAttribute);
 	}
 ;
 
-paramList :
+paramList[String declaringFunctionName] :
 	(
-	  param paramListTail
+	  param[declaringFunctionName] paramListTail[declaringFunctionName]
 	)?
 ;
 
-paramListTail :
+paramListTail[String declaringFunctionName] :
 	(
-	  OP_COMMA param paramListTail
+	  OP_COMMA param[declaringFunctionName] paramListTail[declaringFunctionName]
 	)?
 ;
 
@@ -444,9 +456,11 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		      // Function assignment
 		      String[] parts = $s3.exp.split("#");
 		      TypeAttribute rettype = symbolTableManager.getFunctionReturnType(parts[0]);
-		      if($s1.typeAttribute.assignableBy(rettype)) {
+		      if(!$s1.typeAttribute.assignableBy(rettype)) {
 		        // (fixpt to int)
-		        String customMessage = "Assignment of fixedpt function " + parts[0] + " to int variable " + $s1.exp;
+		        String customMessage = "Can't assign function \"" + parts[0] 
+		          +"\"\'s return value with the type: \"" + rettype.getAliasName() 
+		          + "\" to \"" + $s1.exp + "\" with the type: \"" + $s1.typeAttribute.getAliasName()+"\"";
             exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
 		      }
 		      IRList.addFirst("callr, " + $s1.exp + ", FUNC_" + parts[0] +
@@ -572,7 +586,14 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		{
 		  String endSubLoop = lf.nextLabel("LOOP_END");
 		}
-		sym_for=key_for s6=id[IdType.NIY]
+		sym_for=key_for s6=id[IdType.VARIABLE_DECLARATION]
+		  {
+		    List<String> indexVarList = new ArrayList<String>();
+		    indexVarList.add($s6.exp);
+		    putVariableAttributeMap(indexVarList,
+                                $s6.text, INT_TYPE_ATTRIBUTE,
+                                $functionName);
+		  }
 		  OP_ASSIGN s7=indexExpr KEY_TO s8=indexExpr
 		  {
 		    String forTop = lf.nextLabel("FOR_START");
@@ -622,6 +643,7 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		                                      ($myReturnValue.myIsBool)? "boolean":actualReturnType.getAliasName(), 
 		                                      TypeMismatchException.class);
 		  } else {
+		    IRList.addFirst("return, " + $myReturnValue.exp);
 		    symbolTableManager.setCurrentScopeReturnType(actualReturnType);
 		  }
 		}

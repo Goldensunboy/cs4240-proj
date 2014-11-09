@@ -34,7 +34,7 @@ void main()
 begin
 	begin
 		var x : int := 9;
-		vf();
+		voidf();
 		intf();
 		x := intf();
 		pf1(6);
