@@ -25,6 +25,7 @@ import com.attribute.Attribute;
 import com.attribute.VariableAttribute;
 import com.attribute.FunctionAttribute;
 import com.attribute.TypeAttribute;
+import com.attribute.ArrayTypeSpecific;
 import com.symbol_table.SymbolTableManager;
 import com.symbol_table.Symbol;
 import com.symbol_table.Scope;
@@ -93,10 +94,8 @@ import com.exception.NameSpaceConflictException;
   }
 
   public void putTypeAttributeMap(int lineNumber ,String aliasName, Type type,
-      Type typeOfArray, boolean isTwoDimensionalArray, int dim1, int dim2) {
-    TypeAttribute typeAttribute = new TypeAttribute(aliasName, type, typeOfArray,
-      isTwoDimensionalArray, dim1, dim2);
-    //System.out.println("Line: " + lineNumber + " :: " + typeAttribute);
+      Type typeOfArray, ArrayTypeSpecific arrayTypeSpecific) {
+    TypeAttribute typeAttribute = new TypeAttribute(aliasName, type, typeOfArray, arrayTypeSpecific);
     attributeMap.put(aliasName, typeAttribute); 
   }
 
@@ -313,17 +312,15 @@ typeDeclaration :
 	KEY_TYPE myId=id[IdType.USER_DEFINED_TYPE] OP_EQUAL myType=type OP_SCOLON
 	{
 	  putTypeAttributeMap($myId.start.getLine(), $myId.text, $myType.type,
-	    $myType.typeOfArray, $myType.isTwoDimensionalArray, $myType.dim1, $myType.dim2);
+	    $myType.typeOfArray, $myType.arrayTypeSpecific);
 	}
 ;
 
-type returns [Type type, Type typeOfArray, boolean isTwoDimensionalArray, int dim1, int dim2]
+type returns [Type type, Type typeOfArray, ArrayTypeSpecific arrayTypeSpecific]
 @init{
-  boolean myIsTwoDimensional_var = false;
-  boolean myIsTypeArray_var = false;
-  int myDim2_var = -1;
-  $dim1 = -1;
-  $dim2 = -1;
+  boolean isTwoDimensional = false;
+  boolean isTypeArray = false;
+  int dim1 = -1, dim2 = -1;
 }
 :
 	(
@@ -331,21 +328,21 @@ type returns [Type type, Type typeOfArray, boolean isTwoDimensionalArray, int di
 		(
 		  OP_LBRACK myDim2=INTLIT OP_RBRACK
 		  {
-			  $isTwoDimensionalArray = true;
-			  myDim2_var= Integer.valueOf($myDim2.text);
+			  isTwoDimensional = true;
+			  dim2= Integer.valueOf($myDim2.text);
 		  }
 		)?
 		KEY_OF
 		{
 		  $type = Type.ARRAY;
-		  $dim1 = Integer.valueOf($myDim1.text);
-			$dim2 = myDim2_var;	
-			myIsTypeArray_var = true;		  
+		  dim1 = Integer.valueOf($myDim1.text);
+		  $arrayTypeSpecific = new ArrayTypeSpecific(isTwoDimensional, dim1, dim2);
+			isTypeArray = true;		  
 		}
 	)?
 	myBaseType=baseType
 	{
-	  if(myIsTypeArray_var) {
+	  if(isTypeArray) {
 	    $typeOfArray = $myBaseType.typeAttribute.getType();
 	  } else {
 	    $type = $myBaseType.typeAttribute.getType(); 
@@ -420,17 +417,19 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		    Attribute att = symbolTableManager.getAttributeInCurrentScope($s1.exp, attributeMap);
 		    TypeAttribute s1TypeAttribute = symbolTableManager.getTypeAttributeInCurrentScope($s1.text, attributeMap);
         TypeAttribute s3TypeAttribute = $s3.typeAttribute;
+        ArrayTypeSpecific arrayTypeSpecific = $s2.arrayTypeSpecific;
+         
         if(!$s3.exp.contains("#")) {
 		      // Expr assignment
-		      if(att == null) {
+		      if(att == null) { //TODO change this with s1TypeAttribute and get rid of att
 		        // Variable not declared yet
 		        String customMessage = "Assignment to undeclared variable: " + $s1.exp;
 		        exceptionHandler.handleException(s1, customMessage, null, null, UndeclaredVariableException.class);
-		      } else if(!s1TypeAttribute.assignableBy(s3TypeAttribute)) {
-		        // Illegal assignment (fixpt to int)
+		      } else if(!s1TypeAttribute.assignableBy(s3TypeAttribute, arrayTypeSpecific)) {
+		        // Illegal assignment
             String customMessage = "Can't assign " + $s3.text + " to " + $s1.text;
             exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
-		      }
+		      } 
 		      // Cannot assign a conditional to a variable
 		      if($s3.myIsBool) {
 	          String customMessage = "Boolean values cannot be assigned to a variable.";
@@ -456,7 +455,7 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		      // Function assignment
 		      String[] parts = $s3.exp.split("#");
 		      TypeAttribute rettype = symbolTableManager.getFunctionReturnType(parts[0]);
-		      if(!$s1.typeAttribute.assignableBy(rettype)) {
+		      if(!$s1.typeAttribute.assignableBy(rettype, arrayTypeSpecific)) {
 		        // (fixpt to int)
 		        String customMessage = "Can't assign function \"" + parts[0] 
 		          +"\"\'s return value with the type: \"" + rettype.getAliasName() 
@@ -993,6 +992,9 @@ binOp4[String startLabel, String endLabel] returns [String exp, TypeAttribute ty
   (
     s4=valueTail
     {
+      TypeAttribute s3TypeAttribute = $s3.typeAttribute;
+      ArrayTypeSpecific arrayTypeSpecific = $s4.arrayTypeSpecific;
+//      s3TypeAttribute.setArrayTypeSpecific(arrayTypeSpecific);
       $typeAttribute = $s3.typeAttribute;
       if("".equals($s4.exp)) {
         $exp = $s3.exp;
@@ -1060,7 +1062,10 @@ binOp4[String startLabel, String endLabel] returns [String exp, TypeAttribute ty
 
 funcBinOp4[IdType idType] returns [String exp, TypeAttribute typeAttribute, boolean myIsBool]:
   s1=constant                      {$exp = $s1.exp; $typeAttribute = $s1.typeAttribute; $myIsBool = false;}
-  | OP_LPAREN s2=funcExpr[IdType.NIY]/*most likely it's idType*/ OP_RPAREN    {$exp = $s2.exp; $typeAttribute = $s2.typeAttribute; $myIsBool = $s2.myIsBool;}
+  | OP_LPAREN s2=funcExpr[IdType.NIY]/*most likely it's idType*/ OP_RPAREN    
+  {
+    $exp = $s2.exp; $typeAttribute = $s2.typeAttribute; $myIsBool = $s2.myIsBool;
+  }
   | s3=id[idType] s4=valueTail {$exp = $s3.exp + $s4.exp; $typeAttribute = $s3.typeAttribute; $myIsBool = false;}
   {
     Attribute att = symbolTableManager.getAttributeInCurrentScope($s3.exp, attributeMap);
@@ -1077,11 +1082,23 @@ constant returns [String exp, TypeAttribute typeAttribute]:
 	| INTLIT   {$exp = $INTLIT.text;     $typeAttribute = INT_TYPE_ATTRIBUTE;  }
 ;
 
-valueTail returns [String exp]:
+valueTail returns [String exp, ArrayTypeSpecific arrayTypeSpecific]
+@init 
+{
+  ArrayTypeSpecific retValArrayTypeSpecific = new ArrayTypeSpecific();
+}
+:
 	(
-	  OP_LBRACK s1=indexExpr OP_RBRACK
+	  OP_LBRACK s1=indexExpr OP_RBRACK 
+	  {
+	    retValArrayTypeSpecific.setDim1(Integer.parseInt($s1.text));
+	  }
     (
       OP_LBRACK s2=indexExpr OP_RBRACK
+      {
+        retValArrayTypeSpecific.setDim1(Integer.parseInt($s2.text));
+        retValArrayTypeSpecific.setTwoDimensionalArray(true);
+      }
     )?
 	)?
 	{
@@ -1092,6 +1109,8 @@ valueTail returns [String exp]:
 	  } else {
 	    $exp = "";
 	  }
+	  
+	  $arrayTypeSpecific = retValArrayTypeSpecific;
 	}
 ;
 
@@ -1367,7 +1386,11 @@ COMMENT :
 ;
 
 COMMENT2 :
-  'SKIP_S' ( options {greedy=false;} : . )* 'SKIP_E' {$channel=HIDDEN;}
+  'SKIP_S' ( options {greedy=false;} : . )* 'SKIP_E' 
+  {
+    $channel=HIDDEN;
+    System.err.println("Warning: skipping some code\n");
+  }
 ;
 
 WS :

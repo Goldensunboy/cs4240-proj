@@ -4,28 +4,27 @@ import com.compiler.Type;
 import com.exception.ShouldNotHappenException;
 
 public class TypeAttribute implements Attribute{
-	private boolean isTwoDimensionalArray = true;
 	private boolean isArray = false;
-	private int dim1, dim2;
 	private String aliasName;
 	private Type type, typeOfArray;
+	private ArrayTypeSpecific arrayTypeSpecific;
 	
 	public TypeAttribute() {
 		type = Type.TEMPORARY;
 	}
 	
 	public TypeAttribute(String aliasName, Type type, Type typeOfArray, 
-			boolean isTwoDimensionalArray, int dim1, int dim2) {
+			ArrayTypeSpecific arrayTypeSpecific) {
 		this.aliasName = aliasName;
 		this.type = type;
+		this.isArray = type == Type.ARRAY;
 		this.typeOfArray = typeOfArray;
-		this.isTwoDimensionalArray = isTwoDimensionalArray;
-		this.dim1 = dim1;
-		this.dim2 = dim2;
+		this.arrayTypeSpecific = arrayTypeSpecific;
 	}
 	
 	public boolean isTwoDimensionalArray() {
-		return isArray && isTwoDimensionalArray;
+		return arrayTypeSpecific == null  ? false : 
+			arrayTypeSpecific.isTwoDimensionalArray();
 	}
 
 	public Type getType() {
@@ -33,19 +32,19 @@ public class TypeAttribute implements Attribute{
 	}
 
 	public int getDim1() {
-		return dim1;
+		return arrayTypeSpecific == null ? -1 : arrayTypeSpecific.getDim1();
 	}
 
 	public void setDim1(int dim1) {
-		this.dim1 = dim1;
+		arrayTypeSpecific.setDim1(dim1);
 	}
 
 	public int getDim2() {
-		return dim2;
+		return arrayTypeSpecific == null ? -1 : arrayTypeSpecific.getDim2();
 	}
 
 	public void setDim2(int dim2) {
-		this.dim2 = dim2;
+		arrayTypeSpecific.setDim2(dim2);
 	}
 
 	public String getAliasName() {
@@ -64,14 +63,20 @@ public class TypeAttribute implements Attribute{
 		this.typeOfArray = typeOfArray;
 	}
 	
+	public boolean isArray() {
+		return isArray;
+	}
+	
 	public String toString() {
 		String retVal = "aliasName: " + aliasName;
 		retVal += ", type: " + type;
 		retVal += ", isArray: " + isArray;
-		retVal += ", isTwoDimensionalArray: " + isTwoDimensionalArray;
-		retVal += ", typeOfArray: " + typeOfArray;
-		retVal += ", dim1: " + dim1;
-		retVal += ", dim2: " + dim2;
+		if(arrayTypeSpecific != null) {
+			retVal += ", isTwoDimensionalArray: " + arrayTypeSpecific.isTwoDimensionalArray();
+			retVal += ", typeOfArray: " + typeOfArray;
+			retVal += ", dim1: " + arrayTypeSpecific.getDim1();
+			retVal += ", dim2: " + arrayTypeSpecific.getDim2();			
+		}
 		
 		return retVal;
 	}
@@ -85,15 +90,41 @@ public class TypeAttribute implements Attribute{
 		return aliasName.equals(type.getName());
 	}
 	
-	public boolean assignableBy(TypeAttribute secondTypeAttribute) {
-		// If RHS or LHS is user defined, but not both. RHS is not assignable to LHS
-		if(this.isPrimitive() == 
-				!secondTypeAttribute.isPrimitive()) {
+	public boolean assignableBy(TypeAttribute secondTypeAttribute, ArrayTypeSpecific secondArrayTypeSpecific) {
+
+		// assigning to array is not legal
+		if(isArray && arrayTypeSpecific == null) {
 			return false;
 		}
+		// assigning to the elements of an array is legal
+		else if(isArray && arrayTypeSpecific != null){
+			if(!secondTypeAttribute.isPrimitive()) {
+				return false;
+			}
+			// check for use of dimension. e.g. if 2D and is using only 1D of it, it's illegal
+			if(isTwoDimensionalArray() != arrayTypeSpecific.isTwoDimensionalArray()) {
+				return false;
+			}
+			return typeOfArray == secondTypeAttribute.getType();
+		}
+		
+		// TODO make sure return myArray and assign myArray = myArray2 is taken care of
+		if(secondTypeAttribute.isArray) {
+			// can't assign something to an array
+			if(secondArrayTypeSpecific == null) {
+				return false;
+			}
+			
+			if (secondTypeAttribute.isTwoDimensionalArray() != 
+					secondArrayTypeSpecific.isTwoDimensionalArray()) {
+				return false;
+			}
+			
+			return type == secondTypeAttribute.getTypeOfArray();
+		}
 
-		// you can't assign anything to an array
-		if(isArray) {
+		// If RHS or LHS is user defined, but not both. RHS is not assignable to LHS
+		if(this.isPrimitive() == !secondTypeAttribute.isPrimitive()) {
 			return false;
 		}
 		
