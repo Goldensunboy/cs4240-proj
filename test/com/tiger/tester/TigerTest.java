@@ -60,7 +60,7 @@ public class TigerTest {
 						runSpecificTestCases(compiler.getTigerParser(), developerName);
 					}
 					
-					System.out.println(errorReport.getErrorReportMessage());				
+					System.out.println(errorReport.getErrorReportMessage());
 				} catch (IOException e) {
 					e.printStackTrace();
 				} finally{
@@ -83,7 +83,6 @@ public class TigerTest {
 			}
 			br.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -97,8 +96,9 @@ public class TigerTest {
 			break;
 		
 		case SAMAN:
-//			parser.printAttributeMap();
-			//parser.printTheNameSpace();
+//			System.out.println("\n-----------------"); 
+//			parser.printSymbolTable();
+//			System.out.println("-----------------\n");
 			break;
 			
 		case ANDREW:
@@ -137,9 +137,8 @@ public class TigerTest {
 				return new DeveloperName[]{MARISSA};
 //				return new DeveloperName[]{INDIVIDUAL};
 			} else if (preferedName.equals(SAMAN.getPreferedName())) {
-//				DeveloperName[] testCases = new DeveloperName[]{SAMAN,MARISSA};
-				DeveloperName[] testCases = new DeveloperName[]{SAMAN};
-				return testCases;
+//				return new DeveloperName[]{SAMAN,MARISSA};
+				return new DeveloperName[]{SAMAN};
 			} else if (preferedName.equals(ANDREW.getPreferedName())) {
 				return new DeveloperName[]{ANDREW};
 			}

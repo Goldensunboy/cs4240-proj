@@ -25,6 +25,7 @@ import com.attribute.Attribute;
 import com.attribute.VariableAttribute;
 import com.attribute.FunctionAttribute;
 import com.attribute.TypeAttribute;
+import com.attribute.ArrayTypeSpecific;
 import com.symbol_table.SymbolTableManager;
 import com.symbol_table.Symbol;
 import com.symbol_table.Scope;
@@ -93,10 +94,10 @@ import com.exception.NameSpaceConflictException;
   }
 
   public void putTypeAttributeMap(int lineNumber ,String aliasName, Type type,
-      Type typeOfArray, boolean isTwoDimensionalArray, int dim1, int dim2) {
-    TypeAttribute typeAttribute = new TypeAttribute(aliasName, type, typeOfArray,
-      isTwoDimensionalArray, dim1, dim2);
-    //System.out.println("Line: " + lineNumber + " :: " + typeAttribute);
+      Type typeOfArray, ArrayTypeSpecific arrayTypeSpecific) {
+    TypeAttribute typeAttribute = new TypeAttribute(aliasName, type);
+    typeAttribute.setTypeOfArray(typeOfArray);
+    typeAttribute.setExpectedArrayTypeSpecific(arrayTypeSpecific);
     attributeMap.put(aliasName, typeAttribute); 
   }
 
@@ -105,6 +106,14 @@ import com.exception.NameSpaceConflictException;
       for (Symbol symbol : attr.getValue() ) {
         System.out.println(symbol + " :: Have access to: " +
           showAllReachableAttributes(symbol.getScope()));
+      }
+    }
+  }
+  
+  public void printSymbolTable() {
+    for(Entry<String, List<Symbol>> symbolMap : symbolTableManager.getSymbolTable().entrySet()) {
+      for (Symbol symbol : symbolMap.getValue()) {
+        System.out.println(symbol);
       }
     }
   }
@@ -176,7 +185,7 @@ import com.exception.NameSpaceConflictException;
 }
 
 tigerProgram :
-  skip["File"]
+  skip
 	| typeDeclarationList funcNext
 ;
 
@@ -313,39 +322,26 @@ typeDeclaration :
 	KEY_TYPE myId=id[IdType.USER_DEFINED_TYPE] OP_EQUAL myType=type OP_SCOLON
 	{
 	  putTypeAttributeMap($myId.start.getLine(), $myId.text, $myType.type,
-	    $myType.typeOfArray, $myType.isTwoDimensionalArray, $myType.dim1, $myType.dim2);
+	    $myType.typeOfArray, $myType.arrayTypeSpecific);
 	}
 ;
 
-type returns [Type type, Type typeOfArray, boolean isTwoDimensionalArray, int dim1, int dim2]
-@init{
-  boolean myIsTwoDimensional_var = false;
-  boolean myIsTypeArray_var = false;
-  int myDim2_var = -1;
-  $dim1 = -1;
-  $dim2 = -1;
-}
+type returns [Type type, Type typeOfArray, ArrayTypeSpecific arrayTypeSpecific]
 :
 	(
 	  KEY_ARRAY OP_LBRACK myDim1=INTLIT OP_RBRACK
 		(
 		  OP_LBRACK myDim2=INTLIT OP_RBRACK
-		  {
-			  $isTwoDimensionalArray = true;
-			  myDim2_var= Integer.valueOf($myDim2.text);
-		  }
 		)?
-		KEY_OF
-		{
+	  {
+      $arrayTypeSpecific = new ArrayTypeSpecific(myDim1 != null, myDim2 != null);
 		  $type = Type.ARRAY;
-		  $dim1 = Integer.valueOf($myDim1.text);
-			$dim2 = myDim2_var;	
-			myIsTypeArray_var = true;		  
-		}
+	  }
+		KEY_OF
 	)?
 	myBaseType=baseType
 	{
-	  if(myIsTypeArray_var) {
+	  if($KEY_ARRAY != null) {
 	    $typeOfArray = $myBaseType.typeAttribute.getType();
 	  } else {
 	    $type = $myBaseType.typeAttribute.getType(); 
@@ -418,19 +414,32 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		  {
 		    // Verify that the assignment is valid
 		    Attribute att = symbolTableManager.getAttributeInCurrentScope($s1.exp, attributeMap);
+		    
 		    TypeAttribute s1TypeAttribute = symbolTableManager.getTypeAttributeInCurrentScope($s1.text, attributeMap);
         TypeAttribute s3TypeAttribute = $s3.typeAttribute;
+        ArrayTypeSpecific s2ArrayTypeSpecific = $s2.arrayTypeSpecific;
+        
+        if(s1TypeAttribute.isArray()) {    
+          s1TypeAttribute.setReceivedArrayTypeSpecific(s2ArrayTypeSpecific);
+        }
+        System.out.println(s3TypeAttribute);
+         
         if(!$s3.exp.contains("#")) {
 		      // Expr assignment
-		      if(att == null) {
+		      if(att == null) { //TODO change this with s1TypeAttribute and get rid of att
 		        // Variable not declared yet
 		        String customMessage = "Assignment to undeclared variable: " + $s1.exp;
 		        exceptionHandler.handleException(s1, customMessage, null, null, UndeclaredVariableException.class);
 		      } else if(!s1TypeAttribute.assignableBy(s3TypeAttribute)) {
-		        // Illegal assignment (fixpt to int)
-            String customMessage = "Can't assign " + $s3.text + " to " + $s1.text;
-            exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
-		      }
+		        // Illegal assignment
+		        String customMessage;
+		        if(s1TypeAttribute.isArray()){
+			       customMessage = "Can't assign " + $s3.text + " to " + $s1.text + $s2.text;
+		        } else {
+		         customMessage = "Can't assign " + $s3.text + " to " + $s1.text;
+		        }
+		        exceptionHandler.handleException(s1, customMessage, null, null, TypeMismatchException.class);
+          }
 		      // Cannot assign a conditional to a variable
 		      if($s3.myIsBool) {
 	          String customMessage = "Boolean values cannot be assigned to a variable.";
@@ -636,8 +645,8 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		{
 		  TypeAttribute expectedReturnType = symbolTableManager.getReturnType();
 		  TypeAttribute actualReturnType = $myReturnValue.typeAttribute;
-		  if(actualReturnType != expectedReturnType || $myReturnValue.myIsBool) {
-		    String customMessage = "Type doesn't match the expected return type";
+		  if(!expectedReturnType.doReturnValuesMatch(actualReturnType)|| $myReturnValue.myIsBool) {
+        String customMessage = "Type doesn't match the expected return type";
 		    exceptionHandler.handleException(myReturnValue, customMessage, 
 		                                      expectedReturnType.getAliasName(), 
 		                                      ($myReturnValue.myIsBool)? "boolean":actualReturnType.getAliasName(), 
@@ -993,7 +1002,10 @@ binOp4[String startLabel, String endLabel] returns [String exp, TypeAttribute ty
   (
     s4=valueTail
     {
-      $typeAttribute = $s3.typeAttribute;
+      TypeAttribute s3TypeAttribute = $s3.typeAttribute;
+      ArrayTypeSpecific arrayTypeSpecific = $s4.arrayTypeSpecific;
+      s3TypeAttribute.setReceivedArrayTypeSpecific(arrayTypeSpecific);
+      $typeAttribute = s3TypeAttribute;
       if("".equals($s4.exp)) {
         $exp = $s3.exp;
       } else {
@@ -1060,7 +1072,10 @@ binOp4[String startLabel, String endLabel] returns [String exp, TypeAttribute ty
 
 funcBinOp4[IdType idType] returns [String exp, TypeAttribute typeAttribute, boolean myIsBool]:
   s1=constant                      {$exp = $s1.exp; $typeAttribute = $s1.typeAttribute; $myIsBool = false;}
-  | OP_LPAREN s2=funcExpr[IdType.NIY]/*most likely it's idType*/ OP_RPAREN    {$exp = $s2.exp; $typeAttribute = $s2.typeAttribute; $myIsBool = $s2.myIsBool;}
+  | OP_LPAREN s2=funcExpr[IdType.NIY]/*most likely it's idType*/ OP_RPAREN    
+  {
+    $exp = $s2.exp; $typeAttribute = $s2.typeAttribute; $myIsBool = $s2.myIsBool;
+  }
   | s3=id[idType] s4=valueTail {$exp = $s3.exp + $s4.exp; $typeAttribute = $s3.typeAttribute; $myIsBool = false;}
   {
     Attribute att = symbolTableManager.getAttributeInCurrentScope($s3.exp, attributeMap);
@@ -1077,11 +1092,22 @@ constant returns [String exp, TypeAttribute typeAttribute]:
 	| INTLIT   {$exp = $INTLIT.text;     $typeAttribute = INT_TYPE_ATTRIBUTE;  }
 ;
 
-valueTail returns [String exp]:
+valueTail returns [String exp, ArrayTypeSpecific arrayTypeSpecific]
+@init 
+{
+  ArrayTypeSpecific retValArrayTypeSpecific = new ArrayTypeSpecific();
+}
+:
 	(
-	  OP_LBRACK s1=indexExpr OP_RBRACK
+	  OP_LBRACK s1=indexExpr OP_RBRACK 
+	  {
+	    retValArrayTypeSpecific.setDim1(true);
+	  }
     (
       OP_LBRACK s2=indexExpr OP_RBRACK
+      {
+        retValArrayTypeSpecific.setDim2(true);
+      }
     )?
 	)?
 	{
@@ -1092,6 +1118,7 @@ valueTail returns [String exp]:
 	  } else {
 	    $exp = "";
 	  }
+	  $arrayTypeSpecific = retValArrayTypeSpecific;
 	}
 ;
 
@@ -1290,10 +1317,10 @@ FIXEDPTLIT :
 	INTLIT OP_PERIOD DIGIT (DIGIT? DIGIT)?
 ;
 
-skip[String testCaseName]
+skip
 :
   SKIP
-  {System.out.println(testCaseName + " skipped");}  
+  {System.err.println("Warning: the whole file was skipped");}  
 ;
 SKIP:
   'SKIP'
@@ -1367,7 +1394,11 @@ COMMENT :
 ;
 
 COMMENT2 :
-  'SKIP_S' ( options {greedy=false;} : . )* 'SKIP_E' {$channel=HIDDEN;}
+  'SKIP_S' ( options {greedy=false;} : . )* 'SKIP_E' 
+  {
+    $channel=HIDDEN;
+    System.err.println("Warning: skipping some code\n");
+  }
 ;
 
 WS :

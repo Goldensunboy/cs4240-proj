@@ -26,7 +26,6 @@ public class TigerCompiler{
 			}
 			
 		} catch (RecognitionException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			throw new ParserCreationException(e.getMessage());
 		}
