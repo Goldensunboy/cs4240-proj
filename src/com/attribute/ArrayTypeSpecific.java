@@ -2,41 +2,53 @@ package com.attribute;
 
 
 public class ArrayTypeSpecific {
-	private boolean isTwoDimensionalArray;
-	private int dim1, dim2;
+	private boolean dim1, dim2;
 	
-	public ArrayTypeSpecific(boolean isTwoDimensionalArray, int dim1, int dim2) {
-		this.isTwoDimensionalArray = isTwoDimensionalArray ;
+	public ArrayTypeSpecific(boolean dim1, boolean dim2) {
 		this.dim1 = dim1;
 		this.dim2 = dim2;
 	}
 	
 	public ArrayTypeSpecific() {
-		this(false, -1, -1);
+		this(false, false);
 	}
 	
 	public boolean isTwoDimensionalArray() {
-		return isTwoDimensionalArray;
+		return dim1 && dim2;
 	}
-	public void setTwoDimensionalArray(boolean isTwoDimensionalArray) {
-		this.isTwoDimensionalArray = isTwoDimensionalArray;
+	
+	public boolean isOneDimensionalArray() {
+		return dim1 && !dim2;
 	}
-	public int getDim1() {
+	
+	public boolean hasDimension() {
+		return dim1 || dim2;
+	}
+	
+	public boolean getDim1() {
 		return dim1;
 	}
-	public void setDim1(int dim1) {
+	
+	public void setDim1(boolean dim1) {
 		this.dim1 = dim1;
 	}
-	public int getDim2() {
+	
+	public boolean getDim2() {
 		return dim2;
 	}
-	public void setDim2(int dim2) {
+	
+	public void setDim2(boolean dim2) {
 		this.dim2 = dim2;
+	}
+	
+	public boolean dimensionsMatch(ArrayTypeSpecific secondArrayTypeSpecific) {
+		return dim1 == secondArrayTypeSpecific.getDim1() && 
+				dim2 == secondArrayTypeSpecific.getDim2();  
 	}
 	
 	public String toString() {
 		String temp = "Is 2D: ";
-		temp += isTwoDimensionalArray;
+		temp += isTwoDimensionalArray();
 		temp += " dim1: " + dim1;
 		temp += " dim2: " + dim2;
 		return temp;

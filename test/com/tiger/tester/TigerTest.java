@@ -60,7 +60,7 @@ public class TigerTest {
 						runSpecificTestCases(compiler.getTigerParser(), developerName);
 					}
 					
-					System.out.println(errorReport.getErrorReportMessage());				
+					System.out.println(errorReport.getErrorReportMessage());
 				} catch (IOException e) {
 					e.printStackTrace();
 				} finally{
@@ -96,6 +96,9 @@ public class TigerTest {
 			break;
 		
 		case SAMAN:
+//			System.out.println("\n-----------------"); 
+//			parser.printSymbolTable();
+//			System.out.println("-----------------\n");
 			break;
 			
 		case ANDREW:

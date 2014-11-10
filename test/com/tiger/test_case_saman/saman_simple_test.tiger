@@ -1,12 +1,12 @@
-SKIP
-type a = int;
+type ArrayInt = array [100] of int;
 
 int function func1() 
 begin
 	begin
+		var a : ArrayInt := 10;
 		var b : int := 10;
-		b :=3;
-		return b;
+		a[1] := a[1][1];
+		return 2;
 	end;
 end;
 

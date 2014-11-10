@@ -279,7 +279,7 @@ public class SymbolTableManager {
 	public boolean returnStatementSatisfied(String functionName) {
 		TypeAttribute returnType = getReturnType();
 		TypeAttribute currentScopeReturnTypeAttribute = getCurrentScopeReturnType();
-		return returnType.assignableBy(currentScopeReturnTypeAttribute, null);
+		return returnType.doReturnValuesMatch(currentScopeReturnTypeAttribute);
 	}
 	
 	public void setCurrentScopeReturnType(TypeAttribute returnType) {
@@ -346,7 +346,7 @@ public class SymbolTableManager {
 		String path = "reserved/types";
 		Map<String, Attribute> attributeMap = new Hashtable<>();
 		for(String typeName : readReservedFile(path)) {
-			Attribute typeAttribute = new TypeAttribute(typeName, Type.getType(typeName), null, null);
+			Attribute typeAttribute = new TypeAttribute(typeName, Type.getType(typeName));
 			attributeMap.put(typeName, typeAttribute);
 			expiredFunctionName.add(typeName);
 			globalTypeFunctionNameSpace.add(typeName);

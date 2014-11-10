@@ -7,44 +7,25 @@ public class TypeAttribute implements Attribute{
 	private boolean isArray = false;
 	private String aliasName;
 	private Type type, typeOfArray;
-	private ArrayTypeSpecific arrayTypeSpecific;
+	private ArrayTypeSpecific expectedArrayTypeSpecific;
+	private ArrayTypeSpecific receivedArrayTypeSpecific;
 	
 	public TypeAttribute() {
-		type = Type.TEMPORARY;
-	}
-	
-	public TypeAttribute(String aliasName, Type type, Type typeOfArray, 
-			ArrayTypeSpecific arrayTypeSpecific) {
-		this.aliasName = aliasName;
-		this.type = type;
-		this.isArray = type == Type.ARRAY;
-		this.typeOfArray = typeOfArray;
-		this.arrayTypeSpecific = arrayTypeSpecific;
-	}
-	
-	public boolean isTwoDimensionalArray() {
-		return arrayTypeSpecific == null  ? false : 
-			arrayTypeSpecific.isTwoDimensionalArray();
+		this(null, Type.TEMPORARY);
 	}
 
+	public TypeAttribute(String aliasName, Type type) {
+		this.aliasName = aliasName;
+		this.type = type;
+		this.isArray = Type.ARRAY == type;
+	}
+	
 	public Type getType() {
 		return type;
 	}
 
-	public int getDim1() {
-		return arrayTypeSpecific == null ? -1 : arrayTypeSpecific.getDim1();
-	}
-
-	public void setDim1(int dim1) {
-		arrayTypeSpecific.setDim1(dim1);
-	}
-
-	public int getDim2() {
-		return arrayTypeSpecific == null ? -1 : arrayTypeSpecific.getDim2();
-	}
-
-	public void setDim2(int dim2) {
-		arrayTypeSpecific.setDim2(dim2);
+	public void setType(Type type) {
+		this.type = type; ;
 	}
 
 	public String getAliasName() {
@@ -62,23 +43,25 @@ public class TypeAttribute implements Attribute{
 	public void setTypeOfArray(Type typeOfArray) {
 		this.typeOfArray = typeOfArray;
 	}
+
+	public void setReceivedArrayTypeSpecific(ArrayTypeSpecific receivedArrayTypeSpecific) {
+		this.receivedArrayTypeSpecific = receivedArrayTypeSpecific;
+	}
+	
+	public void setExpectedArrayTypeSpecific(ArrayTypeSpecific expectedArrayTypeSpecific) {
+		this.expectedArrayTypeSpecific = expectedArrayTypeSpecific;
+	}
+
+	public ArrayTypeSpecific getReceivedArrayTypeSpecific() {
+		return receivedArrayTypeSpecific;
+	}
+	
+	public ArrayTypeSpecific getExpectedArrayTypeSpecific() {
+		return expectedArrayTypeSpecific;
+	}
 	
 	public boolean isArray() {
 		return isArray;
-	}
-	
-	public String toString() {
-		String retVal = "aliasName: " + aliasName;
-		retVal += ", type: " + type;
-		retVal += ", isArray: " + isArray;
-		if(arrayTypeSpecific != null) {
-			retVal += ", isTwoDimensionalArray: " + arrayTypeSpecific.isTwoDimensionalArray();
-			retVal += ", typeOfArray: " + typeOfArray;
-			retVal += ", dim1: " + arrayTypeSpecific.getDim1();
-			retVal += ", dim2: " + arrayTypeSpecific.getDim2();			
-		}
-		
-		return retVal;
 	}
 
 	@Override
@@ -90,39 +73,32 @@ public class TypeAttribute implements Attribute{
 		return aliasName.equals(type.getName());
 	}
 	
-	public boolean assignableBy(TypeAttribute secondTypeAttribute, ArrayTypeSpecific secondArrayTypeSpecific) {
+	private boolean hasProperDimension() {
+		return expectedArrayTypeSpecific.getDim1() == 
+				receivedArrayTypeSpecific.getDim1() && 
+				expectedArrayTypeSpecific.getDim2() == 
+				receivedArrayTypeSpecific.getDim2();
+	}
 
-		// assigning to array is not legal
-		if(isArray && arrayTypeSpecific == null) {
-			return false;
-		}
-		// assigning to the elements of an array is legal
-		else if(isArray && arrayTypeSpecific != null){
-			if(!secondTypeAttribute.isPrimitive()) {
-				return false;
-			}
-			// check for use of dimension. e.g. if 2D and is using only 1D of it, it's illegal
-			if(isTwoDimensionalArray() != arrayTypeSpecific.isTwoDimensionalArray()) {
-				return false;
-			}
-			return typeOfArray == secondTypeAttribute.getType();
+	private TypeAttribute manipulateArrayType(TypeAttribute typeAttribute) {
+		if(typeAttribute == null) {
+			return null;
 		}
 		
-		// TODO make sure return myArray and assign myArray = myArray2 is taken care of
-		if(secondTypeAttribute.isArray) {
-			// can't assign something to an array
-			if(secondArrayTypeSpecific == null) {
-				return false;
+		if(typeAttribute.isArray()) {
+			if(typeAttribute.hasProperDimension()) {
+				Type secondTypeOfArray = typeAttribute.getTypeOfArray();
+				String aliasName = secondTypeOfArray.getName();
+				typeAttribute = new TypeAttribute(aliasName ,secondTypeOfArray);
+			} else if(typeAttribute.getReceivedArrayTypeSpecific().hasDimension()) {
+				System.out.println(typeAttribute);
+				return null;
 			}
-			
-			if (secondTypeAttribute.isTwoDimensionalArray() != 
-					secondArrayTypeSpecific.isTwoDimensionalArray()) {
-				return false;
-			}
-			
-			return type == secondTypeAttribute.getTypeOfArray();
 		}
-
+		return typeAttribute;
+	}
+	
+	private boolean assignability(TypeAttribute secondTypeAttribute) {		
 		// If RHS or LHS is user defined, but not both. RHS is not assignable to LHS
 		if(this.isPrimitive() == !secondTypeAttribute.isPrimitive()) {
 			return false;
@@ -143,9 +119,47 @@ public class TypeAttribute implements Attribute{
 			return true;
 		}
 		
-
+		
 		throw new ShouldNotHappenException(
 				"Didn't consider an edge case for assignments");
+	}
+	
+	public boolean doReturnValuesMatch(TypeAttribute secondTypeAttribute) {
+		secondTypeAttribute = manipulateArrayType(secondTypeAttribute);
+		
+		if(secondTypeAttribute == null) {
+			return false;
+		}
+		
+		if(isArray) {
+			return aliasName.equals(secondTypeAttribute.getAliasName());
+		}
+		
+		return assignability(secondTypeAttribute);
+	}
+
+	public boolean assignableBy(TypeAttribute secondTypeAttribute) {
+		secondTypeAttribute = manipulateArrayType(secondTypeAttribute);
+		
+		if(secondTypeAttribute == null) {
+			return false;
+		}
+		
+		if(isArray) {
+			if(hasProperDimension()) {
+
+				// can't assign non-primitive to arrays
+				if(!secondTypeAttribute.isPrimitive()) {
+					return false;
+				}
+				
+				return typeOfArray == secondTypeAttribute.getType();
+			} else {
+				return false;
+			}
+		}
+		
+		return assignability(secondTypeAttribute);
 	}
 	
 	public boolean canBeInitializedBy(TypeAttribute secondTypeAttribute) {
@@ -236,4 +250,26 @@ public class TypeAttribute implements Attribute{
 		// If types are primitives
 		return true;
 	}
+	
+	public String toString() {
+		String retVal = "aliasName: " + aliasName;
+		retVal += ", type: " + type;
+		retVal += ", isArray: " + isArray;
+		retVal += isArray ? ", typeOfArray: " + typeOfArray : "";
+		if(expectedArrayTypeSpecific != null) {
+			retVal += ", Expected Array Type Specific";
+			retVal += ", isTwoDimensionalArray: " + expectedArrayTypeSpecific.isTwoDimensionalArray();
+			retVal += ", dim1: " + expectedArrayTypeSpecific.getDim1();
+			retVal += ", dim2: " + expectedArrayTypeSpecific.getDim2();			
+		}
+		if(receivedArrayTypeSpecific != null) {
+			retVal += ", Received Array Type Specific";
+			retVal += ", isTwoDimensionalArray: " + receivedArrayTypeSpecific.isTwoDimensionalArray();
+			retVal += ", dim1: " + receivedArrayTypeSpecific.getDim1();
+			retVal += ", dim2: " + receivedArrayTypeSpecific.getDim2();
+		}
+		
+		return retVal;
+	}
+	
 }
