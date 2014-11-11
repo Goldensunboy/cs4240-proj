@@ -1,12 +1,12 @@
 type ArrayInt = array [100] of int;
 
-int function func1() 
+ArrayInt function func1() 
 begin
 	begin
 		var a : ArrayInt := 10;
 		var b : int := 10;
-		a[1] := a[1][1];
-		return 2;
+		a[1] := b;
+		return a;
 	end;
 end;
 

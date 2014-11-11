@@ -84,9 +84,9 @@ public class TypeAttribute implements Attribute{
 		if(typeAttribute == null) {
 			return null;
 		}
-		
 		if(typeAttribute.isArray()) {
 			if(typeAttribute.hasProperDimension()) {
+				System.out.println("second attr: " + typeAttribute);
 				Type secondTypeOfArray = typeAttribute.getTypeOfArray();
 				String aliasName = secondTypeOfArray.getName();
 				typeAttribute = new TypeAttribute(aliasName ,secondTypeOfArray);
@@ -126,6 +126,7 @@ public class TypeAttribute implements Attribute{
 	
 	public boolean doReturnValuesMatch(TypeAttribute secondTypeAttribute) {
 		secondTypeAttribute = manipulateArrayType(secondTypeAttribute);
+//	      System.out.println(returnType + " :::: " + currentScopeReturnTypeAttribute);
 		
 		if(secondTypeAttribute == null) {
 			return false;
@@ -272,4 +273,11 @@ public class TypeAttribute implements Attribute{
 		return retVal;
 	}
 	
+	public Object clone() throws CloneNotSupportedException {
+		TypeAttribute typeAttribute = new TypeAttribute(aliasName, type);
+		typeAttribute.setExpectedArrayTypeSpecific(expectedArrayTypeSpecific);
+		typeAttribute.setReceivedArrayTypeSpecific(receivedArrayTypeSpecific);
+		typeAttribute.setTypeOfArray(typeOfArray);
+		return typeAttribute;
+	}
 }
