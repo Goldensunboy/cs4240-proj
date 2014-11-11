@@ -7,7 +7,7 @@ begin
 	end;
 end; 
 
-/* for loop should not contain negative indexes */ /*
+/* for loop should not contain negative indexes */ 
 void function func1()
 begin
 	begin
@@ -16,7 +16,7 @@ begin
 			x := x + 1;
 		enddo;
 	end;
-end; */
+end; 
 
 /*  If a for loop goes from a higher number to a lower number, then the loop should compile but not execute!! */
 void function func2()
@@ -29,7 +29,7 @@ begin
 	end;
 end; 
 
-/* Cannot used a fixedpt as an for loop index */ /*
+/* Cannot used a fixedpt as an for loop index */ 
 void function func3()
 begin
 	begin
@@ -39,9 +39,9 @@ begin
 			x := x + 1;
 		enddo;
 	end;
-end; */
+end; 
 
-/* Cannot used a function call as a for loop index */ /*
+/* Cannot used a function call as a for loop index */ 
 void function func4()
 begin
 	begin
@@ -51,9 +51,9 @@ begin
 			x := x + 1;
 		enddo;
 	end;
-end; */
+end; 
 
-/* Cannot used a value from an array as a for loop index */ /*
+/* Cannot used a value from an array as a for loop index */ 
 void function func5()
 begin
 	begin
@@ -64,9 +64,9 @@ begin
 			x := x + 1;
 		enddo;
 	end;
-end; */
+end; 
 
-/* Cannot used a value from an array as a for loop index */ /*
+/* Cannot used a value from an array as a for loop index */ 
 void function func5()
 begin
 	begin
@@ -75,9 +75,9 @@ begin
 			x := x + 1;
 		enddo;
 	end;
-end; */
+end; 
 
-/* Cannot used a value from an array as a for loop index */ /*
+/* Cannot used a value from an array as a for loop index */ 
 void function func5()
 begin
 	begin
@@ -86,7 +86,7 @@ begin
 			x := x + 1;
 		enddo;
 	end;
-end; */
+end; 
 
 SKIP_E
 

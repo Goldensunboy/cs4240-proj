@@ -53,8 +53,8 @@ begin
 		break;
 	end;
 end; 
-
 SKIP_E
+
 
 void main()
 begin

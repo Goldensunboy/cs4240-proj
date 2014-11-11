@@ -1,5 +1,5 @@
-SKIP_S
 
+SKIP_S
 type Int = int;
 type Int_Type = int;
 type Int_Type2 = int;
@@ -31,7 +31,7 @@ end;
 Int_Type function funcTest3(x:Int_Type) 
 begin
      begin
-          var a: Int_type := 0;
+          var a: Int_Type := 0;
           return a;
      end;
 end;
@@ -45,22 +45,15 @@ begin
 end;
 
 
-/* Using defined type for a variable */
-void function func1a() 
-begin
-	begin
-		var temp1 :Int :=0;
-		temp1 := 0;
-	end;
-end;
+
 
 /* Using defined type for a variable */
 void function func1b() 
 begin
 	begin
 		type Int2 = int;
-		var temp1 :Int2 :=0;
-		temp1 := 0;
+		var temp1 : Int2 :=0;
+		temp1 := temp1;
 	end;
 end;
 
@@ -232,20 +225,12 @@ end;
 void function func18()
 begin
 	begin
-		var int_type_var : Int_Type := 5;
 		var int_type_var2 : Int_Type := 6;
-		int_type_var := int_type_var2*int_type_var2;
+		int_type_var2 := int_type_var2*int_type_var2;
 	end;
 end;
 
-void function func19()
-begin
-	begin
-		var int_type_var : Int_Type := 5;
-		var int_type_var2 : Int_Type := 6;
-		int_type_var := int_type_var2 + int_type_var2;
-	end;
-end;
+
 
 
 void function func20()
@@ -255,7 +240,7 @@ begin
 		var fixedpt_var : fixedpt := 5.0;
 		var int_type_var : Int_Type := 5;
 		var fixedpt_var2 : fixedpt := 5.0;
-		var int_var2 : Int_Type := 5;
+		var int_var2 : int := 5;
 		var fixedpt_type_var : Fixedpt_Type := 5.0;
 		var int_type_var2 : Int_Type := 5;
 		var fixedpt_type_var2 : Fixedpt_Type := 5.0;
@@ -408,6 +393,7 @@ begin
 		
 		fixedpt_type_var := funcTest4(fixedpt_type_var);
 		fixedpt_type_var2 := funcTest4(fixedpt_type_var);
+
 	end;
 end;
 SKIP_E

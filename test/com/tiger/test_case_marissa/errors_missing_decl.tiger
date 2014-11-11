@@ -1,24 +1,24 @@
 SKIP_S
-/* Using undefined variable */ /*
+/* Using undefined variable */ 
 void function func2() 
 begin
 	begin
 		var temp2 : int :=0;
 		missingVar := 0;
 	end;
-end; */
+end; 
 
-/* Calling undefined function */ /*
+/* Calling undefined function */ 
 void function func3() 
 begin
 	begin
 		var temp3 : int :=0;
 		missingFunc();
 	end;
-end; */
+end; 
 
-/* Using undefined variable */ /*
-void function func3() 
+/* Using undefined variable */ 
+void function func4() 
 begin
 	begin
 		var temp1 : int :=0;
@@ -32,7 +32,7 @@ begin
 			end;
 		end;
 	end;
-end; */
+end; 
 
 
 
@@ -46,7 +46,7 @@ begin
 end;
 
 /*  Using undefined type for a variable */
-void function func2(x:missingType) 
+void function func5(x:missingType) 
 begin
 	begin
 		var temp1 : int :=0;
@@ -55,7 +55,7 @@ begin
 end;
 
 /*  Using undefined type for a return */
-missingType function func3() 
+missingType function func6() 
 begin
 	begin
 		var temp1 : int :=0;
@@ -64,6 +64,7 @@ begin
 end;
 
 SKIP_E
+
 void main()
 begin
 	begin

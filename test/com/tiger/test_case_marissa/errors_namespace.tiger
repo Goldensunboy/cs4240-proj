@@ -1,45 +1,55 @@
-SKIP_S
+
 
 type name1 = int;
 type name2 = int;
 
-/* type, function name and variable can't all have the same names */ /*
+int function testFunc() 
+begin
+	begin
+		var a, b : int :=0;
+		return a;
+	end;
+end;
+
+
+SKIP_S
+/* type, function name and variable can't all have the same names */ 
 void function name1() 
 begin
 	begin
 		var name1 : int :=0;
 		name1 := 0;
 	end;
-end;*/
+end;
 
-/* type and function name can't have the same names */ /*
+/* type and function name can't have the same names */ 
 void function name2() 
 begin
 	begin
 		var temp1 : int :=0;
 		temp1 := 0;
 	end;
-end; /*
+end; 
 
-/* type and variable can't have the same names */ /*
+/* function and variable can't have the same names */ 
 void function temp2() 
 begin
 	begin
-		var name2 : int :=0;
-		name2 := 0;
+		var testFunc : int :=0;
+		testFunc := 0;
 	end;
-end; */
+end; 
 
-/* function and variable can't have the same names */ /*
+/* function and variable can't have the same names */ 
 void function name4() 
 begin
 	begin
 		var name4 : int :=0;
 		name4 := 0;
 	end;
-end; */
+end; 
 
-/* two functions can't have the same names */ /*
+/* two functions can't have the same names */ 
 void function name5() 
 begin
 	begin
@@ -47,15 +57,16 @@ begin
 		temp3 := 0;
 	end;
 end;
+
 void function name5() 
 begin
 	begin
 		var temp3 : int :=0;
 		temp3 := 0;
 	end;
-end; */
+end; 
 
-/* variables can't have the same name in the same scope */ /*
+/* variables can't have the same name in the same scope */ 
 void function temp4() 
 begin
 	begin
@@ -63,9 +74,9 @@ begin
 		var name6 : int :=0;
 		name6 := 0;
 	end;
-end; */
+end; 
 
-/* type can't have the same name in the same scope */ /*
+/* type can't have the same name in the same scope */ 
 void function temp5() 
 begin
 	begin
@@ -74,7 +85,7 @@ begin
 		var temp6 : int :=0;
 		temp6 := 0;
 	end;
-end; */
+end; 
 
 SKIP_E
 

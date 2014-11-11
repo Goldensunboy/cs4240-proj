@@ -1,4 +1,4 @@
-SKIP_S
+
 
 type name1 = int;
 type name2 = int;
@@ -67,7 +67,7 @@ begin
 	end;
 end;
 
-SKIP_E
+
 
 
 void main()

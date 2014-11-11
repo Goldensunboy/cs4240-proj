@@ -1,6 +1,6 @@
 
-SKIP_S
 
+SKIP_S
 int function testFunc() 
 begin
 	begin
