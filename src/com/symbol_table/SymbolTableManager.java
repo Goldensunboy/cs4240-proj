@@ -368,12 +368,7 @@ public class SymbolTableManager {
 			if(func.length > 2) {
 				TypeAttribute[] params = new TypeAttribute[func.length - 2];
 				for(int i = 0; i < func.length - 2; ++i) {
-					TypeAttribute newAttr = new TypeAttribute();
-					switch(func[i + 2]) {
-						case "int": newAttr.setType(Type.INT); break;
-						default: throw new ShouldNotHappenException("Error parsing params for reserved functions");
-					}
-					params[i] = newAttr;
+					params[i] = new TypeAttribute(Type.INT.getName(), Type.INT);
 				}
 				//System.arraycopy(func, 2, params, 0,  func.length - 2);
 				funcAttribute = new FunctionAttribute(func[0], func[1], new ArrayList<TypeAttribute>(Arrays.asList(params)));
