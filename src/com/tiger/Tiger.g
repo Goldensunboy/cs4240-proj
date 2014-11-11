@@ -207,13 +207,13 @@ funcCurrent[String typeName, TypeAttribute returnTypeAttribute] :
 funcDeclaration[String typeName, TypeAttribute returnTypeAttribute]
 scope
 {
-  List<TypeAttribute> myParams;
-  List<VariableAttribute> parameterList;
+  List<TypeAttribute> parameterTypeList;
+  List<VariableAttribute> parameterValueList;
 }
 @init
 {
-  $funcDeclaration::myParams = new ArrayList<TypeAttribute>();
-  $funcDeclaration::parameterList = new ArrayList<VariableAttribute>();
+  $funcDeclaration::parameterTypeList = new ArrayList<TypeAttribute>();
+  $funcDeclaration::parameterValueList = new ArrayList<VariableAttribute>();
 }
 :
   KEY_FUNCTION myFunctionName=id[IdType.FUNCTION_NAME]
@@ -228,13 +228,13 @@ afterBegin[String myFunctionName, String typeName, TypeAttribute returnTypeAttri
 {
   putFunctionAttributeMap(myFunctionName,
                               returnTypeAttribute,
-                              $funcDeclaration::myParams);
+                              $funcDeclaration::parameterTypeList);
   enclosingFunctionName = myFunctionName;
 }
 :
   myKey_begin=key_begin 
   {
-    for(VariableAttribute attribute : $funcDeclaration::parameterList) {
+    for(VariableAttribute attribute : $funcDeclaration::parameterValueList) {
       attributeMap.put(attribute.getVariableName(), attribute);
     }
   }
@@ -284,10 +284,9 @@ baseType returns[TypeAttribute typeAttribute]:
 param[String declaringFunctionName] :
 	id[IdType.FUNCTION_PARAMETER] OP_COLON typeId[IdType.VARIABLE_TYPE]
 	{
-    $funcDeclaration::myParams.add($typeId.typeAttribute);
-    
+    $funcDeclaration::parameterTypeList.add($typeId.typeAttribute);
 	  VariableAttribute variableAttribute = new VariableAttribute($id.text, $typeId.text, declaringFunctionName);
-    $funcDeclaration::parameterList.add(variableAttribute);
+    $funcDeclaration::parameterValueList.add(variableAttribute);
 	}
 ;
 
@@ -419,7 +418,6 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
         TypeAttribute s3TypeAttribute = $s3.typeAttribute;
         ArrayTypeSpecific s2ArrayTypeSpecific = $s2.arrayTypeSpecific;
         
-        System.out.println(s3TypeAttribute);
         if(s1TypeAttribute.isArray()) {    
           s1TypeAttribute.setReceivedArrayTypeSpecific(s2ArrayTypeSpecific);
         }
@@ -495,9 +493,8 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
           exceptionHandler.handleException(s1, customMessage, null, null, UndeclaredFunctionException.class); 
         }
         // Verify that the function params match with the type for the function
-        List<TypeAttribute> params = symbolTableManager.getFunctionParameters($s1.exp);
-        System.out.println(params);
-        System.out.println($s1.exp);
+        List<TypeAttribute> params = symbolTableManager.getFunctionParameters($s1.text);
+        System.out.println("function Name: " + params);
         if(params.size() != attrList.size()) {
           String expected = params.size() == 0 ? "[void]" : FunctionAttribute.getParamListStringRepresentationFactoryInTigerCodeForPhase2ErrorReporting(params);
           List<TypeAttribute> foundList = new ArrayList<TypeAttribute>();
@@ -1335,7 +1332,11 @@ id_replacement [IdType idType] returns [String exp, Type type]
   } 
 ;
 
-id[IdType idType] returns [String exp, TypeAttribute typeAttribute]:
+id[IdType idType] returns [String exp, TypeAttribute typeAttribute]
+@after{
+  System.out.println("typeAttribtue: " + $typeAttribute);
+}
+:
   myId=ID
   {
     TypeAttribute testType;
@@ -1367,17 +1368,28 @@ id[IdType idType] returns [String exp, TypeAttribute typeAttribute]:
         String customMessage = "Type " + $myId.text + " is not defined";
         exceptionHandler.handleException(myId, customMessage, null, null, InvalidTypeException.class);
       }
-    } else {
-	    TypeAttribute attribute = symbolTableManager
+      TypeAttribute attribute = symbolTableManager
+                              .getTypeAttributeInCurrentScope($myId.text, attributeMap);
+      try {
+        $typeAttribute = (TypeAttribute) attribute.clone();
+	    } catch (CloneNotSupportedException e) {
+	      // TODO Auto-generated catch block
+	      e.printStackTrace();
+	    }
+    } 
+    else { 
+      TypeAttribute attribute = symbolTableManager
 	                            .getTypeAttributeInCurrentScope($myId.text, attributeMap);
-	  try {
-      $typeAttribute = (TypeAttribute) attribute.clone();
-    } catch (CloneNotSupportedException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
-  }
+		  try {
+	      $typeAttribute = (TypeAttribute) attribute.clone();
+	    } catch (CloneNotSupportedException e) {
+	      // TODO Auto-generated catch block
+	      e.printStackTrace();
+	    }
+	 }
 }
+
+
 ;
 
 ID :
