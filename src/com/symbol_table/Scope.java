@@ -9,6 +9,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import com.attribute.Attribute;
+import com.attribute.TypeAttribute;
 import com.compiler.Type;
 
 public class Scope {
@@ -19,13 +20,13 @@ public class Scope {
 	private Set<String> typeNameSpace;
 	private Set<String> functionNameSpace;
 	private Map<String, List<Symbol>> symbolMap = new LinkedHashMap<>();
-	private String returnTypeName;
+	private TypeAttribute returnType;
 	
 	public Scope(Scope enclosingScope, int scopeId, String enclosingFunctionName){
 		this.enclosingScope = enclosingScope;
 		this.scopeId = scopeId;
 		this.enclosingFunctionName = enclosingFunctionName;
-		returnTypeName = Type.VOID.getName();
+		returnType = new TypeAttribute(Type.VOID.getName(), Type.VOID);
 		varNameSpace = new HashSet<>();
 		typeNameSpace = new HashSet<>();
 		functionNameSpace = new HashSet<>();
@@ -88,12 +89,12 @@ public class Scope {
 		this.enclosingFunctionName = enclosingFunctionName;
 	}
 
-	public String getReturnTypeName() {
-		return returnTypeName;
+	public TypeAttribute getReturnType() {
+		return returnType;
 	}
 
-	public void setReturnTypeName(String returnTypeName) {
-		this.returnTypeName = returnTypeName;
+	public void setReturnType(TypeAttribute returnType) {
+		this.returnType = returnType;
 	}
 	
 	public Set<String> getFunctionNameSpace() {

@@ -6,11 +6,21 @@ public class VariableAttribute implements Attribute{
 	private String variableName;
 	private String declaringProcedure;
 	private String typeName;
+	private boolean initialized;
 	
-	public VariableAttribute(String variableName, String typeName, String declaringFunctionName){
+	public VariableAttribute(String variableName, String typeName, String declaringFunctionName, boolean initialized){
 		this.variableName = variableName;
 		this.declaringProcedure = declaringFunctionName;
 		this.typeName = typeName;
+		this.initialized = initialized;
+	}
+	
+	public void setInitialized(boolean initialized) {
+		this.initialized = initialized;
+	}
+	
+	public boolean getInitialized() {
+		return initialized;
 	}
 	
 	public String getVariableName() {

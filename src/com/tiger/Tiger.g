@@ -79,10 +79,10 @@ import com.exception.NameSpaceConflictException;
   public static final String TYPE_NAMESPACE = "typeNameSpace";
   public static final String FUNCTION_NAMESPACE = "functionNameSpace";
   
-  private void putVariableAttributeMap(List<String> variableNameList, 
-      String typeName, TypeAttribute typeAttribute, String declaringFunctionName) {
+  private void putVariableAttributeMap(List<String> variableNameList, String typeName, 
+           TypeAttribute typeAttribute, String declaringFunctionName, boolean initialized) {
     for (String variableName : variableNameList) {
-        VariableAttribute variableAttribute = new VariableAttribute(variableName, typeName, declaringFunctionName);
+        VariableAttribute variableAttribute = new VariableAttribute(variableName, typeName, declaringFunctionName, initialized);
         attributeMap.put(variableName, variableAttribute);
     }
   }
@@ -153,14 +153,20 @@ import com.exception.NameSpaceConflictException;
     Map<String, Set<String>> unregisteredNamespaceMap = getUnregisteredNamespacesMap();
     
     symbolTableManager.makeNewScope(attributeMap, enclosingFunctionName, unregisteredNamespaceMap);
-	  
+
 	  clearMapsAndSets();
   }
   
   private void goToEnclosingScope() {
     Map<String, Set<String>> unregisteredNamespaceMap = getUnregisteredNamespacesMap();
-    
+    TypeAttribute returnTypeAttribute = symbolTableManager.getCurrentScopeReturnType();
     symbolTableManager.goToEnclosingScope(attributeMap, unregisteredNamespaceMap);
+    
+    if(returnTypeAttribute.getType() != Type.VOID) {
+	    symbolTableManager.setCurrentScopeReturnType(returnTypeAttribute);
+    }
+    
+//    System.out.println("Current scope return type : " + returnTypeAttribute);
     
     clearMapsAndSets();
   }
@@ -239,13 +245,13 @@ afterBegin[String myFunctionName, String typeName, TypeAttribute returnTypeAttri
   }
   blockList[myFunctionName] 
   {
-    if(!symbolTableManager.returnStatementSatisfied(myFunctionName)) {
-      String customMessage = "Mismatch return statement for function " + myFunctionName;
+     if(!symbolTableManager.returnStatementSatisfied(myFunctionName)) {
+      String customMessage = "Function \"" + myFunctionName + "\" doesn't have a proper return statement";
       TypeAttribute expectedReturnType = symbolTableManager.getReturnType();
       TypeAttribute actualReturnType = symbolTableManager.getCurrentScopeReturnType();
       exceptionHandler.handleException(myKey_begin, customMessage, expectedReturnType.getAliasName(), 
                                        actualReturnType.getAliasName(), TypeMismatchException.class);
-    }
+	  }
   }
   key_end OP_SCOLON
 ;
@@ -285,7 +291,7 @@ param[String declaringFunctionName] :
 	{
     $funcDeclaration::myParams.add($typeId.typeAttribute);
     
-	  VariableAttribute variableAttribute = new VariableAttribute($id.text, $typeId.text, declaringFunctionName);
+	  VariableAttribute variableAttribute = new VariableAttribute($id.text, $typeId.text, declaringFunctionName, true /*TODO Andrew */);
     $funcDeclaration::parameterList.add(variableAttribute);
 	}
 ;
@@ -363,9 +369,9 @@ scope
 	{
 	  putVariableAttributeMap($varDeclaration::aggregatedMyIdList,
 	                          $myTypeId.text, $myTypeId.typeAttribute,
-	                          $functionName);
+	                          $functionName, false);
 	}
-  optionalInit[$varDeclaration::aggregatedMyIdList] OP_SCOLON
+  initialized=optionalInit[$varDeclaration::aggregatedMyIdList] OP_SCOLON
 ;
 
 idList[IdType idType] : 
@@ -380,10 +386,13 @@ idList[IdType idType] :
 
 optionalInit[List<String> varNames] :
 	(
+	  // TODO Andrew
 	  OP_ASSIGN s1=constant
 	  {
 	    for(String varName : varNames) {
-	      TypeAttribute typeAttribute = symbolTableManager.getTypeAttributeInCurrentScope(varName, attributeMap);
+	      VariableAttribute attribute = (VariableAttribute)symbolTableManager.getAttributeInCurrentScope(varName, attributeMap);
+	      attribute.setInitialized(true);
+	      TypeAttribute typeAttribute = symbolTableManager.getTypeAttributeInCurrentScope(attribute, attributeMap);
 	      
 	      if(typeAttribute.isPrimitive()) {
 	        IRList.addFirst("assign, " + varName + ", " + $s1.exp);
@@ -412,32 +421,34 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		  s2=valueTail OP_ASSIGN s3=expr[null, null]
 		  {
 		    // Verify that the assignment is valid
-		    Attribute att = symbolTableManager.getAttributeInCurrentScope($s1.exp, attributeMap);
+		    VariableAttribute att = (VariableAttribute)symbolTableManager.getAttributeInCurrentScope($s1.exp, attributeMap);
 		    
-		    TypeAttribute s1TypeAttribute = symbolTableManager.getTypeAttributeInCurrentScope($s1.text, attributeMap);
-        TypeAttribute s3TypeAttribute = $s3.typeAttribute;
-        ArrayTypeSpecific s2ArrayTypeSpecific = $s2.arrayTypeSpecific;
-        
-        System.out.println(s3TypeAttribute);
-        if(s1TypeAttribute.isArray()) {    
-          s1TypeAttribute.setReceivedArrayTypeSpecific(s2ArrayTypeSpecific);
-        }
+
         if(!$s3.exp.contains("#")) {
 		      // Expr assignment
 		      if(att == null) { //TODO change this with s1TypeAttribute and get rid of att
 		        // Variable not declared yet
 		        String customMessage = "Assignment to undeclared variable: " + $s1.exp;
 		        exceptionHandler.handleException(s1, customMessage, null, null, UndeclaredVariableException.class);
-		      } else if(!s1TypeAttribute.assignableBy(s3TypeAttribute)) {
-		        // Illegal assignment
-		        String customMessage;
-		        if(s1TypeAttribute.isArray()){
-			       customMessage = "Can't assign " + $s3.text + " to " + $s1.text + $s2.text;
-		        } else {
-		         customMessage = "Can't assign " + $s3.text + " to " + $s1.text;
+		      } else {
+				    TypeAttribute s1TypeAttribute = symbolTableManager.getTypeAttributeInCurrentScope(att, attributeMap);
+		        TypeAttribute s3TypeAttribute = $s3.typeAttribute;
+		        ArrayTypeSpecific s2ArrayTypeSpecific = $s2.arrayTypeSpecific;
+		        if(s1TypeAttribute.isArray()) {    
+		          s1TypeAttribute.setReceivedArrayTypeSpecific(s2ArrayTypeSpecific);
 		        }
-		        exceptionHandler.handleException(s1, customMessage, null, null, TypeMismatchException.class);
-          }
+			      if(!s1TypeAttribute.assignableBy(s3TypeAttribute)) {
+			        // Illegal assignment
+			        String customMessage;
+			        if(s1TypeAttribute.isArray()){
+				       customMessage = "Can't assign " + $s3.text + " to " + $s1.text + $s2.text;
+			        } else {
+			         customMessage = "Can't assign " + $s3.text + " to " + $s1.text;
+			        }
+			        exceptionHandler.handleException(s1, customMessage, null, null, TypeMismatchException.class);
+	          }
+		      } 
+		      
 		      // Cannot assign a conditional to a variable
 		      if($s3.myIsBool) {
 	          String customMessage = "Boolean values cannot be assigned to a variable.";
@@ -565,7 +576,9 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
     KEY_ENDIF
     {
       goToEnclosingScope();
-      symbolTableManager.setCurrentScopeReturnType(ifReturnType.equals(elseReturnType)? ifReturnType : VOID_TYPE_ATTRIBUTE);
+      if(ifReturnType.equals(elseReturnType) ){
+        symbolTableManager.setCurrentScopeReturnType(ifReturnType);
+      }
       IRList.addFirst(elseLabel2 + ":");
     }
 		|
@@ -598,7 +611,7 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		    indexVarList.add($s6.exp);
 		    putVariableAttributeMap(indexVarList,
                                 $s6.text, INT_TYPE_ATTRIBUTE,
-                                $functionName);
+                                $functionName, true /*TODO andrew*/);
 		  }
 		  OP_ASSIGN s7=indexExpr KEY_TO s8=indexExpr
 		  {
@@ -610,7 +623,7 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		    // Generate index variable
 		    ArrayList<String> varList = new ArrayList<String>();
 		    varList.add($s6.text);
-		    putVariableAttributeMap(varList, Type.INT.getName() , INT_TYPE_ATTRIBUTE, $functionName);
+		    putVariableAttributeMap(varList, Type.INT.getName() , INT_TYPE_ATTRIBUTE, $functionName,true /*TODO Andrew*/);
         IRList.addFirst("assign, " + $s6.text + ", " + $s7.exp);
         // Begin loop here
         IRList.addFirst(forTop + ":");
@@ -642,6 +655,7 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		{
 		  TypeAttribute expectedReturnType = symbolTableManager.getReturnType();
 		  TypeAttribute actualReturnType = $myReturnValue.typeAttribute;
+		  
 		  if(!expectedReturnType.doReturnValuesMatch(actualReturnType)|| $myReturnValue.myIsBool) {
 		    
         String customMessage = "Type doesn't match the expected return type";
@@ -704,7 +718,8 @@ expr[String startLabel, String endLabel] returns [String exp, TypeAttribute type
   {
     if($s3.exp == null) {
       $exp = $s1.exp;
-      $typeAttribute = $s1.typeAttribute;
+      TypeAttribute s1TypeAttribute = $s1.typeAttribute; 
+      $typeAttribute = s1TypeAttribute;
       $myIsBool = $s1.myIsBool;
     } else {
       if(!$s3.myIsBool) {
