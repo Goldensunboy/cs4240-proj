@@ -419,10 +419,10 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
         TypeAttribute s3TypeAttribute = $s3.typeAttribute;
         ArrayTypeSpecific s2ArrayTypeSpecific = $s2.arrayTypeSpecific;
         
+        System.out.println(s3TypeAttribute);
         if(s1TypeAttribute.isArray()) {    
           s1TypeAttribute.setReceivedArrayTypeSpecific(s2ArrayTypeSpecific);
         }
-        System.out.println(s3TypeAttribute);
          
         if(!$s3.exp.contains("#")) {
 		      // Expr assignment
@@ -646,6 +646,7 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		  TypeAttribute expectedReturnType = symbolTableManager.getReturnType();
 		  TypeAttribute actualReturnType = $myReturnValue.typeAttribute;
 		  if(!expectedReturnType.doReturnValuesMatch(actualReturnType)|| $myReturnValue.myIsBool) {
+		    
         String customMessage = "Type doesn't match the expected return type";
 		    exceptionHandler.handleException(myReturnValue, customMessage, 
 		                                      expectedReturnType.getAliasName(), 
@@ -1369,9 +1370,14 @@ id[IdType idType] returns [String exp, TypeAttribute typeAttribute]:
     } else {
 	    TypeAttribute attribute = symbolTableManager
 	                            .getTypeAttributeInCurrentScope($myId.text, attributeMap);
-      $typeAttribute = attribute;
+	  try {
+      $typeAttribute = (TypeAttribute) attribute.clone();
+    } catch (CloneNotSupportedException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
     }
   }
+}
 ;
 
 ID :
