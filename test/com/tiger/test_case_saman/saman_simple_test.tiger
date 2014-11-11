@@ -6,7 +6,12 @@ begin
 		var a : ArrayInt := 10;
 		var b : int := 10;
 		a[1] := b;
-		return a;
+		begin
+			return a; 
+		end; 
+		begin
+			a[1] :=2;
+		end;
 	end;
 end;
 

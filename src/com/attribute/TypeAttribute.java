@@ -86,7 +86,6 @@ public class TypeAttribute implements Attribute{
 		}
 		if(typeAttribute.isArray()) {
 			if(typeAttribute.hasProperDimension()) {
-				System.out.println("second attr: " + typeAttribute);
 				Type secondTypeOfArray = typeAttribute.getTypeOfArray();
 				String aliasName = secondTypeOfArray.getName();
 				typeAttribute = new TypeAttribute(aliasName ,secondTypeOfArray);
@@ -126,7 +125,7 @@ public class TypeAttribute implements Attribute{
 	
 	public boolean doReturnValuesMatch(TypeAttribute secondTypeAttribute) {
 		secondTypeAttribute = manipulateArrayType(secondTypeAttribute);
-//	      System.out.println(returnType + " :::: " + currentScopeReturnTypeAttribute);
+	      
 		
 		if(secondTypeAttribute == null) {
 			return false;

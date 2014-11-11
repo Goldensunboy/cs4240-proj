@@ -20,8 +20,6 @@ import com.attribute.FunctionAttribute;
 import com.attribute.TypeAttribute;
 import com.compiler.Type;
 import com.exception.AttributeCastException;
-import com.exception.ErroneousParserImplementationException;
-import com.exception.NameSpaceConflictException;
 import com.exception.ShouldNotHappenException;
 
 /**
@@ -123,12 +121,7 @@ public class SymbolTableManager {
 			}
 		}
 		
-		TypeAttribute returnType = getCurrentScopeReturnType();
-		
 		currentScope = currentScope.getEnclosingScope();
-		if (currentScope != null) {			
-			currentScope.setReturnTypeName(returnType.getAliasName());
-		}
 		return currentScope;
 	}
 	
@@ -209,6 +202,13 @@ public class SymbolTableManager {
 		return false;
 	}
 
+	public boolean isInValidScope() {
+		if(currentScope == null) {
+			return false;
+		}
+		return currentScope.getEnclosingScope() != null;
+	}
+	
 	/**
 	 * given the function name returns all the parameters 
 	 */
@@ -233,14 +233,13 @@ public class SymbolTableManager {
 	private FunctionAttribute getFunctionAttribute(String functionName) {
 		List<Symbol> symbolList = symbolTable.get(functionName);
 		if (symbolList.size() != 1) {
-			// SNH (Should Never Happen). Just a clue for us for debugging
-			throw new NameSpaceConflictException("SNH: More than one function with the same name.");
+			throw new ShouldNotHappenException("More than one function with the same name.");
 		}
 		FunctionAttribute functionNameAttribute;
 		try {			
 			functionNameAttribute= (FunctionAttribute)symbolList.get(0).getAttribute();
 		} catch (ClassCastException e) {
-			throw new AttributeCastException("SNH: Couldn't cast to FunctionNameAttribute");
+			throw new ShouldNotHappenException("Couldn't cast to FunctionNameAttribute");
 		}
 		
 		return functionNameAttribute;
@@ -254,7 +253,7 @@ public class SymbolTableManager {
 		try {
 			return currentScope.getEnclosingScope().getEnclosingScope() == null;
 		} catch (NullPointerException e){
-			throw new ErroneousParserImplementationException("SNH: function should have at least two scopes");
+			return false;
 		}
 	}
 	
@@ -271,9 +270,7 @@ public class SymbolTableManager {
 	}
 	
 	public TypeAttribute getCurrentScopeReturnType() {
-		String returnTypeName = currentScope.getReturnTypeName();
-		TypeAttribute typeAttribute = getTypeAttributeInCurrentScope(returnTypeName, new Hashtable<String, Attribute>());
-		return typeAttribute;
+		return currentScope.getReturnType();
 	}
 	
 	public boolean returnStatementSatisfied(String functionName) {
@@ -283,23 +280,16 @@ public class SymbolTableManager {
 	}
 	
 	public void setCurrentScopeReturnType(TypeAttribute returnType) {
-		currentScope.setReturnTypeName(returnType.getAliasName());
-	}
-	
-	public TypeAttribute getOtherType(Map<String, Attribute> attributeMap, String typeName) {
-		TypeAttribute varTypeAttribute;
-		try {
-			varTypeAttribute = (TypeAttribute) globalScope.getSymbolMap().get(typeName).get(0).getAttribute();				
-		} catch (ClassCastException e) {
-			throw new AttributeCastException(e.getMessage());
+		if(currentScope != null) {
+			currentScope.setReturnType(returnType);
 		}
-		return varTypeAttribute;
 	}
 	
 	public void addToExpiredFunctionName(Map<String, Set<String>> nameSpaceMap) {
 		for (Entry<String, Set<String>> nameSpcae : nameSpaceMap.entrySet()) {
 			expiredFunctionName.addAll(nameSpcae.getValue());
 		}
+		
 	}
 	
 	public boolean doesNameSpaceConflict(int lineNumber, IdType idType, String name, Map<String, Set<String>> unregisteredNamespaceMap) {
@@ -332,7 +322,6 @@ public class SymbolTableManager {
 		if(idType == IdType.USER_DEFINED_TYPE) {
 			return functionNameConflict || varNameConflict || typeNameConflict;
 		}
-		System.out.println(idType);
 		throw new ShouldNotHappenException();
 	}
 	
@@ -412,6 +401,11 @@ public class SymbolTableManager {
 	public TypeAttribute getTypeAttributeInCurrentScope(String idName, 
 			Map<String, Attribute> attributeMap) {
 		Attribute attribute = getAttributeInCurrentScope(idName, attributeMap);
+		return getTypeAttributeInCurrentScope(attribute, attributeMap);
+	}
+	
+	public TypeAttribute getTypeAttributeInCurrentScope(Attribute attribute, 
+			Map<String, Attribute> attributeMap) {
 		if(attribute == null){
 			return null;			
 		}

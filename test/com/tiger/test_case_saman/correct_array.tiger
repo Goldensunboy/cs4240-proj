@@ -1,12 +1,10 @@
-SKIP
-/* This file should compile */
+
 type Int = int;
 type ArrayInt = array [100] of int;
 type Array2DInt = array [100][100] of int;
 type FixedPt = fixedpt;
 type ArrayFixedPt = array [100] of fixedpt;
 type Array2DFixedPt = array [100][100] of fixedpt;
-
 
 int function testFunc(x:int) 
 begin
@@ -51,6 +49,8 @@ begin
 		x[0] := 9;
 	end;
 end;
+
+
 
 void function funcName2a() 
 begin
@@ -217,6 +217,7 @@ begin
 		x[2] := testFunc(3);
 	end;
 end;
+
 
 void main()
 begin
