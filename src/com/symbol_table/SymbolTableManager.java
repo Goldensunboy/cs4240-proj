@@ -121,12 +121,7 @@ public class SymbolTableManager {
 			}
 		}
 		
-		TypeAttribute returnType = getCurrentScopeReturnType();
-		
 		currentScope = currentScope.getEnclosingScope();
-		if (currentScope != null) {			
-			setCurrentScopeReturnType(returnType);
-		}
 		return currentScope;
 	}
 	
@@ -285,7 +280,6 @@ public class SymbolTableManager {
 	}
 	
 	public void setCurrentScopeReturnType(TypeAttribute returnType) {
-		System.out.println("Current scope return type : " + returnType);
 		if(currentScope != null) {
 			currentScope.setReturnType(returnType);
 		}
