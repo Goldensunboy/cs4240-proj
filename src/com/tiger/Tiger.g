@@ -63,6 +63,7 @@ import com.exception.NameSpaceConflictException;
   private SymbolTableManager symbolTableManager = new SymbolTableManager();
   private Map<String, Attribute> attributeMap = new Hashtable<String, Attribute>();
   private LinkedList<String> IRList = new LinkedList<String>();
+  private boolean IR_Valid = true;
   private TempVarFactory tvf = new TempVarFactory();
   private LabelFactory lf = new LabelFactory();
   private String enclosingFunctionName;
@@ -131,7 +132,11 @@ import com.exception.NameSpaceConflictException;
   
   public List<String> getIRCode() {
     Collections.reverse(IRList);
-    return IRList;
+    return IR_Valid ? IRList : null;
+  }
+  
+  public void invalidateIRCode() {
+    IR_Valid = false;
   }
 
   private boolean errorFlag = false;
@@ -143,10 +148,6 @@ import com.exception.NameSpaceConflictException;
   
   public boolean getErrorFlag() {
     return errorFlag;
-  }
-  
-  public List<String> getIRList() {
-    return IRList;
   }
   
   private void makeNewScope() {

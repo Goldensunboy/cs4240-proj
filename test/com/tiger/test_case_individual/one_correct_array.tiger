@@ -1,0 +1,17 @@
+type ArrayInt = array [100] of int;
+
+int function testFunc(x : ArrayInt) 
+begin
+	begin
+		var a, b : int :=0;
+		return b;
+	end;
+end;
+
+void main() 
+begin
+	begin
+		var x : ArrayInt;
+		testFunc(x);
+	end;
+end;
