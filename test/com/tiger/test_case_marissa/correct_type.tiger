@@ -1,5 +1,5 @@
 
-SKIP_S
+
 type Int = int;
 type Int_Type = int;
 type Int_Type2 = int;
@@ -46,7 +46,7 @@ end;
 
 
 
-
+SKIP_S
 /* Using defined type for a variable */
 void function func1b() 
 begin
@@ -350,7 +350,7 @@ begin
 		enddo;
 	end;
 end;
-
+SKIP_E
 
 void function func21()
 begin
@@ -367,7 +367,7 @@ begin
 		funcTest1(5);
 		funcTest1(int_var);
 		funcTest1(5 + int_var);
-		
+	
 		int_var := funcTest1(5);
 		fixedpt_var := funcTest1(5);
 		
@@ -383,8 +383,8 @@ begin
 		fixedpt_var := funcTest2(5.0);
 		
 		funcTest3(int_type_var); 
-		funcTest3(int_type_var2);
-		
+SKIP_S		funcTest3(int_type_var2);
+	
 		int_type_var := funcTest3(int_type_var); 
 		int_type_var2 := funcTest3(int_type_var); 
 		
@@ -393,10 +393,10 @@ begin
 		
 		fixedpt_type_var := funcTest4(fixedpt_type_var);
 		fixedpt_type_var2 := funcTest4(fixedpt_type_var);
-
+SKIP_E
 	end;
 end;
-SKIP_E
+
 
 void main()
 begin

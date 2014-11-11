@@ -1,4 +1,3 @@
-/* This file should compile */
 
 type Int = int;
 type ArrayInt = array [100] of int;
