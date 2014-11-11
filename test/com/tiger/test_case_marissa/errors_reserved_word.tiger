@@ -27,8 +27,8 @@ begin
 		id := 3;
 	end;
 end; 
-
 SKIP_E
+
 
 void main()
 begin

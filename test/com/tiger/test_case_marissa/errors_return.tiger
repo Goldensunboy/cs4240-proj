@@ -8,52 +8,52 @@ begin
 	end;
 end;
 
-/* void function can't return an int literal */ /*
+/* void function can't return an int literal */ 
 void function func1()
 begin
 	begin
 		var n : int := 5;
 		return 7;
 	end;
-end;*/
+end;
 
-/* void function can't return a float variable*/ /*
+/* void function can't return a float variable*/ 
 void function func2()
 begin
 	begin
 		var n : fixedpt := 5.0;
 		return n;
 	end;
-end;*/
+end;
 
-/* int return type function can't return a float literal*/ /*
+/* int return type function can't return a float literal*/ 
 int function func3()
 begin
 	begin
 		var n : int := 5;
 		return 7.0;
 	end;
-end;*/
+end;
 
-/* int return type function can't return a float variable*/ /*
+/* int return type function can't return a float variable*/ 
 int function func4()
 begin
 	begin
 		var n : fixedpt := 5.0;
 		return n;
 	end;
-end;*/
+end;
 
-/* int return type function needs a return statement*/ /*
+/* int return type function needs a return statement*/ 
 int function func5()
 begin
 	begin
 		var n : fixedpt := 5.0;
 		n := 6.0;
 	end;
-end; */
+end; 
 
-/* needs a return value */ /*
+/* needs a return value */ 
 int function func6()
 begin
 	begin
@@ -64,9 +64,9 @@ begin
 			b := 1;
 		endif;
 	end;
-end; */
+end; 
 
-/* needs a return value in else */ /*
+/* needs a return value in else */ 
 int function func7()
 begin
 	begin
@@ -78,9 +78,9 @@ begin
 			b := 1;
 		endif;
 	end;
-end; */
+end; 
 
-/* needs a return value in if */ /*
+/* needs a return value in if */ 
 int function func8()
 begin
 	begin
@@ -92,9 +92,9 @@ begin
 			return 5;
 		endif;
 	end;
-end; */
+end; 
 
-/* needs a return value */ /*
+/* needs a return value */ 
 int function func9()
 begin
 	begin
@@ -112,9 +112,9 @@ begin
 			return 5;
 		endif;
 	end;
-end; */
+end; 
 
-/* needs a return value */ /*
+/* needs a return value */ 
 int function func10()
 begin
 	begin
@@ -130,7 +130,7 @@ begin
 			return 5;
 		endif;
 	end;
-end; */
+end; 
 
 /* TODO can't return a function */ 
 void function func11()

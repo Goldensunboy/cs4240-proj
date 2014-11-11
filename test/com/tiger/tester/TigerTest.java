@@ -36,7 +36,7 @@ public class TigerTest {
 			String path = "test/com/tiger/test_case_" + developerName.getPreferedName();
 			System.out.println("----------Running \""+path + "\"------------");
 			System.out.println();
-			
+			System.out.println(path);
 			File folder = new File(path);
 			for (File file : folder.listFiles()) {
 				String fileName = file.getName();
@@ -115,7 +115,8 @@ public class TigerTest {
 	public enum DeveloperName {
 		SAMAN("saman", "saman"),
 		MARISSA("Risa", "marissa"),
-		ANDREW("andrew", "andrew");
+		ANDREW("andrew", "andrew"),
+		INDIVIDUAL("indvidual", "individual");
 		
 		private String actualName, preferedName;
 		DeveloperName(String actualName, String preferedName) {
@@ -133,8 +134,8 @@ public class TigerTest {
 		
 		public static DeveloperName[] lookup(String preferedName) {
 			if(preferedName.equals(MARISSA.getActualName())) {
-//				return new DeveloperName[]{MARISSA};
-				return new DeveloperName[]{SAMAN};
+				return new DeveloperName[]{MARISSA};
+//				return new DeveloperName[]{INDIVIDUAL};
 			} else if (preferedName.equals(SAMAN.getPreferedName())) {
 //				return new DeveloperName[]{SAMAN,MARISSA};
 				return new DeveloperName[]{SAMAN};

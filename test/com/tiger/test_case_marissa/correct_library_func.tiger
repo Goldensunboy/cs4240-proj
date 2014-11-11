@@ -1,4 +1,4 @@
-SKIP_S
+
 
 /*  flush */ 
 void function func1()
@@ -80,7 +80,7 @@ begin
 		x := not(x);
 	end;
 end; 
-SKIP_E
+
 
 
 void main()

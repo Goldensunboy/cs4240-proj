@@ -91,7 +91,7 @@ public class TypeAttribute implements Attribute{
 				String aliasName = secondTypeOfArray.getName();
 				typeAttribute = new TypeAttribute(aliasName ,secondTypeOfArray);
 			} else if(typeAttribute.getReceivedArrayTypeSpecific().hasDimension()) {
-				System.out.println(typeAttribute);
+				//System.out.println(typeAttribute);
 				return null;
 			}
 		}

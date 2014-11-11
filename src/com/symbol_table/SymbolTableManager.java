@@ -212,7 +212,7 @@ public class SymbolTableManager {
 	/**
 	 * given the function name returns all the parameters 
 	 */
-	public List<String> getFunctionParameters(String functionName) { 
+	public List<TypeAttribute> getFunctionParameters(String functionName) { 
 		FunctionAttribute functionNameAttribute = getFunctionAttribute(functionName);
 		return functionNameAttribute.getParams();
 	}
@@ -366,12 +366,15 @@ public class SymbolTableManager {
 			String[] func = funcName.split(":");
 			Attribute funcAttribute;
 			if(func.length > 2) {
-				String[] params = new String[func.length - 2];
-				System.arraycopy(func, 2, params, 0,  func.length - 2);
-				funcAttribute = new FunctionAttribute(func[0], func[1], new ArrayList<String>(Arrays.asList(params)));
+				TypeAttribute[] params = new TypeAttribute[func.length - 2];
+				for(int i = 0; i < func.length - 2; ++i) {
+					params[i] = new TypeAttribute(Type.INT.getName(), Type.INT);
+				}
+				//System.arraycopy(func, 2, params, 0,  func.length - 2);
+				funcAttribute = new FunctionAttribute(func[0], func[1], new ArrayList<TypeAttribute>(Arrays.asList(params)));
 			}
 			else if(func.length == 2){
-				funcAttribute = new FunctionAttribute(func[0], func[1], new ArrayList<String>());
+				funcAttribute = new FunctionAttribute(func[0], func[1], new ArrayList<TypeAttribute>());
 			}
 			else
 				continue;

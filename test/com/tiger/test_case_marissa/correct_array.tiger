@@ -1,5 +1,5 @@
 /* This file should compile */
-SKIP_S
+
 type Int = int;
 type ArrayInt = array [100] of int;
 type Array2DInt = array [100][100] of int;
@@ -7,7 +7,7 @@ type FixedPt = fixedpt;
 type ArrayFixedPt = array [100] of fixedpt;
 type Array2DFixedPt = array [100][100] of fixedpt;
 
-
+SKIP_S
 int function testFunc(x:int) 
 begin
 	begin
@@ -219,6 +219,8 @@ begin
 		x[2] := testFunc(3);
 	end;
 end;
+
+
 
 SKIP_E
 

@@ -87,7 +87,7 @@ import com.exception.NameSpaceConflictException;
     }
   }
   
-  private void putFunctionAttributeMap(String functionName,  TypeAttribute returnTypeAttribute, List<String> parameters) {
+  private void putFunctionAttributeMap(String functionName,  TypeAttribute returnTypeAttribute, List<TypeAttribute> parameters) {
     String typeName = returnTypeAttribute.getAliasName();
     FunctionAttribute functionAttribute = new FunctionAttribute(functionName, typeName, parameters);
     attributeMap.put(functionName, functionAttribute);
@@ -206,12 +206,12 @@ funcCurrent[String typeName, TypeAttribute returnTypeAttribute] :
 funcDeclaration[String typeName, TypeAttribute returnTypeAttribute]
 scope
 {
-  List<String> myParams;
+  List<TypeAttribute> myParams;
   List<VariableAttribute> parameterList;
 }
 @init
 {
-  $funcDeclaration::myParams = new ArrayList<String>();
+  $funcDeclaration::myParams = new ArrayList<TypeAttribute>();
   $funcDeclaration::parameterList = new ArrayList<VariableAttribute>();
 }
 :
@@ -255,7 +255,7 @@ mainFunction [TypeAttribute returnTypeAttribute]:
   {
 	  putFunctionAttributeMap($KEY_MAIN.text,
 	                              returnTypeAttribute,
-	                              new ArrayList<String>());
+	                              new ArrayList<TypeAttribute>());
 	  enclosingFunctionName = $KEY_MAIN.text;
 	  IRList.addFirst("FUNC_main:");
   }
@@ -283,7 +283,7 @@ baseType returns[TypeAttribute typeAttribute]:
 param[String declaringFunctionName] :
 	id[IdType.FUNCTION_PARAMETER] OP_COLON typeId[IdType.VARIABLE_TYPE]
 	{
-    $funcDeclaration::myParams.add($typeId.text);
+    $funcDeclaration::myParams.add($typeId.typeAttribute);
     
 	  VariableAttribute variableAttribute = new VariableAttribute($id.text, $typeId.text, declaringFunctionName);
     $funcDeclaration::parameterList.add(variableAttribute);
@@ -403,8 +403,7 @@ statSeq[String functionName, String endLoop] :
 stat[String functionName, String endLoop] returns [Type statReturnType]
 @init
 {
-  List<String> paramList = new ArrayList<String>();
-  
+  List<TypeAttribute> attrList = new ArrayList<TypeAttribute>();
 }
 : 
 	(
@@ -423,7 +422,6 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
         if(s1TypeAttribute.isArray()) {    
           s1TypeAttribute.setReceivedArrayTypeSpecific(s2ArrayTypeSpecific);
         }
-         
         if(!$s3.exp.contains("#")) {
 		      // Expr assignment
 		      if(att == null) { //TODO change this with s1TypeAttribute and get rid of att
@@ -478,7 +476,7 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		        (parts.length == 1 ? "" : ", " + parts[1]));
 		    }
 		  }
-		  | OP_LPAREN s4=funcExprList[paramList] OP_RPAREN
+		  | OP_LPAREN s4=funcExprList[attrList] OP_RPAREN
 		  {
 		    // Lone function call
 		    if("".equals($s4.exp)) {
@@ -496,30 +494,29 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
           exceptionHandler.handleException(s1, customMessage, null, null, UndeclaredFunctionException.class); 
         }
         // Verify that the function params match with the type for the function
-        List<String> params = symbolTableManager.getFunctionParameters($s1.exp);
-        if(params.size() != paramList.size()) {
-          String expected = params.size() == 0 ? "[void]" : params.toString();
-          List<String> foundList = new ArrayList<String>();
+        List<TypeAttribute> params = symbolTableManager.getFunctionParameters($s1.exp);
+        if(params.size() != attrList.size()) {
+          String expected = params.size() == 0 ? "[void]" : FunctionAttribute.getParamListStringRepresentationFactoryInTigerCodeForPhase2ErrorReporting(params);
+          List<TypeAttribute> foundList = new ArrayList<TypeAttribute>();
           
-          int offset = Math.abs(params.size() - paramList.size());
+          int offset = Math.abs(params.size() - attrList.size());
           for(int i = params.size() - offset - 1; i >= 0; --i) {
-            foundList.add(paramList.get(i));
+            foundList.add(attrList.get(i));
             }
-          String actual = paramList.size() == 0 ? "[void]" : foundList.toString();
+          String actual = attrList.size() == 0 ? "[void]" : FunctionAttribute.getParamListStringRepresentationFactoryInTigerCodeForPhase2ErrorReporting(foundList);
           
           String customMessage = "Invalid invocation of function: [" + $s1.exp + "]";
           exceptionHandler.handleException(s1, customMessage, expected, actual,
             InvalidInvocationException.class);
         } else {
 	        for(int i = 0; i < params.size(); ++i) {
-	          if("int".equals(params.get(i)) && "fixedpt".equals(paramList.get(params.size() - i - 1))) {
-	            String expected = params.size() == 0 ? "[void]" : params.toString();
-	            List<String> foundList = new ArrayList<String>();
-	            System.out.println(paramList + " paramList");
+	          if(!params.get(i).assignableBy(attrList.get(params.size() - i - 1))) {
+	            String expected = params.size() == 0 ? "[void]" : FunctionAttribute.getParamListStringRepresentationFactoryInTigerCodeForPhase2ErrorReporting(params);
+	            List<TypeAttribute> foundList = new ArrayList<TypeAttribute>();
 	            for(int j = params.size() - 1; j >= 0; --j) {
-	              foundList.add(paramList.get(j));
+	              foundList.add(attrList.get(j));
 	            }
-	            String actual = paramList.size() == 0 ? "[void]" : foundList.toString();
+	            String actual = attrList.size() == 0 ? "[void]" : FunctionAttribute.getParamListStringRepresentationFactoryInTigerCodeForPhase2ErrorReporting(foundList);
 	
 		          String customMessage = "Invalid invocation of function: [" + $s1.exp + "]";
 		          exceptionHandler.handleException(s1, customMessage, expected, actual,
@@ -992,7 +989,7 @@ funcBinOp3[IdType idType] returns [String exp, TypeAttribute typeAttribute, bool
 binOp4[String startLabel, String endLabel] returns [String exp, TypeAttribute typeAttribute, boolean myIsBool, boolean myIsFunc]
 @init
 {
-  List<String> paramList = new ArrayList<String>();
+  List<TypeAttribute> attrList = new ArrayList<TypeAttribute>();
   $myIsBool = false;
   $myIsFunc = false;
 }
@@ -1020,7 +1017,7 @@ binOp4[String startLabel, String endLabel] returns [String exp, TypeAttribute ty
         $exp = arrTempVar;
       }
     }
-    | OP_LPAREN s5=funcExprList[paramList] OP_RPAREN 
+    | OP_LPAREN s5=funcExprList[attrList] OP_RPAREN 
     {
       $exp = $s3.exp + "#" + $s5.exp; 
       $typeAttribute = $s3.typeAttribute; 
@@ -1042,27 +1039,27 @@ binOp4[String startLabel, String endLabel] returns [String exp, TypeAttribute ty
         exceptionHandler.handleException(s3, customMessage, null, null, UndeclaredFunctionException.class);
       }
       // Verify that the function params match with the type for the function
-      List<String> params = symbolTableManager.getFunctionParameters($s3.exp);
-      if(params.size() != paramList.size()) {
-        String expected = params.size() == 0 ? "[void]" : params.toString();
-        List<String> foundList = new ArrayList<String>();
+      List<TypeAttribute> params = symbolTableManager.getFunctionParameters($s3.exp);
+      if(params.size() != attrList.size()) {
+        String expected = params.size() == 0 ? "[void]" : FunctionAttribute.getParamListStringRepresentationFactoryInTigerCodeForPhase2ErrorReporting(params);
+        List<TypeAttribute> foundList = new ArrayList<TypeAttribute>();
         
-        int offset = Math.abs(params.size() - paramList.size());
-        for(int i = paramList.size() - offset - 1; i >= 0; --i) {
-          foundList.add(paramList.get(i));
+        int offset = Math.abs(params.size() - attrList.size());
+        for(int i = attrList.size() - offset - 1; i >= 0; --i) {
+          foundList.add(attrList.get(i));
         }
-        String actual = paramList.size() == 0 ? "[void]" : foundList.toString();
+        String actual = attrList.size() == 0 ? "[void]" : FunctionAttribute.getParamListStringRepresentationFactoryInTigerCodeForPhase2ErrorReporting(foundList);
         String customMessage = "Invalid invocation of function: [" + $s3.exp + "]";
         exceptionHandler.handleException(s3/*TODO s1*/, customMessage, expected, actual, InvalidInvocationException.class);
       }
       for(int i = 0; i < params.size(); ++i) {
-        if("int".equals(params.get(i)) && "fixedpt".equals(paramList.get(params.size() - i - 1))) {
-          String expected = params.size() == 0 ? "[void]" : params.toString();
-          List<String> foundList = new ArrayList<String>();
+        if(!params.get(i).assignableBy(attrList.get(params.size() - i - 1))) {
+          String expected = params.size() == 0 ? "[void]" : FunctionAttribute.getParamListStringRepresentationFactoryInTigerCodeForPhase2ErrorReporting(params);
+          List<TypeAttribute> foundList = new ArrayList<TypeAttribute>();
           for(int j = params.size() - 1; j >= 0; --j) {
-            foundList.add(paramList.get(j));
+            foundList.add(attrList.get(j));
           }
-          String actual = paramList.size() == 0 ? "[void]" : foundList.toString();
+          String actual = attrList.size() == 0 ? "[void]" : FunctionAttribute.getParamListStringRepresentationFactoryInTigerCodeForPhase2ErrorReporting(foundList);
           String customMessage = "Invalid invocation of function: [" + $s3.exp + "]";
           exceptionHandler.handleException(s3 /*TODO s1*/, customMessage, expected, actual, InvalidInvocationException.class);
         }
@@ -1175,7 +1172,7 @@ indexExpr3 returns [String exp]:
       exceptionHandler.handleException(myId, customMessage, null, null, 
                                        UndeclaredVariableException.class);
     }
-    if(!"int".equals($id.typeAttribute.getType().getName())) {
+    if($id.typeAttribute.getType() != Type.INT) {
       // Invalid type (must be int)
       String customMessage = "Use of fixedpt variable in array index expression: \"" + $id.exp + "\""; 
       exceptionHandler.handleException(myId, customMessage, null, null, 
@@ -1188,23 +1185,23 @@ declarationSegment[String functionName] :
   typeDeclarationList varDeclarationList[functionName]
 ;
 
-exprList[List<String> paramList] returns [String exp]:
+exprList[List<TypeAttribute> attrList] returns [String exp]:
   (
-    s1=expr[null, null] s2=exprListTail[paramList]
+    s1=expr[null, null] s2=exprListTail[attrList]
   )?
   {
     if($s1.exp == null) {
       $exp = "";
     } else {
       $exp = $s1.exp + $s2.exp;
-      paramList.add($s1.typeAttribute.getType() == Type.INT ? Type.INT.getName() : Type.FIXPT.getName());
+      attrList.add($s1.typeAttribute);
     }
   }
 ;
 
-funcExprList[List<String> paramList] returns [String exp]:
+funcExprList[List<TypeAttribute> attrList] returns [String exp]:
   (
-    s1=funcExpr[IdType.FUNCTION_ARGUMENT] s2=funcExprListTail[paramList]
+    s1=funcExpr[IdType.FUNCTION_ARGUMENT] s2=funcExprListTail[attrList]
   )?
   {
     if($s1.exp == null) {
@@ -1216,35 +1213,35 @@ funcExprList[List<String> paramList] returns [String exp]:
           exceptionHandler.handleException(s1, customMessage, null, 
                                           null,InvalidTypeException.class);
       }
-      paramList.add($s1.typeAttribute.getType() == Type.INT ? "int" : "fixedpt");
+      attrList.add($s1.typeAttribute);
     }
   }
 ;
 
-exprListTail[List<String> paramList] returns [String exp]:
+exprListTail[List<TypeAttribute> attrList] returns [String exp]:
   (
-    OP_COMMA s1=expr[null, null] s2=exprListTail[paramList]
+    OP_COMMA s1=expr[null, null] s2=exprListTail[attrList]
   )?
   {
     if($s1.exp == null) {
       $exp = "";
     } else {
       $exp = ", " + $s1.exp + $s2.exp;
-      paramList.add($s1.typeAttribute.getType() == Type.INT ? Type.INT.getName() : Type.FIXPT.getName());
+      attrList.add($s1.typeAttribute);
     }
   }
 ;
 
-funcExprListTail[List<String> paramList] returns [String exp]:
+funcExprListTail[List<TypeAttribute> attrList] returns [String exp]:
   (
-    OP_COMMA s1=funcExpr[IdType.NIY] s2=funcExprListTail[paramList]
+    OP_COMMA s1=funcExpr[IdType.NIY] s2=funcExprListTail[attrList]
   )?
   {
     if($s1.exp == null) {
       $exp = "";
     } else {
       $exp = ", " + $s1.exp + $s2.exp;
-      paramList.add($s1.typeAttribute.getType() == Type.INT ? "int" : "fixedpt");
+      attrList.add($s1.typeAttribute);
     }
   }
 ;
