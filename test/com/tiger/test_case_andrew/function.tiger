@@ -38,6 +38,6 @@ begin
 		intf();
 		x := intf();
 		pf1(6);
-		pf2(7);
+		pf2(7.7);
 	end;
 end;
