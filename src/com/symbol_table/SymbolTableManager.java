@@ -332,7 +332,7 @@ public class SymbolTableManager {
 		if(idType == IdType.USER_DEFINED_TYPE) {
 			return functionNameConflict || varNameConflict || typeNameConflict;
 		}
-		
+		System.out.println(idType);
 		throw new ShouldNotHappenException();
 	}
 	

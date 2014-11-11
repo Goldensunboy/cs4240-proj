@@ -496,6 +496,8 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
         }
         // Verify that the function params match with the type for the function
         List<TypeAttribute> params = symbolTableManager.getFunctionParameters($s1.exp);
+        System.out.println(params);
+        System.out.println($s1.exp);
         if(params.size() != attrList.size()) {
           String expected = params.size() == 0 ? "[void]" : FunctionAttribute.getParamListStringRepresentationFactoryInTigerCodeForPhase2ErrorReporting(params);
           List<TypeAttribute> foundList = new ArrayList<TypeAttribute>();
@@ -855,7 +857,7 @@ funcBinOp2[IdType idType] returns [String exp, TypeAttribute typeAttribute, bool
       s2=OP_PLUS
       | OP_MINUS
     )
-    s3=funcBinOp2[IdType.NIY] //most likely it's idType
+    s3=funcBinOp2[idType] //most likely it's idType
   )?
   {
     TypeAttribute s1TypeAttribute = $s1.typeAttribute;
@@ -949,7 +951,7 @@ funcBinOp3[IdType idType] returns [String exp, TypeAttribute typeAttribute, bool
       s2=OP_DIV
       | OP_MULT
     )
-    s3=funcBinOp3[IdType.NIY] //most likely it's idType
+    s3=funcBinOp3[idType] //most likely it's idType
   )?
   {
     TypeAttribute s1TypeAttribute  = $s1.typeAttribute;
@@ -1070,7 +1072,7 @@ binOp4[String startLabel, String endLabel] returns [String exp, TypeAttribute ty
 
 funcBinOp4[IdType idType] returns [String exp, TypeAttribute typeAttribute, boolean myIsBool]:
   s1=constant                      {$exp = $s1.exp; $typeAttribute = $s1.typeAttribute; $myIsBool = false;}
-  | OP_LPAREN s2=funcExpr[IdType.NIY]/*most likely it's idType*/ OP_RPAREN    
+  | OP_LPAREN s2=funcExpr[idType]/*most likely it's idType*/ OP_RPAREN    
   {
     $exp = $s2.exp; $typeAttribute = $s2.typeAttribute; $myIsBool = $s2.myIsBool;
   }
@@ -1162,7 +1164,7 @@ indexExpr2 returns [String exp]:
 
 indexExpr3 returns [String exp]:
   INTLIT {$exp = $INTLIT.text;}
-  | myId=id[IdType.NIY]
+  | myId=id[IdType.VARIABLE_NAME]
   {
     $exp = $id.exp;
     Attribute att = symbolTableManager.getAttributeInCurrentScope($id.exp, attributeMap);
@@ -1201,7 +1203,7 @@ exprList[List<TypeAttribute> attrList] returns [String exp]:
 
 funcExprList[List<TypeAttribute> attrList] returns [String exp]:
   (
-    s1=funcExpr[IdType.FUNCTION_ARGUMENT] s2=funcExprListTail[attrList]
+    s1=funcExpr[IdType.VARIABLE_NAME] s2=funcExprListTail[attrList]
   )?
   {
     if($s1.exp == null) {
@@ -1234,7 +1236,7 @@ exprListTail[List<TypeAttribute> attrList] returns [String exp]:
 
 funcExprListTail[List<TypeAttribute> attrList] returns [String exp]:
   (
-    OP_COMMA s1=funcExpr[IdType.NIY] s2=funcExprListTail[attrList]
+    OP_COMMA s1=funcExpr[IdType.VARIABLE_NAME] s2=funcExprListTail[attrList]
   )?
   {
     if($s1.exp == null) {
