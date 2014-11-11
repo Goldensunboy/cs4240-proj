@@ -7,9 +7,9 @@ public class FunctionAttribute implements Attribute{
 	// Attributes for function name
 	private String functionName;
 	private String returnTypeName;
-	private List<String> params;
+	private List<TypeAttribute> params;
 	
-	public FunctionAttribute(String functionName, String returnTypeName, List<String> params) {
+	public FunctionAttribute(String functionName, String returnTypeName, List<TypeAttribute> params) {
 		this.functionName = functionName;
 		this.params = params;
 		this.returnTypeName = returnTypeName;
@@ -22,10 +22,10 @@ public class FunctionAttribute implements Attribute{
 	public void setFunctionName(String functionName) {
 		this.functionName = functionName;
 	}
-	public List<String> getParams() {
+	public List<TypeAttribute> getParams() {
 		return params;
 	}
-	public void setParams(List<String> params) {
+	public void setParams(List<TypeAttribute> params) {
 		this.params = params;
 	}
 	
@@ -37,9 +37,27 @@ public class FunctionAttribute implements Attribute{
 		buffer.append(", Return type name: ");
 		buffer.append(returnTypeName);
 		buffer.append(", Parameters: ");
-		for(String parameter : params)
-			buffer.append(parameter).append(", ");
+		for(TypeAttribute paramType : params)
+			buffer.append(paramType).append(", ");
 		return buffer.toString();
+	}
+	
+	public static String getParamListStringRepresentationFactoryInTigerCodeForPhase2ErrorReporting(List<TypeAttribute> params) {
+		if(params.size() == 0) {
+			return "[void]";
+		} else {
+			String ret = "[";
+			boolean b = true;
+			for(TypeAttribute t : params) {
+				if(b) {
+					b = false;
+				} else {
+					ret += ", ";
+				}
+				ret += t.getType();
+			}
+			return ret + "]";
+		}
 	}
 
 	@Override
