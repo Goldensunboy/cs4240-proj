@@ -172,7 +172,7 @@ void function funcName6f()
 begin
 	begin
 		var x : ArrayFixedPt;
-		testFunc2(x);
+		testFuncf(x[0]);
 	end;
 end;
 
