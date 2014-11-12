@@ -36,6 +36,7 @@ public class VariableAttribute implements Attribute{
 		this.declaringProcedure = declaringProcedure;
 	}
 	
+	
 	public String toString() {
 		StringBuffer buffer = new StringBuffer();
 		buffer.append("Variable Name: ");

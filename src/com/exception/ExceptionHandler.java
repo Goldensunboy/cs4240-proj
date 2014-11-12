@@ -6,6 +6,8 @@ import java.lang.reflect.InvocationTargetException;
 import org.antlr.runtime.ParserRuleReturnScope;
 import org.antlr.runtime.Token;
 
+import com.antlr.generated.TigerParser;
+
 /**
  * A unifying exception handling
  * Give the handler "lineNumber, customMessage, expected, actual, exceptionClass"
@@ -15,6 +17,12 @@ import org.antlr.runtime.Token;
  */
 public class ExceptionHandler {
 
+	private TigerParser parser;
+	
+	public ExceptionHandler(TigerParser parser) {
+		this.parser = parser;
+	}
+	
 	/**
 	 * Throws an exception based on the information passed in 
 	 * <b>NOTE: if any of these arguments is null, it will nut be a part of the exception
@@ -46,6 +54,7 @@ public class ExceptionHandler {
 			}
 			RuntimeException exception = constructor.newInstance(errorMessage.toString());
 			System.err.println(exception.getClass()+ " :: " + exception.getMessage() + "\n");
+			parser.invalidateIRCode();
 //			exception.printStackTrace();
 //			System.out.println();
 //			throw constructor.newInstance(errorMessage.toString());
