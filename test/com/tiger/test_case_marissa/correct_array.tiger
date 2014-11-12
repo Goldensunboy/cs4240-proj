@@ -1,12 +1,11 @@
 
-type Int = int;
 type ArrayInt = array [100] of int;
+
+type Int = int;
 type Array2DInt = array [100][100] of int;
 type FixedPt = fixedpt;
 type ArrayFixedPt = array [100] of fixedpt;
 type Array2DFixedPt = array [100][100] of fixedpt;
-
-SKIP_S
 int function testFunc(x:int) 
 begin
 	begin
@@ -22,6 +21,7 @@ begin
 		return b;
 	end;
 end;
+ 
 
 /* Can assign values normally */
 void function funcName1a() 
@@ -40,8 +40,7 @@ begin
 		var x : ArrayInt := 10;
 		x[2] := 12;
 	end;
-end;
- 
+end;/*
 void function funcName4() 
 begin
 	begin
@@ -50,8 +49,7 @@ begin
 		x[0] := 9;
 	end;
 end;
-
-
+*/
 
 void function funcName2a() 
 begin
@@ -81,16 +79,27 @@ begin
 	end;
 end; 
 
+
 /* Should be able to pass an array as a parameter of a function */
 void function funcName6() 
 begin
 	begin
-		var x : ArrayInt;
+		var x : ArrayInt := 9;
+		var y : int :=10;
 		testFunc2(x);
 	end;
 end;
 
 
+
+/* Should be able to pass an array as a parameter of a function */
+void function funcName6a() 
+begin
+	begin
+		var x : ArrayInt := 9;
+		x[0] :=testFunc2(x);
+	end;
+end;
 
 int function testFuncf(x:fixedpt) 
 begin
@@ -171,7 +180,7 @@ void function funcName6f()
 begin
 	begin
 		var x : ArrayFixedPt;
-		testFunc2(x);
+		testFunc2f(x);
 	end;
 end;
 
@@ -221,7 +230,7 @@ end;
 
 
 
-SKIP_E
+
 
 void main()
 begin

@@ -1,0 +1,407 @@
+
+SKIP_S
+???????????????????????????????????????????????????WAIT FOR PROFESSOR??????????????????????????????????????????
+/* Used in testing */
+type Int = int;
+type Int_Type = int;
+type Int_Type2 = int;
+type ArrayInt = array [100] of int;
+type Array2DInt = array [100][100] of int;
+type FixedPtLit = fixedpt;
+type Fixedpt_Type = fixedpt;
+type Fixedpt_Type2 = fixedpt;
+type ArrayFixedPtLit = array [100] of fixedpt;
+type Array2DFixedPtLit = array [100][100] of fixedpt;
+
+void function testFunc1(x:int) 
+begin
+	begin
+		var a : int :=0;
+		a := 8;
+	end;
+end;
+
+void function testFunc2(x:fixedpt) 
+begin
+	begin
+		var a : int :=0;
+		a := 8;
+	end;
+end;
+void function testFunc3(x:int, y:fixedpt) 
+begin
+	begin
+		var a : int :=0;
+		a := 8;
+	end;
+end;
+void function testFunc4(x:ArrayInt) 
+begin
+	begin
+		var a : int :=0;
+		a := 8;
+	end;
+end; 
+void function testFunc5(x:ArrayFixedPtLit) 
+begin
+	begin
+		var a : int :=0;
+		a := 8;
+	end;
+end; 
+
+
+
+
+
+void function func1a()
+begin
+	begin
+		var a : int;
+		a := 10;
+	end;
+end; 
+
+void function func1m()
+begin
+	begin
+		var a : int;
+		begin
+			var b : int := 10;
+			a := 10;
+		end;
+	end;
+end; 
+
+void function func1b()
+begin
+	begin
+		var a : int;
+		var b : int := 10;
+		a := b * 10;
+	end;
+end; 
+
+
+SKIP_S
+void function func1n()
+begin
+	begin
+		var a : int;
+		begin 
+			var b : int := 10;
+			a := b * 10;
+		end;
+	end;
+end; 
+
+
+void function func1c()
+begin
+	begin
+		var a : int;
+		var b : int := 10;
+		a := 10 * b;
+	end;
+end; 
+
+void function func1o()
+begin
+	begin
+		var a : int;
+		begin
+			var b : int := 10;
+			a := 10 * b;
+		end;
+	end;
+end; 
+
+
+void function func12() 
+begin
+	begin
+		var a : int := 0;
+		testFunc1(a);
+	end;
+end;
+
+void function func13() 
+begin
+	begin
+		var b : fixedpt := 0.0;
+		testFunc2(b);
+	end;
+end;
+
+void function func14() 
+begin
+	begin
+		var a : int := 0;
+		var b : fixedpt := 0.0;
+		testFunc3(a,b);
+	end;
+end;
+
+
+
+Int_Type function func21() 
+begin
+	begin
+		var a : Int_Type;
+		return a;
+	end;
+end;
+
+Fixedpt_Type function func22() 
+begin
+	begin
+		var a : Fixedpt_Type := 0.0;
+		return a;
+	end;
+end;
+
+void function func23()
+begin
+	begin
+		var x : ArrayInt := 10;
+		var a : int;
+		var b : int := 10;
+		b := x[a];
+	end;
+end; 
+
+void function func24()
+begin
+	begin
+		var x : ArrayInt := 10;
+		var a : int;
+		var b : int := 10;
+		b := x[a*b];
+	end;
+end; 
+
+void function func25()
+begin
+	begin
+		var x : ArrayInt := 10;
+		var a : int;
+		var b : int := 10;
+		b := x[3*a];
+	end;
+end; 
+
+void function func26()
+begin
+	begin
+		var x : ArrayInt := 10;
+		var a : int;
+		testFunc1(x[a]);
+	end;
+end; 
+
+int function func27()
+begin
+	begin
+		var x : ArrayInt := 10;
+		var a : int;
+		return x[a];
+	end;
+end; 
+
+void function func28()
+begin
+	begin
+		var x : ArrayInt;
+		var a : int := 10;
+		testFunc1(x[a]);
+	end;
+end; 
+
+int function func29()
+begin
+	begin
+		var x : ArrayInt;
+		var a : int := 10;
+		return x[a];
+	end;
+end; 
+
+int function func30()
+begin
+	begin
+		var x : Array2DInt := 10;
+		var a : int;
+		return x[a][a];
+	end;
+end; 
+
+
+void function func31()
+begin
+	begin
+		var x : Array2DInt := 10;
+		var a : int;
+		testFunc1(x[a][a]);
+	end;
+end; 
+
+int function func32()
+begin
+	begin
+		var x : Array2DInt;
+		var a : int := 10;
+		return x[a][a];
+	end;
+end; 
+
+
+void function func33()
+begin
+	begin
+		var x : Array2DInt;
+		var a : int := 10;
+		testFunc1(x[a][a]);
+	end;
+end; 
+
+
+
+
+
+void function func34()
+begin
+	begin
+		var x : ArrayFixedPt := 10;
+		var a : int;
+		var b : int := 10;
+		b := x[a];
+	end;
+end; 
+
+void function func35()
+begin
+	begin
+		var x : ArrayFixedPt := 10;
+		var a : int;
+		var b : int := 10;
+		b := x[a*b];
+	end;
+end; 
+
+void function func36()
+begin
+	begin
+		var x : ArrayFixedPt := 10;
+		var a : int;
+		var b : int := 10;
+		b := x[3*a];
+	end;
+end; 
+
+void function func37()
+begin
+	begin
+		var x : ArrayFixedPt := 10;
+		var a : int;
+		testFunc1(x[a]);
+	end;
+end; 
+
+fixedpt function func38()
+begin
+	begin
+		var x : ArrayFixedPt := 10;
+		var a : int;
+		return x[a];
+	end;
+end; 
+
+void function func39()
+begin
+	begin
+		var x : ArrayFixedPt;
+		var a : int := 10;
+		testFunc1(x[a]);
+	end;
+end; 
+
+fixedpt function func40()
+begin
+	begin
+		var x : ArrayFixedPt;
+		var a : int := 10;
+		return x[a];
+	end;
+end; 
+
+fixedpt function func41()
+begin
+	begin
+		var x : Array2DFixedPt := 10;
+		var a : int;
+		return x[a][a];
+	end;
+end; 
+
+
+void function func42()
+begin
+	begin
+		var x : Array2DFixedPt := 10;
+		var a : int;
+		testFunc1(x[a][a]);
+	end;
+end; 
+
+fixedpt function func43()
+begin
+	begin
+		var x : Array2DFixedPt;
+		var a : int := 10;
+		return x[a][a];
+	end;
+end; 
+
+
+void function func44()
+begin
+	begin
+		var x : Array2DFixedPt;
+		var a : int := 10;
+		testFunc1(x[a][a]);
+	end;
+end; 
+
+
+void function func45()
+begin
+	begin
+		var x : ArrayFixedPt;
+		var a : int := 10;
+		b := x[a];
+	end;
+end; 
+
+void function func46()
+begin
+	begin
+		var x : ArrayInt;
+		var a : int := 10;
+		b := x[a];
+	end;
+end; 
+
+
+
+
+
+SKIP_E
+
+
+void main()
+begin
+	begin
+		var x : int := 10;
+		x := 2;
+	end;
+end;

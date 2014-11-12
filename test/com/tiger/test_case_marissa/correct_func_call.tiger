@@ -1,5 +1,7 @@
 
 type ArrayInt = array [100] of int;
+type Array2DInt = array [100][100] of int;
+
 
 /* Used in testing */
 void function testFunc()
@@ -101,11 +103,20 @@ void function func6()
 begin
 	begin
 		var x : ArrayInt :=0;
-		x[0] := testFunc7(8);
+		var y : int :=0;
+		x[1] := testFunc7(8); 
 	end;
 end; 
 
 
+void function func7()
+begin
+	begin
+		var x : Array2DInt :=0;
+		var y : int :=0;
+		x[0][0] := testFunc7(8); 
+	end;
+end; 
 
 void main()
 begin
