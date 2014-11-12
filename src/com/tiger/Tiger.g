@@ -67,7 +67,7 @@ import com.exception.NameSpaceConflictException;
   private TempVarFactory tvf = new TempVarFactory();
   private LabelFactory lf = new LabelFactory();
   private String enclosingFunctionName;
-  private ExceptionHandler exceptionHandler = new ExceptionHandler();
+  private ExceptionHandler exceptionHandler = new ExceptionHandler(this);
   private TypeAttribute VOID_TYPE_ATTRIBUTE = symbolTableManager.getTypeAttributeInCurrentScope(Type.VOID.getName(), attributeMap);
   private TypeAttribute INT_TYPE_ATTRIBUTE = symbolTableManager.getTypeAttributeInCurrentScope(Type.INT.getName(), attributeMap);
   private TypeAttribute FIXEDPT_TYPE_ATTRIBUTE = symbolTableManager.getTypeAttributeInCurrentScope(Type.FIXPT.getName(), attributeMap);
@@ -95,8 +95,8 @@ import com.exception.NameSpaceConflictException;
   }
 
   public void putTypeAttributeMap(int lineNumber ,String aliasName, Type type,
-      Type typeOfArray, ArrayTypeSpecific arrayTypeSpecific) {
-    TypeAttribute typeAttribute = new TypeAttribute(aliasName, type);
+      Type typeOfArray, ArrayTypeSpecific arrayTypeSpecific, int dim1, int dim2) {
+    TypeAttribute typeAttribute = new TypeAttribute(aliasName, type, dim1, dim2);
     typeAttribute.setTypeOfArray(typeOfArray);
     typeAttribute.setExpectedArrayTypeSpecific(arrayTypeSpecific);
     attributeMap.put(aliasName, typeAttribute); 
@@ -326,11 +326,11 @@ typeDeclaration :
 	KEY_TYPE myId=id[IdType.USER_DEFINED_TYPE] OP_EQUAL myType=type OP_SCOLON
 	{
 	  putTypeAttributeMap($myId.start.getLine(), $myId.text, $myType.type,
-	    $myType.typeOfArray, $myType.arrayTypeSpecific);
+	    $myType.typeOfArray, $myType.arrayTypeSpecific, $myType.dim1, $myType.dim2);
 	}
 ;
 
-type returns [Type type, Type typeOfArray, ArrayTypeSpecific arrayTypeSpecific]
+type returns [Type type, Type typeOfArray, ArrayTypeSpecific arrayTypeSpecific, int dim1, int dim2]
 :
 	(
 	  KEY_ARRAY OP_LBRACK myDim1=INTLIT OP_RBRACK
@@ -340,6 +340,8 @@ type returns [Type type, Type typeOfArray, ArrayTypeSpecific arrayTypeSpecific]
 	  {
       $arrayTypeSpecific = new ArrayTypeSpecific(myDim1 != null, myDim2 != null);
 		  $type = Type.ARRAY;
+		  $dim1 = myDim1 == null ? -1 : Integer.parseInt($myDim1.text);
+		  $dim2 = myDim2 == null ? -1 : Integer.parseInt($myDim2.text);
 	  }
 		KEY_OF
 	)?
@@ -433,6 +435,11 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		        if(s1TypeAttribute.isArray()) {    
 		          s1TypeAttribute.setReceivedArrayTypeSpecific(s2ArrayTypeSpecific);
 		        }
+		        
+//		        if(!att.isInitializationProper(s1TypeAttribute)) {
+//		          
+//		        }
+		        
 			      if(!s1TypeAttribute.assignableBy(s3TypeAttribute)) {
 			        // Illegal assignment
 			        String customMessage;
