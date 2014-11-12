@@ -395,7 +395,6 @@ idList[IdType idType] :
 
 optionalInit[List<String> varNames] :
 	(
-	  // TODO Andrew
 	  OP_ASSIGN s1=constant
 	  {
 	    for(String varName : varNames) {
@@ -406,7 +405,7 @@ optionalInit[List<String> varNames] :
 	      if(typeAttribute.isPrimitive()) {
 	        IRList.addFirst("assign, " + varName + ", " + $s1.exp);
 	      } else {
-	        // TODO 1D or 2D array? Must also get sizes
+	        // 1D or 2D array
 	        if(typeAttribute.getDim2() == -1) {
 	          IRList.addFirst("assign, " + varName + ", " + typeAttribute.getDim1() +
 	            ", " + $s1.exp);
@@ -452,11 +451,6 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		        String customMessage = "Assignment to undeclared variable: " + $s1.exp;
 		        exceptionHandler.handleException(s1, customMessage, null, null, UndeclaredVariableException.class);
 		      } else {
-		        
-//		        if(!att.isInitializationProper(s1TypeAttribute)) {
-//		          
-//		        }
-		        
 			      if(!s1TypeAttribute.assignableBy(s3TypeAttribute)) {
 			        // Illegal assignment
 			        String customMessage;
@@ -630,11 +624,11 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		}
 		sym_for=key_for s6=id[IdType.VARIABLE_DECLARATION]
 		  {
-		    List<String> indexVarList = new ArrayList<String>();
-		    indexVarList.add($s6.exp);
-		    putVariableAttributeMap(indexVarList,
-                                $s6.text, INT_TYPE_ATTRIBUTE,
-                                $functionName, true /*TODO andrew*/);
+		    //List<String> indexVarList = new ArrayList<String>();
+		    //indexVarList.add($s6.exp);
+		    //putVariableAttributeMap(indexVarList,
+          //                      $s6.text, INT_TYPE_ATTRIBUTE,
+            //                    $functionName, true);
 		  }
 		  OP_ASSIGN s7=indexExpr KEY_TO s8=indexExpr
 		  {
@@ -646,7 +640,7 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		    // Generate index variable
 		    ArrayList<String> varList = new ArrayList<String>();
 		    varList.add($s6.text);
-		    putVariableAttributeMap(varList, Type.INT.getName() , INT_TYPE_ATTRIBUTE, $functionName,true /*TODO Andrew*/);
+		    putVariableAttributeMap(varList, Type.INT.getName(), INT_TYPE_ATTRIBUTE, $functionName, true /*TODO Andrew*/);
         IRList.addFirst("assign, " + $s6.text + ", " + $s7.exp);
         // Begin loop here
         IRList.addFirst(forTop + ":");
@@ -1128,7 +1122,7 @@ binOp4[String startLabel, String endLabel] returns [String exp, TypeAttribute ty
         }
         String actual = attrList.size() == 0 ? "[void]" : FunctionAttribute.getParamListStringRepresentationFactoryInTigerCodeForPhase2ErrorReporting(foundList);
         String customMessage = "Invalid invocation of function: [" + $s3.exp + "]";
-        exceptionHandler.handleException(s3/*TODO s1*/, customMessage, expected, actual, InvalidInvocationException.class);
+        exceptionHandler.handleException(s1, customMessage, expected, actual, InvalidInvocationException.class);
       }
       for(int i = 0; i < params.size(); ++i) {
         if(!params.get(i).assignableBy(attrList.get(params.size() - i - 1))) {
@@ -1139,7 +1133,7 @@ binOp4[String startLabel, String endLabel] returns [String exp, TypeAttribute ty
           }
           String actual = attrList.size() == 0 ? "[void]" : FunctionAttribute.getParamListStringRepresentationFactoryInTigerCodeForPhase2ErrorReporting(foundList);
           String customMessage = "Invalid invocation of function: [" + $s3.exp + "]";
-          exceptionHandler.handleException(s3 /*TODO s1*/, customMessage, expected, actual, InvalidInvocationException.class);
+          exceptionHandler.handleException(s1, customMessage, expected, actual, InvalidInvocationException.class);
         }
       }
     }
@@ -1152,8 +1146,9 @@ funcBinOp4[IdType idType] returns [String exp, TypeAttribute typeAttribute, bool
   {
     $exp = $s2.exp; $typeAttribute = $s2.typeAttribute; $myIsBool = $s2.myIsBool;
   }
-  | s3=id[idType] s4=valueTail {$exp = $s3.exp + $s4.exp; $myIsBool = false;}
+  | s3=id[idType] s4=valueTail
   {
+    $myIsBool = false;
     Attribute att = symbolTableManager.getAttributeInCurrentScope($s3.exp, attributeMap);
 
     TypeAttribute s3TypeAttribute = $s3.typeAttribute;
@@ -1164,6 +1159,18 @@ funcBinOp4[IdType idType] returns [String exp, TypeAttribute typeAttribute, bool
       // Variable not declared yet
       String customMessage = "Use of undeclared variable: " + $s3.exp;
       exceptionHandler.handleException(s3, customMessage, null, null, UndeclaredVariableException.class);
+    }
+    if("".equals($s4.exp)) {
+      $exp = $s3.exp;
+    } else {
+      String[] parts = $s4.exp.substring(1, $s4.exp.length() - 1).split("\\]\\[");
+      String arrTempVar = tvf.nextTemp();
+      if(parts.length == 1) {
+        IRList.addFirst("array_load, " + arrTempVar + ", " + $s3.exp + ", " + parts[0]);
+      } else {
+        IRList.addFirst("array_load, " + arrTempVar + ", " + $s3.exp + ", " + parts[0] + ", " + parts[1]);
+      }
+      $exp = arrTempVar;
     }
   }
 ;
@@ -1453,7 +1460,6 @@ id[IdType idType] returns [String exp, TypeAttribute typeAttribute]
       try {
         $typeAttribute = (TypeAttribute) attribute.clone();
 	    } catch (CloneNotSupportedException e) {
-	      // TODO Auto-generated catch block
 	      e.printStackTrace();
 	    }
     } 
@@ -1463,7 +1469,6 @@ id[IdType idType] returns [String exp, TypeAttribute typeAttribute]
 		  try {
 	      $typeAttribute = (TypeAttribute) attribute.clone();
 	    } catch (CloneNotSupportedException e) {
-	      // TODO Auto-generated catch block
 	      e.printStackTrace();
 	    }
 	 }

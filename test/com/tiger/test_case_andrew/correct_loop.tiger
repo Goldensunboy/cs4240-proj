@@ -48,7 +48,7 @@ begin
 	begin
 		var x: int := 0;
 		for i := x - 3 to 8 * 9 do
-			x := x + 1;
+			x := x + i;
 		enddo;
 	end;
 end; 
