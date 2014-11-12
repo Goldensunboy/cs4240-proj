@@ -1,6 +1,4 @@
 
-
-SKIP_S
 int function testFunc() 
 begin
 	begin
@@ -53,7 +51,18 @@ begin
 	end;
 end; 
 
-SKIP_E
+
+
+void function func5()
+begin
+	begin
+		var x: int := 0;
+		for i := x - 3 to 8 * 9 do
+			x := i + 1;
+		enddo;
+	end;
+end;
+
 
 void main()
 begin

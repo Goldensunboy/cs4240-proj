@@ -101,7 +101,7 @@ begin
 	end;
 end;
 
-int function testFuncf(x:fixedpt) 
+fixedpt function testFuncf(x:fixedpt) 
 begin
 	begin
 		var a, b : fixedpt :=0.0;
@@ -109,7 +109,7 @@ begin
 	end;
 end;
 
-int function testFunc2f(x:ArrayFixedPt) 
+fixedpt function testFunc2f(x:ArrayFixedPt) 
 begin
 	begin
 		var a, b : fixedpt :=0.0;
@@ -170,7 +170,7 @@ end;
 void function funcName5f() 
 begin
 	begin
-		var x : ArrayFixedPt;
+		var x : ArrayFixedPt :=0;
 		testFunc(x[0]);
 	end;
 end; 

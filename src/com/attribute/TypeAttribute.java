@@ -316,4 +316,10 @@ public class TypeAttribute implements Attribute{
 		typeAttribute.setTypeOfArray(typeOfArray);
 		return typeAttribute;
 	}
+
+	@Override
+	public int getScopeId() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
 }
