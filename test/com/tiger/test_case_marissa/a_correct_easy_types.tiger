@@ -1,4 +1,4 @@
-SKIP_S
+
 type Int = int;
 type Int_Type = int;
 type Int_Type2 = int;
@@ -40,7 +40,7 @@ begin
 		fixedpt_type_var := fixedpt_type_var2;   
 	end;
 end;
-SKIP_E
+
 
 void main()
 begin

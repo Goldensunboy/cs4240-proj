@@ -527,7 +527,9 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
             InvalidInvocationException.class);
         } else {
 	        for(int i = 0; i < params.size(); ++i) {
-	          if(!params.get(i).assignableBy(attrList.get(params.size() - i - 1))) {
+	          TypeAttribute parameter = params.get(i);
+	          parameter.setReceivedArrayTypeSpecific(new ArrayTypeSpecific());
+	          if(!parameter.isProperParameter(attrList.get(params.size() - i - 1))) {
 	            String expected = params.size() == 0 ? "[void]" : FunctionAttribute.getParamListStringRepresentationFactoryInTigerCodeForPhase2ErrorReporting(params);
 	            List<TypeAttribute> foundList = new ArrayList<TypeAttribute>();
 	            for(int j = params.size() - 1; j >= 0; --j) {
@@ -1095,9 +1097,14 @@ funcBinOp4[IdType idType] returns [String exp, TypeAttribute typeAttribute, bool
   {
     $exp = $s2.exp; $typeAttribute = $s2.typeAttribute; $myIsBool = $s2.myIsBool;
   }
-  | s3=id[idType] s4=valueTail {$exp = $s3.exp + $s4.exp; $typeAttribute = $s3.typeAttribute; $myIsBool = false;}
+  | s3=id[idType] s4=valueTail {$exp = $s3.exp + $s4.exp; $myIsBool = false;}
   {
     Attribute att = symbolTableManager.getAttributeInCurrentScope($s3.exp, attributeMap);
+
+    TypeAttribute s3TypeAttribute = $s3.typeAttribute;
+		ArrayTypeSpecific arrayTypeSpecific = $s4.arrayTypeSpecific;
+		s3TypeAttribute.setReceivedArrayTypeSpecific(arrayTypeSpecific);
+		$typeAttribute = s3TypeAttribute;
     if(att == null) {
       // Variable not declared yet
       String customMessage = "Use of undeclared variable: " + $s3.exp;

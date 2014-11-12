@@ -153,6 +153,22 @@ public class TypeAttribute implements Attribute{
 		
 		return assignability(secondTypeAttribute);
 	}
+	
+	public boolean isProperParameter(TypeAttribute secondTypeAttribute) {
+		
+		if(secondTypeAttribute == null) {
+			return false;
+		}
+		
+		if(isArray && secondTypeAttribute.isArray() && !hasProperDimension() && !secondTypeAttribute.hasProperDimension()) {
+			if(getExpectedArrayTypeSpecific().getDim1() == secondTypeAttribute.getExpectedArrayTypeSpecific().getDim1()  && 
+					getExpectedArrayTypeSpecific().getDim2() == secondTypeAttribute.getExpectedArrayTypeSpecific().getDim2() ){
+				return true;
+			}
+		}
+				
+		return assignableBy(secondTypeAttribute);
+	}
 
 	public boolean assignableBy(TypeAttribute secondTypeAttribute) {
 		secondTypeAttribute = manipulateArrayType(secondTypeAttribute);
@@ -162,6 +178,7 @@ public class TypeAttribute implements Attribute{
 		}
 		
 		if(isArray) {
+
 			if(hasProperDimension()) {
 
 				// can't assign non-primitive to arrays
