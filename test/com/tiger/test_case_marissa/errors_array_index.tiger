@@ -1,5 +1,5 @@
 
-SKIP_S
+
 
 type ArrayInt = array [100] of int;
 type Array2DInt = array [100][100] of int;
@@ -51,8 +51,8 @@ begin
 		i := X[f];
 	end;
 end; 
-
-/*   (Wrong error message) array indexes should not be function calls */ /*
+SKIP_S
+/*   (Wrong error message) array indexes should not be function calls */ 
 void function func6()
 begin
 	begin
@@ -60,9 +60,9 @@ begin
 		var i : int := 0;
 		i := X[testFunc()];
 	end;
-end; */
+end; 
 
-/*   (Wrong error message) array indexes should not be function calls */ /*
+/*   (Wrong error message) array indexes should not be function calls */ 
 void function func6()
 begin
 	begin
@@ -70,8 +70,8 @@ begin
 		var i : int := 0;
 		X[testFunc()] = i;
 	end;
-end; */
-
+end; 
+SKIP_E
 /*  arrays should not be used without an index. Not type compatible */ 
 void function func7()
 begin
@@ -133,7 +133,7 @@ begin
 	end;
 end; 
 
-SKIP_E
+
 
 void main()
 begin
