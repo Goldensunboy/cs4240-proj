@@ -186,6 +186,10 @@ public class TypeAttribute implements Attribute{
 					return false;
 				}
 				
+				if(typeOfArray == Type.FIXPT) {
+					return true;
+				}
+				
 				return typeOfArray == secondTypeAttribute.getType();
 			} else {
 				return false;

@@ -104,6 +104,10 @@ public class TigerTest {
 		case ANDREW:
 			List<String> IRList = parser.getIRCode();
 			System.out.println("IR code:\n**********");
+			if(IRList == null) {
+				System.out.println(IRList);
+				break;
+			}
 		    for(String s : IRList) {
 		      System.out.println(s);
 		    }

@@ -244,12 +244,17 @@ afterBegin[String myFunctionName, String typeName, TypeAttribute returnTypeAttri
   }
   blockList[myFunctionName] 
   {
-     if(!symbolTableManager.returnStatementSatisfied(myFunctionName)) {
+    if(!symbolTableManager.returnStatementSatisfied(myFunctionName)) {
       String customMessage = "Function \"" + myFunctionName + "\" doesn't have a proper return statement";
       TypeAttribute expectedReturnType = symbolTableManager.getReturnType();
       TypeAttribute actualReturnType = symbolTableManager.getCurrentScopeReturnType();
       exceptionHandler.handleException(myKey_begin, customMessage, expectedReturnType.getAliasName(), 
                                        actualReturnType.getAliasName(), TypeMismatchException.class);
+	  } else {
+	    // If it's a void function, generate a parameterless return
+	    if(symbolTableManager.getCurrentScopeReturnType().getType() == Type.VOID) {
+	      IRList.addFirst("return");
+	    }
 	  }
   }
   key_end OP_SCOLON
@@ -264,7 +269,11 @@ mainFunction [TypeAttribute returnTypeAttribute]:
 	  enclosingFunctionName = $KEY_MAIN.text;
 	  IRList.addFirst("FUNC_main:");
   }
-  key_begin blockList[$a.text] key_end OP_SCOLON EOF
+  key_begin blockList[$a.text] key_end OP_SCOLON
+  {
+    IRList.addFirst("return");
+  }
+  EOF
 ;
 
 typeId[IdType idType] returns[TypeAttribute typeAttribute]:
@@ -398,7 +407,13 @@ optionalInit[List<String> varNames] :
 	        IRList.addFirst("assign, " + varName + ", " + $s1.exp);
 	      } else {
 	        // TODO 1D or 2D array? Must also get sizes
-	        IRList.addFirst("assign, " + varName + ", ***PLACEHOLDER ARRAY ASSIGN***, " + $s1.exp);
+	        if(typeAttribute.getDim2() == -1) {
+	          IRList.addFirst("assign, " + varName + ", " + typeAttribute.getDim1() +
+	            ", " + $s1.exp);
+	        } else {
+	          IRList.addFirst("assign, " + varName + ", " + typeAttribute.getDim1() +
+	            ", " +  typeAttribute.getDim2() + ", " + $s1.exp);
+	        }
 	      }
 	    }
 	  }

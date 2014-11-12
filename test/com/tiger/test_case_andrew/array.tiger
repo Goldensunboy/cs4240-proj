@@ -1,11 +1,16 @@
 type ArrayInt = array [100] of int;
+type Arr2 = array [50][60] of fixedpt;
 
 void main()
 begin
 	begin
 		var a : ArrayInt := 0;
+		var b : Arr2 := 45.7;
 		var x : int := 5;
+		var y : fixedpt;
 		a[2 * 4 - 1 + 2 + 2 + 2] := x;
 		x := a[x * 8 + 3 + 5 + 5 + 5];
+		y := b[0 + x][15];
+		b[5][8] := 19;
 	end;
 end;
