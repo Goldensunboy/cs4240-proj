@@ -875,10 +875,20 @@ binOp2[String startLabel, String endLabel] returns [String exp, TypeAttribute ty
         IRList.addFirst("sub, " + $s1.exp + ", " + $s3.exp + ", " + temp);
       }
       $exp = temp;
-      if(s1TypeAttribute.getType() == Type.FIXPT || (s3TypeAttribute == null ? false : s3TypeAttribute.getType() == Type.FIXPT)){
-        $typeAttribute = FIXEDPT_TYPE_ATTRIBUTE;
+      if(s1TypeAttribute.isPrimitive() && s3TypeAttribute.isPrimitive()) {
+	      if(s1TypeAttribute.getType() == Type.FIXPT || (s3TypeAttribute == null ? false : s3TypeAttribute.getType() == Type.FIXPT)){
+	        $typeAttribute = FIXEDPT_TYPE_ATTRIBUTE;
+	      } else {
+	        $typeAttribute = INT_TYPE_ATTRIBUTE;
+	      }
       } else {
-        $typeAttribute = INT_TYPE_ATTRIBUTE;
+        if(s1TypeAttribute.getAliasName().equals(s3TypeAttribute.getAliasName())) {
+          $typeAttribute = $s1.typeAttribute;
+        } else {
+          // Math on a user-defined type
+          String customMessage = "Cannot perform math on user-defined type and something else";
+          exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
+        }
       }
     }
   }
@@ -919,10 +929,20 @@ funcBinOp2[IdType idType] returns [String exp, TypeAttribute typeAttribute, bool
         IRList.addFirst("sub, " + $s1.exp + ", " + $s3.exp + ", " + temp);
       }
       $exp = temp;
-      if(s1TypeAttribute.getType() == Type.FIXPT || s3TypeAttribute == null ? false : s3TypeAttribute.getType() == Type.FIXPT) {
-        $typeAttribute = FIXEDPT_TYPE_ATTRIBUTE;
-      } else {
-        $typeAttribute = INT_TYPE_ATTRIBUTE;
+      if(s1TypeAttribute.isPrimitive() && s3TypeAttribute.isPrimitive()) {
+	      if(s1TypeAttribute.getType() == Type.FIXPT || s3TypeAttribute == null ? false : s3TypeAttribute.getType() == Type.FIXPT) {
+	        $typeAttribute = FIXEDPT_TYPE_ATTRIBUTE;
+	      } else {
+	        $typeAttribute = INT_TYPE_ATTRIBUTE;
+	      }
+	    } else {
+        if(s1TypeAttribute.getAliasName().equals(s3TypeAttribute.getAliasName())) {
+          $typeAttribute = $s1.typeAttribute;
+        } else {
+          // Math on a user-defined type
+          String customMessage = "Cannot perform math on user-defined type and something else";
+          exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
+        }
       }
     }
   }
@@ -969,10 +989,20 @@ binOp3[String startLabel, String endLabel] returns [String exp, TypeAttribute ty
         IRList.addFirst("mult, " + $s1.exp + ", " + $s3.exp + ", " + temp);
       }
       $exp = temp;
-      if(s1TypeAttribute.getType() == Type.FIXPT || (s3TypeAttribute == null ? false : s3TypeAttribute.getType() == Type.FIXPT)) {
-        $typeAttribute = FIXEDPT_TYPE_ATTRIBUTE;
+      if(s1TypeAttribute.isPrimitive() && s3TypeAttribute.isPrimitive()) {
+	      if(s1TypeAttribute.getType() == Type.FIXPT || (s3TypeAttribute == null ? false : s3TypeAttribute.getType() == Type.FIXPT)) {
+	        $typeAttribute = FIXEDPT_TYPE_ATTRIBUTE;
+	      } else {
+	        $typeAttribute = INT_TYPE_ATTRIBUTE;
+	      }
       } else {
-        $typeAttribute = INT_TYPE_ATTRIBUTE;
+        if(s1TypeAttribute.getAliasName().equals(s3TypeAttribute.getAliasName())) {
+          $typeAttribute = $s1.typeAttribute;
+        } else {
+          // Math on a user-defined type
+          String customMessage = "Cannot perform math on user-defined type and something else";
+          exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
+        }
       }
     }
   }
@@ -1013,10 +1043,20 @@ funcBinOp3[IdType idType] returns [String exp, TypeAttribute typeAttribute, bool
         IRList.addFirst("mult, " + $s1.exp + ", " + $s3.exp + ", " + temp);
       }
       $exp = temp;
-      if(s1TypeAttribute.getType() == Type.FIXPT || s3TypeAttribute == null ? false : s3TypeAttribute.getType() == Type.FIXPT) {
-        $typeAttribute = FIXEDPT_TYPE_ATTRIBUTE;
+      if(s1TypeAttribute.isPrimitive() && s3TypeAttribute.isPrimitive()) {
+	      if(s1TypeAttribute.getType() == Type.FIXPT || s3TypeAttribute == null ? false : s3TypeAttribute.getType() == Type.FIXPT) {
+	        $typeAttribute = FIXEDPT_TYPE_ATTRIBUTE;
+	      } else {
+	        $typeAttribute = INT_TYPE_ATTRIBUTE;
+	      }
       } else {
-        $typeAttribute = INT_TYPE_ATTRIBUTE;
+        if(s1TypeAttribute.getAliasName().equals(s3TypeAttribute.getAliasName())) {
+          $typeAttribute = $s1.typeAttribute;
+        } else {
+          // Math on a user-defined type
+          String customMessage = "Cannot perform math on user-defined type and something else";
+          exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
+        }
       }
     }
   }

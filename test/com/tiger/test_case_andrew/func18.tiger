@@ -1,0 +1,17 @@
+type Int_Type = int;
+
+void function func18()
+begin
+	begin
+		var int_type_var2 : Int_Type := 6;
+		int_type_var2 := int_type_var2 * int_type_var2;
+	end;
+end;
+
+void main()
+begin
+	begin
+		var x : int;
+		x := x;
+	end;
+end;
