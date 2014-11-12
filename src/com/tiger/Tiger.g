@@ -453,12 +453,8 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		        exceptionHandler.handleException(s1, customMessage, null, null, UndeclaredVariableException.class);
 		      } else {
 		        
-//		        if(!att.isInitializationProper(s1TypeAttribute)) {
-//		          
-//		        }
-		        
 			      if(!s1TypeAttribute.assignableBy(s3TypeAttribute)) {
-			        // Illegal assignment
+              // Illegal assignment
 			        String customMessage;
 			        if(s1TypeAttribute.isArray()){
 				       customMessage = "Can't assign " + $s3.text + " to " + $s1.text + $s2.text;
@@ -1131,7 +1127,7 @@ binOp4[String startLabel, String endLabel] returns [String exp, TypeAttribute ty
         exceptionHandler.handleException(s3/*TODO s1*/, customMessage, expected, actual, InvalidInvocationException.class);
       }
       for(int i = 0; i < params.size(); ++i) {
-        if(!params.get(i).assignableBy(attrList.get(params.size() - i - 1))) {
+        if(!params.get(i).isProperParameter(attrList.get(params.size() - i - 1))) {
           String expected = params.size() == 0 ? "[void]" : FunctionAttribute.getParamListStringRepresentationFactoryInTigerCodeForPhase2ErrorReporting(params);
           List<TypeAttribute> foundList = new ArrayList<TypeAttribute>();
           for(int j = params.size() - 1; j >= 0; --j) {
