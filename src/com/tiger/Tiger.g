@@ -437,6 +437,14 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		  {
 		    // Verify that the assignment is valid
 		    VariableAttribute att = (VariableAttribute)symbolTableManager.getAttributeInCurrentScope($s1.exp, attributeMap);
+				ArrayTypeSpecific s2ArrayTypeSpecific = $s2.arrayTypeSpecific;
+		    TypeAttribute s1TypeAttribute = symbolTableManager.getTypeAttributeInCurrentScope(att, attributeMap);
+				TypeAttribute s3TypeAttribute = $s3.typeAttribute;
+				
+				if(s1TypeAttribute != null && s1TypeAttribute.isArray()) {    
+				  s1TypeAttribute.setReceivedArrayTypeSpecific(s2ArrayTypeSpecific);
+				}
+				
         if(!$s3.exp.contains("#")) {
 		      // Expr assignment
 		      if(att == null) { //TODO change this with s1TypeAttribute and get rid of att
@@ -444,12 +452,6 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		        String customMessage = "Assignment to undeclared variable: " + $s1.exp;
 		        exceptionHandler.handleException(s1, customMessage, null, null, UndeclaredVariableException.class);
 		      } else {
-				    TypeAttribute s1TypeAttribute = symbolTableManager.getTypeAttributeInCurrentScope(att, attributeMap);
-		        TypeAttribute s3TypeAttribute = $s3.typeAttribute;
-		        ArrayTypeSpecific s2ArrayTypeSpecific = $s2.arrayTypeSpecific;
-		        if(s1TypeAttribute.isArray()) {    
-		          s1TypeAttribute.setReceivedArrayTypeSpecific(s2ArrayTypeSpecific);
-		        }
 		        
 //		        if(!att.isInitializationProper(s1TypeAttribute)) {
 //		          
@@ -492,7 +494,8 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		      // Function assignment
 		      String[] parts = $s3.exp.split("#");
 		      TypeAttribute rettype = symbolTableManager.getFunctionReturnType(parts[0]);
-		      if(!$s1.typeAttribute.assignableBy(rettype)) {
+
+		      if(!s1TypeAttribute.assignableBy(rettype)) {
 		        // (fixpt to int)
 		        String customMessage = "Can't assign function \"" + parts[0] 
 		          +"\"\'s return value with the type: \"" + rettype.getAliasName() 
