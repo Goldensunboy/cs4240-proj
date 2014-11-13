@@ -11,21 +11,23 @@ public class TypeAttribute implements Attribute{
 	private ArrayTypeSpecific receivedArrayTypeSpecific;
 	private int dim1;
 	private int dim2;
+	private int scopeId;
 	
 	public TypeAttribute() {
-		this(null, Type.TEMPORARY);
+		this(null, Type.TEMPORARY, -1);
 	}
 
-	public TypeAttribute(String aliasName, Type type) {
-		this(aliasName, type, -1, -1);
+	public TypeAttribute(String aliasName, Type type, int scopeId) {
+		this(aliasName, type, -1, -1, scopeId);
 	}
 	
-	public TypeAttribute(String aliasName, Type type, int dim1, int dim2) {
+	public TypeAttribute(String aliasName, Type type, int dim1, int dim2, int scopeId) {
 		this.aliasName = aliasName;
 		this.type = type;
 		this.isArray = Type.ARRAY == type;
 		this.dim1 = dim1; 
 		this.dim2 = dim2;
+		this.scopeId = scopeId;
 	}
 	
 	public int getDim1() {
@@ -34,6 +36,10 @@ public class TypeAttribute implements Attribute{
 	
 	public int getDim2() {
 		return dim2;
+	}
+	
+	public void setScopeId(int scopeId) {
+		this.scopeId = scopeId;
 	}
 	
 	public Type getType() {
@@ -86,7 +92,7 @@ public class TypeAttribute implements Attribute{
 	}
 
 	public boolean isPrimitive() {
-		return aliasName.equals(type.getName());
+		return aliasName.equals(type.getName()) && (type == Type.INT || type == Type.FIXPT);
 	}
 	
 	private boolean hasProperDimension() {
@@ -104,7 +110,7 @@ public class TypeAttribute implements Attribute{
 			if(typeAttribute.hasProperDimension()) {
 				Type secondTypeOfArray = typeAttribute.getTypeOfArray();
 				String aliasName = secondTypeOfArray.getName();
-				typeAttribute = new TypeAttribute(aliasName ,secondTypeOfArray);
+				typeAttribute = new TypeAttribute(aliasName ,secondTypeOfArray, -1);
 			} else if(typeAttribute.getReceivedArrayTypeSpecific().hasDimension()) {
 				//System.out.println(typeAttribute);
 				return null;
@@ -170,6 +176,19 @@ public class TypeAttribute implements Attribute{
 		return assignableBy(secondTypeAttribute);
 	}
 
+	/**
+	 * Used for determining assignable from functions
+	 * @param secondTypeAttribute The function return type
+	 * @return True if this assignment is valid
+	 */
+	public boolean assignableBy2(TypeAttribute secondTypeAttribute) {
+		if(isPrimitive() && secondTypeAttribute.isPrimitive()) {
+			return type != Type.INT || secondTypeAttribute.getType() != Type.FIXPT;
+		} else {
+			return aliasName.equals(secondTypeAttribute.getAliasName());
+		}
+	}
+	
 	public boolean assignableBy(TypeAttribute secondTypeAttribute) {
 		secondTypeAttribute = manipulateArrayType(secondTypeAttribute);
 		
@@ -310,7 +329,7 @@ public class TypeAttribute implements Attribute{
 	}
 	
 	public Object clone() throws CloneNotSupportedException {
-		TypeAttribute typeAttribute = new TypeAttribute(aliasName, type);
+		TypeAttribute typeAttribute = new TypeAttribute(aliasName, type, scopeId);
 		typeAttribute.setExpectedArrayTypeSpecific(expectedArrayTypeSpecific);
 		typeAttribute.setReceivedArrayTypeSpecific(receivedArrayTypeSpecific);
 		typeAttribute.setTypeOfArray(typeOfArray);
@@ -319,8 +338,7 @@ public class TypeAttribute implements Attribute{
 
 	@Override
 	public int getScopeId() {
-		// TODO Auto-generated method stub
-		return 0;
+		return scopeId;
 	}
 	
 	/**

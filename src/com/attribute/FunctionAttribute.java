@@ -8,11 +8,14 @@ public class FunctionAttribute implements Attribute{
 	private String functionName;
 	private String returnTypeName;
 	private List<TypeAttribute> params;
+	private int scopeId;
 	
-	public FunctionAttribute(String functionName, String returnTypeName, List<TypeAttribute> params) {
+	public FunctionAttribute(String functionName, String returnTypeName, List<TypeAttribute> params,
+			int scopeId) {
 		this.functionName = functionName;
 		this.params = params;
 		this.returnTypeName = returnTypeName;
+		this.scopeId = scopeId;
 	}
 	
 	// Getters and setters. You know, because "encapsulation"...
@@ -75,8 +78,6 @@ public class FunctionAttribute implements Attribute{
 
 	@Override
 	public int getScopeId() {
-		// TODO Auto-generated method stub
-		return 0;
+		return scopeId;
 	}
-	
 }
