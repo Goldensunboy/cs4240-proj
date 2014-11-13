@@ -401,16 +401,16 @@ optionalInit[List<String> varNames] :
 	      VariableAttribute attribute = (VariableAttribute)symbolTableManager.getAttributeInCurrentScope(varName, attributeMap);
 	      attribute.setInitialized(true);
 	      TypeAttribute typeAttribute = symbolTableManager.getTypeAttributeInCurrentScope(attribute, attributeMap);
-	      
-	      if(typeAttribute.isPrimitive()) {
-	        IRList.addFirst("assign, " + varName + ", " + $s1.exp);
+	      int scopeId = symbolTableManager.getCurrentScope().getScopeId();
+	      if(! typeAttribute.isArray()) {
+	        IRList.addFirst("assign, " + varName + "$" + scopeId + ", " + $s1.exp);
 	      } else {
 	        // 1D or 2D array
 	        if(typeAttribute.getDim2() == -1) {
-	          IRList.addFirst("assign, " + varName + ", " + typeAttribute.getDim1() +
+	          IRList.addFirst("assign, " + varName + "$" + scopeId + ", " + typeAttribute.getDim1() +
 	            ", " + $s1.exp);
 	        } else {
-	          IRList.addFirst("assign, " + varName + ", " + typeAttribute.getDim1() +
+	          IRList.addFirst("assign, " + varName + "$" + scopeId + ", " + typeAttribute.getDim1() +
 	            ", " +  typeAttribute.getDim2() + ", " + $s1.exp);
 	        }
 	      }
@@ -470,13 +470,19 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		      }
 		      // Assignment statement
 		      if("".equals($s2.exp)) {
-            IRList.addFirst("assign, " + $s1.exp + ", " + $s3.exp);
+            IRList.addFirst("assign, " + $s1.exp +
+              ($s1.scopeId == -1 ? "" : "$" + $s1.scopeId) + ", " + $s3.exp +
+              ($s3.scopeId == -1 ? "" : "$" + $s3.scopeId));
           } else {
             String[] parts = $s2.exp.substring(1, $s2.exp.length() - 1).split("\\]\\[");
             if(parts.length == 1) {
-              IRList.addFirst("array_store, " + $s1.exp + ", " + parts[0] + ", " + $s3.exp);
+              IRList.addFirst("array_store, " + $s1.exp +
+                ($s1.scopeId == -1 ? "" : "$" + $s1.scopeId) + ", " + parts[0] + ", " + $s3.exp +
+                ($s3.scopeId == -1 ? "" : "$" + $s3.scopeId));
             } else {
-              IRList.addFirst("array_store, " + $s1.exp + ", " + parts[0] + ", " + parts[1] + ", " + $s3.exp);
+              IRList.addFirst("array_store, " + $s1.exp +
+                ($s1.scopeId == -1 ? "" : "$" + $s1.scopeId) + ", " + parts[0] + ", " + parts[1] + ", " + $s3.exp +
+                ($s3.scopeId == -1 ? "" : "$" + $s3.scopeId));
             }
           }
 		    } else {
@@ -496,7 +502,8 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		          + "\" to \"" + $s1.exp + "\" with the type: \"" + $s1.typeAttribute.getAliasName()+"\"";
             exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
 		      }
-		      IRList.addFirst("callr, " + $s1.exp + ", FUNC_" + parts[0] +
+		      IRList.addFirst("callr, " + $s1.exp +
+		        ($s1.scopeId == -1 ? "" : "$" + $s1.scopeId) + ", FUNC_" + parts[0] +
 		        // Be careful not to reference parts[1] which is out
 		        // of bounds for parameterless functions
 		        (parts.length == 1 ? "" : ", " + parts[1]));
@@ -629,22 +636,28 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		    String endSubLoopFor = lf.nextLabel("FOR_END");
 		    // Store upper bound
 		    String upperBoundTemp = tvf.nextTemp();
-		    IRList.addFirst("assign, " + upperBoundTemp + ", " + $s8.exp);
+		    IRList.addFirst("assign, " + upperBoundTemp + ", " + $s8.exp +
+		      ($s8.scopeId == -1 ? "" : "$" + $s8.scopeId));
 		    // Generate index variable
 		    ArrayList<String> varList = new ArrayList<String>();
 		    varList.add($s6.text);
+		    int scopeId = symbolTableManager.getCurrentScope().getScopeId();
 		    putVariableAttributeMap(varList, Type.INT.getName(), INT_TYPE_ATTRIBUTE, $functionName, true /*TODO Andrew*/);
-        IRList.addFirst("assign, " + $s6.text + ", " + $s7.exp);
+        IRList.addFirst("assign, " + $s6.text +
+          (scopeId == -1 ? "" : "$" + scopeId) + ", " + $s7.exp);
         // Begin loop here
         IRList.addFirst(forTop + ":");
-        IRList.addFirst("brgt, " + $s6.text + ", " + upperBoundTemp + ", " + endSubLoopFor);
+        IRList.addFirst("brgt, " + $s6.text +
+          (scopeId == -1 ? "" : "$" + scopeId) + ", " + upperBoundTemp + ", " + endSubLoopFor);
 		  }
 		  KEY_DO statSeq[functionName, endSubLoopFor] KEY_ENDDO
 		  {
 		    // Increment index variable and return to top
 		    String incTemp = tvf.nextTemp();
-		    IRList.addFirst("add, " + $s6.text + ", 1, " + incTemp);
-		    IRList.addFirst("assign, " + $s6.text + ", " + incTemp);
+		    IRList.addFirst("add, " + $s6.exp +
+		      (scopeId == -1 ? "" : "$" + scopeId) + ", 1, " + incTemp);
+		    IRList.addFirst("assign, " + $s6.exp +
+		      (scopeId == -1 ? "" : "$" + scopeId) + ", " + incTemp);
 		    IRList.addFirst("goto, " + forTop);
 		    IRList.addFirst(endSubLoopFor + ":");
 		    goToEnclosingScope();
@@ -674,7 +687,8 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		                                      ($myReturnValue.myIsBool)? "boolean":actualReturnType.getAliasName(), 
 		                                      TypeMismatchException.class);
 		  } else {
-		    IRList.addFirst("return, " + $myReturnValue.exp);
+		    IRList.addFirst("return, " + $myReturnValue.exp +
+		      ($myReturnValue.scopeId == -1 ? "" : "$" + $myReturnValue.scopeId));
 		    symbolTableManager.setCurrentScopeReturnType(actualReturnType);
 		  }
 		}
@@ -772,7 +786,6 @@ binOp1[String startLabel, String endLabel] returns [String exp, TypeAttribute ty
   )?
   {
     TypeAttribute s1TypeAttribute = $s1.typeAttribute;
-    TypeAttribute s7TypeAttribute;
     if($s7.exp == null) {
       $exp = $s1.exp;
       $typeAttribute = s1TypeAttribute;
@@ -781,33 +794,45 @@ binOp1[String startLabel, String endLabel] returns [String exp, TypeAttribute ty
       $scopeId = $s1.scopeId;
     } else {
       $scopeId = -1;
-      s7TypeAttribute = $s7.typeAttribute;
+      TypeAttribute s7TypeAttribute = $s7.typeAttribute;
       if(!s1TypeAttribute.canBeInOperationWith(s7TypeAttribute)) {
         String customMessage = $s1.text + " and " + $s7.text + " are not comparable";
         exceptionHandler.handleException(s1, customMessage, null, null, TypeMismatchException.class);
       }
       
-      if($s1.myIsBool == true || $s7.myIsBool == true){
-         String customMessage = "Cannot compare using a boolean value";
-         exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
+      if($s1.myIsBool == true || $s7.myIsBool == true) {
+        String customMessage = "Cannot compare using a boolean value";
+        exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
       } else if($s1.myIsFunc || $s7.myIsFunc) {
-        String customMessage = "Cannot perform operations on a function lvalue";
+        String customMessage = "Cannot perform operations on a function rvalue";
         exceptionHandler.handleException(s1, customMessage, null, null, InvalidInvocationException.class);
       }
       $myIsBool = true;
       $myIsFunc = false;
       if(s2 != null) {
-        IRList.addFirst("brgt, "  + $s1.exp + ", " + $s7.exp + ", " + endLabel);
+        IRList.addFirst("brgt, "  + $s1.exp +
+          ($s1.scopeId == -1 ? "" : "$" + $s1.scopeId) + ", " + $s7.exp +
+          ($s7.scopeId == -1 ? "" : "$" + $s7.scopeId) + ", " + endLabel);
       } else if(s3 != null) {
-        IRList.addFirst("brlt, "  + $s1.exp + ", " + $s7.exp + ", " + endLabel);
+        IRList.addFirst("brlt, "  + $s1.exp +
+          ($s1.scopeId == -1 ? "" : "$" + $s1.scopeId) + ", " + $s7.exp +
+          ($s7.scopeId == -1 ? "" : "$" + $s7.scopeId) + ", " + endLabel);
       } else if(s4 != null) {
-        IRList.addFirst("brgeq, " + $s1.exp + ", " + $s7.exp + ", " + endLabel);
+        IRList.addFirst("brgeq, " + $s1.exp +
+          ($s1.scopeId == -1 ? "" : "$" + $s1.scopeId) + ", " + $s7.exp +
+          ($s7.scopeId == -1 ? "" : "$" + $s7.scopeId) + ", " + endLabel);
       } else if(s5 != null) {
-        IRList.addFirst("brleq, " + $s1.exp + ", " + $s7.exp + ", " + endLabel);
+        IRList.addFirst("brleq, " + $s1.exp +
+          ($s1.scopeId == -1 ? "" : "$" + $s1.scopeId) + ", " + $s7.exp +
+          ($s7.scopeId == -1 ? "" : "$" + $s7.scopeId) + ", " + endLabel);
       } else if(s6 != null) {
-        IRList.addFirst("breq, "  + $s1.exp + ", " + $s7.exp + ", " + endLabel);
+        IRList.addFirst("breq, "  + $s1.exp +
+          ($s1.scopeId == -1 ? "" : "$" + $s1.scopeId) + ", " + $s7.exp +
+          ($s7.scopeId == -1 ? "" : "$" + $s7.scopeId) + ", " + endLabel);
       } else {
-        IRList.addFirst("brneq, " + $s1.exp + ", " + $s7.exp + ", " + endLabel);
+        IRList.addFirst("brneq, " + $s1.exp +
+          ($s1.scopeId == -1 ? "" : "$" + $s1.scopeId) + ", " + $s7.exp +
+          ($s7.scopeId == -1 ? "" : "$" + $s7.scopeId) + ", " + endLabel);
       }
       $exp = "";
       if(s1TypeAttribute.getType() == Type.FIXPT || (s7TypeAttribute == null ? false : s7TypeAttribute.getType() == Type.FIXPT)) {
@@ -840,7 +865,6 @@ binOp2[String startLabel, String endLabel] returns [String exp, TypeAttribute ty
   )?
   {
     TypeAttribute s1TypeAttribute = $s1.typeAttribute;
-    TypeAttribute s3TypeAttribute;
     if($s3.exp == null) {
       $exp = $s1.exp;
       $typeAttribute = s1TypeAttribute;
@@ -849,7 +873,7 @@ binOp2[String startLabel, String endLabel] returns [String exp, TypeAttribute ty
       $scopeId = $s1.scopeId;
     } else {
       $scopeId = -1;
-      s3TypeAttribute = $s3.typeAttribute;
+      TypeAttribute s3TypeAttribute = $s3.typeAttribute;
       String addSubtract = s2 == null ? "subtracted" : "added" ;
       if(!s1TypeAttribute.canBeInOperationWith(s3TypeAttribute)) {
         String customMessage = $s1.text + " and " + $s3.text + " cannot be " + addSubtract;
@@ -867,9 +891,13 @@ binOp2[String startLabel, String endLabel] returns [String exp, TypeAttribute ty
       $myIsFunc = false;
       String temp = tvf.nextTemp();
       if(s2 != null) {
-        IRList.addFirst("add, " + $s1.exp + ", " + $s3.exp + ", " + temp);
+        IRList.addFirst("add, " + $s1.exp +
+          ($s1.scopeId == -1 ? "" : "$" + $s1.scopeId) + ", " + $s3.exp +
+          ($s3.scopeId == -1 ? "" : "$" + $s3.scopeId) + ", " + temp);
       } else {
-        IRList.addFirst("sub, " + $s1.exp + ", " + $s3.exp + ", " + temp);
+        IRList.addFirst("sub, " + $s1.exp +
+          ($s1.scopeId == -1 ? "" : "$" + $s1.scopeId) + ", " + $s3.exp +
+          ($s3.scopeId == -1 ? "" : "$" + $s3.scopeId) + ", " + temp);
       }
       $exp = temp;
       if(s1TypeAttribute.isPrimitive() && s3TypeAttribute.isPrimitive()) {
@@ -923,9 +951,13 @@ funcBinOp2[IdType idType] returns [String exp, TypeAttribute typeAttribute, bool
       $myIsBool = false;
       String temp = tvf.nextTemp();
       if(s2 != null) {
-        IRList.addFirst("add, " + $s1.exp + ", " + $s3.exp + ", " + temp);
+        IRList.addFirst("add, " + $s1.exp +
+          ($s1.scopeId == -1 ? "" : "$" + $s1.scopeId) + ", " + $s3.exp +
+          ($s3.scopeId == -1 ? "" : "$" + $s3.scopeId) + ", " + temp);
       } else {
-        IRList.addFirst("sub, " + $s1.exp + ", " + $s3.exp + ", " + temp);
+        IRList.addFirst("sub, " + $s1.exp +
+          ($s1.scopeId == -1 ? "" : "$" + $s1.scopeId) + ", " + $s3.exp +
+          ($s3.scopeId == -1 ? "" : "$" + $s3.scopeId) + ", " + temp);
       }
       $exp = temp;
       if(s1TypeAttribute.isPrimitive() && s3TypeAttribute.isPrimitive()) {
@@ -958,7 +990,6 @@ binOp3[String startLabel, String endLabel] returns [String exp, TypeAttribute ty
   )?
   {
     TypeAttribute s1TypeAttribute = $s1.typeAttribute;
-    TypeAttribute s3TypeAttribute;
     if($s3.exp == null) {
       $exp = $s1.exp;
       $typeAttribute = s1TypeAttribute;
@@ -967,7 +998,7 @@ binOp3[String startLabel, String endLabel] returns [String exp, TypeAttribute ty
       $scopeId = $s1.scopeId;
     } else {
       $scopeId = -1;
-      s3TypeAttribute = $s3.typeAttribute;
+      TypeAttribute s3TypeAttribute = $s3.typeAttribute;
       String divMult = s2 == null ? "multiplied" : "divided";
       if(!s1TypeAttribute.canBeInOperationWith(s3TypeAttribute)) {
         String customMessage = $s1.text + " and " + $s3.text + " cannot be " + divMult;
@@ -985,9 +1016,13 @@ binOp3[String startLabel, String endLabel] returns [String exp, TypeAttribute ty
       $myIsFunc = false;
       String temp = tvf.nextTemp();
       if(s2 != null) {
-        IRList.addFirst("div, "  + $s1.exp + ", " + $s3.exp + ", " + temp);
+        IRList.addFirst("div, "  + $s1.exp +
+          ($s1.scopeId == -1 ? "" : "$" + $s1.scopeId) + ", " + $s3.exp +
+          ($s3.scopeId == -1 ? "" : "$" + $s3.scopeId) + ", " + temp);
       } else {
-        IRList.addFirst("mult, " + $s1.exp + ", " + $s3.exp + ", " + temp);
+        IRList.addFirst("mult, " + $s1.exp +
+          ($s1.scopeId == -1 ? "" : "$" + $s1.scopeId) + ", " + $s3.exp +
+          ($s3.scopeId == -1 ? "" : "$" + $s3.scopeId) + ", " + temp);
       }
       $exp = temp;
       if(s1TypeAttribute.isPrimitive() && s3TypeAttribute.isPrimitive()) {
@@ -1041,9 +1076,13 @@ funcBinOp3[IdType idType] returns [String exp, TypeAttribute typeAttribute, bool
       $myIsBool = false;
       String temp = tvf.nextTemp();
       if(s2 != null) {
-        IRList.addFirst("div, "  + $s1.exp + ", " + $s3.exp + ", " + temp);
+        IRList.addFirst("div, "  + $s1.exp +
+          ($s1.scopeId == -1 ? "" : "$" + $s1.scopeId) + ", " + $s3.exp +
+          ($s3.scopeId == -1 ? "" : "$" + $s3.scopeId) + ", " + temp);
       } else {
-        IRList.addFirst("mult, " + $s1.exp + ", " + $s3.exp + ", " + temp);
+        IRList.addFirst("mult, " + $s1.exp +
+          ($s1.scopeId == -1 ? "" : "$" + $s1.scopeId) + ", " + $s3.exp +
+          ($s3.scopeId == -1 ? "" : "$" + $s3.scopeId) + ", " + temp);
       }
       $exp = temp;
       if(s1TypeAttribute.isPrimitive() && s3TypeAttribute.isPrimitive()) {
@@ -1079,13 +1118,14 @@ binOp4[String startLabel, String endLabel] returns [String exp, TypeAttribute ty
     $typeAttribute = $s1.typeAttribute;
     $scopeId = -1;
   }
-  | OP_LPAREN s2=expr[startLabel, endLabel] OP_RPAREN
-    {
-      $exp = $s2.exp;
-      $typeAttribute = $s2.typeAttribute;
-      $myIsBool = $s2.myIsBool;
-      $scopeId = -1;
-    }
+  |
+  OP_LPAREN s2=expr[startLabel, endLabel] OP_RPAREN
+  {
+    $exp = $s2.exp;
+    $typeAttribute = $s2.typeAttribute;
+    $myIsBool = $s2.myIsBool;
+    $scopeId = -1;
+  }
   | s3=id[IdType.VARIABLE_NAME]
   (
     s4=valueTail
@@ -1093,8 +1133,8 @@ binOp4[String startLabel, String endLabel] returns [String exp, TypeAttribute ty
       TypeAttribute s3TypeAttribute = $s3.typeAttribute;
       ArrayTypeSpecific arrayTypeSpecific = $s4.arrayTypeSpecific;
       s3TypeAttribute.setReceivedArrayTypeSpecific(arrayTypeSpecific);
-      $typeAttribute = s3TypeAttribute;
       if("".equals($s4.exp)) {
+        $typeAttribute = s3TypeAttribute;
         $exp = $s3.exp;
       } else {
         String[] parts = $s4.exp.substring(1, $s4.exp.length() - 1).split("\\]\\[");
@@ -1107,13 +1147,23 @@ binOp4[String startLabel, String endLabel] returns [String exp, TypeAttribute ty
             ($s3.scopeId == -1 ? "" : "$" + $s3.scopeId) + ", " + parts[0] + ", " + parts[1]);
         }
         $exp = arrTempVar;
+        $scopeId = -1;
+        // Gotta return a new typeattribute that is of the type dereferenced
+        try {
+          $typeAttribute = (TypeAttribute) s3TypeAttribute.clone();
+        } catch (CloneNotSupportedException e) {
+          e.printStackTrace();
+        }
+        $typeAttribute.dereference();
       }
     }
-    | OP_LPAREN s5=funcExprList[attrList] OP_RPAREN 
+    |
+    OP_LPAREN s5=funcExprList[attrList] OP_RPAREN 
     {
       $exp = $s3.exp + "#" + $s5.exp; 
       $typeAttribute = $s3.typeAttribute; 
       $myIsFunc = true;
+      $scopeId = -1;
     }
   )
   {
@@ -1161,15 +1211,23 @@ binOp4[String startLabel, String endLabel] returns [String exp, TypeAttribute ty
 ;
 
 funcBinOp4[IdType idType] returns [String exp, TypeAttribute typeAttribute, boolean myIsBool, int scopeId]:
-  s1=constant                      {$exp = $s1.exp; $typeAttribute = $s1.typeAttribute; $myIsBool = false;}
-  | OP_LPAREN s2=funcExpr[idType]/*most likely it's idType*/ OP_RPAREN    
+  s1=constant
+  {
+    $exp = $s1.exp;
+    $typeAttribute = $s1.typeAttribute;
+    $myIsBool = false;
+    $scopeId = -1;
+  }
+  |
+  OP_LPAREN s2=funcExpr[idType] OP_RPAREN    
   {
     $exp = $s2.exp;
     $typeAttribute = $s2.typeAttribute;
     $myIsBool = $s2.myIsBool;
     $scopeId = $s2.scopeId;
   }
-  | s3=id[idType] s4=valueTail
+  |
+  s3=id[idType] s4=valueTail
   {
     $myIsBool = false;
     Attribute att = symbolTableManager.getAttributeInCurrentScope($s3.exp, attributeMap);
@@ -1190,21 +1248,31 @@ funcBinOp4[IdType idType] returns [String exp, TypeAttribute typeAttribute, bool
       String[] parts = $s4.exp.substring(1, $s4.exp.length() - 1).split("\\]\\[");
       String arrTempVar = tvf.nextTemp();
       if(parts.length == 1) {
-        IRList.addFirst("array_load, " + arrTempVar + ", " + ($s3.exp + "$" + $s3.scopeId) +
-          ", " + parts[0]);
+        IRList.addFirst("array_load, " + arrTempVar + ", " + $s3.exp +
+          ($s3.scopeId == -1 ? "" : "$" + $s3.scopeId) + ", " + parts[0]);
       } else {
-        IRList.addFirst("array_load, " + arrTempVar + ", " + ($s3.exp + "$" + $s3.scopeId) +
-          ", " + parts[0] + ", " + parts[1]);
+        IRList.addFirst("array_load, " + arrTempVar + ", " + $s3.exp +
+          ($s3.scopeId == -1 ? "" : "$" + $s3.scopeId) + ", " + parts[0] + ", " + parts[1]);
       }
       $exp = arrTempVar;
       $scopeId = -1;
+      $typeAttribute.dereference();
     }
   }
 ;
 
 constant returns [String exp, TypeAttribute typeAttribute]:
-	FIXEDPTLIT {$exp = $FIXEDPTLIT.text; $typeAttribute = FIXEDPT_TYPE_ATTRIBUTE;}
-	| INTLIT   {$exp = $INTLIT.text;     $typeAttribute = INT_TYPE_ATTRIBUTE;  }
+	FIXEDPTLIT
+	{
+	  $exp = $FIXEDPTLIT.text;
+	  $typeAttribute = FIXEDPT_TYPE_ATTRIBUTE;
+	}
+	|
+	INTLIT
+	{
+	  $exp = $INTLIT.text;
+	  $typeAttribute = INT_TYPE_ATTRIBUTE;
+	}
 ;
 
 valueTail returns [String exp, ArrayTypeSpecific arrayTypeSpecific]
@@ -1227,9 +1295,12 @@ valueTail returns [String exp, ArrayTypeSpecific arrayTypeSpecific]
 	)?
 	{
 	  if($s2.exp != null) {
-	    $exp = "[" + $s1.exp + "][" + $s2.exp + "]";
+	    $exp = "[" + $s1.exp + 
+	      ($s1.scopeId == -1 ? "" : "$" + $s1.scopeId) + "][" + $s2.exp +
+	      ($s2.scopeId == -1 ? "" : "$" + $s2.scopeId) + "]";
 	  } else if($s1.exp != null) {
-	    $exp = "[" + $s1.exp + "]";
+	    $exp = "[" + $s1.exp +
+	      ($s1.scopeId == -1 ? "" : "$" + $s1.scopeId) + "]";
 	  } else {
 	    $exp = "";
 	  }
@@ -1249,7 +1320,9 @@ indexExpr returns [String exp, int scopeId]:
     } else {
       $scopeId = -1;
       String temp = tvf.nextTemp();
-      IRList.addFirst("mult, " + $s1.exp + ", " + $s2.exp + ", " + temp);
+      IRList.addFirst("mult, " + $s1.exp +
+        ($s1.scopeId == -1 ? "" : "$" + $s1.scopeId) + ", " + $s2.exp +
+        ($s2.scopeId == -1 ? "" : "$" + $s2.scopeId) + ", " + temp);
       $exp = temp;
     }
   }
@@ -1260,7 +1333,8 @@ indexExpr2 returns [String exp, int scopeId]:
   (
     (
       s2=OP_PLUS
-      | OP_MINUS
+      |
+      OP_MINUS
     )
     s3=indexExpr2
   )?
@@ -1272,9 +1346,13 @@ indexExpr2 returns [String exp, int scopeId]:
       $scopeId = -1;
       String temp = tvf.nextTemp();
       if(s2 != null) {
-        IRList.addFirst("add, " + $s1.exp + ", " + $s3.exp + ", " + temp);
+        IRList.addFirst("add, " + $s1.exp +
+          ($s1.scopeId == -1 ? "" : "$" + $s1.scopeId) + ", " + $s3.exp +
+          ($s3.scopeId == -1 ? "" : "$" + $s3.scopeId) + ", " + temp);
       } else {
-        IRList.addFirst("sub, " + $s1.exp + ", " + $s3.exp + ", " + temp);
+        IRList.addFirst("sub, " + $s1.exp +
+          ($s1.scopeId == -1 ? "" : "$" + $s1.scopeId) + ", " + $s3.exp +
+          ($s3.scopeId == -1 ? "" : "$" + $s3.scopeId) + ", " + temp);
       }
       $exp = temp;
     }
@@ -1282,8 +1360,13 @@ indexExpr2 returns [String exp, int scopeId]:
 ;
 
 indexExpr3 returns [String exp, int scopeId]:
-  INTLIT {$exp = $INTLIT.text;}
-  | myId=id[IdType.VARIABLE_NAME]
+  INTLIT
+  {
+    $exp = $INTLIT.text;
+    $scopeId = -1;
+  }
+  |
+  myId=id[IdType.VARIABLE_NAME]
   {
     $exp = $myId.exp;
     $scopeId = $myId.scopeId;
@@ -1315,7 +1398,7 @@ exprList[List<TypeAttribute> attrList] returns [String exp]:
     if($s1.exp == null) {
       $exp = "";
     } else {
-      $exp = $s1.exp + ($s1.scopeId == -1 ? "" : $s1.scopeId) + $s2.exp;
+      $exp = $s1.exp + ($s1.scopeId == -1 ? "" : "$" + $s1.scopeId) + $s2.exp;
       attrList.add($s1.typeAttribute);
     }
   }
@@ -1329,7 +1412,7 @@ funcExprList[List<TypeAttribute> attrList] returns [String exp]:
     if($s1.exp == null) {
       $exp = "";
     } else {
-      $exp = $s1.exp + ($s1.scopeId == -1 ? "" : $s1.scopeId) + $s2.exp;
+      $exp = $s1.exp + ($s1.scopeId == -1 ? "" : "$" + $s1.scopeId) + $s2.exp;
       if($s1.myIsBool) {
           String customMessage = "Cannot pass in a boolean value as a parameter";
           exceptionHandler.handleException(s1, customMessage, null, 
@@ -1348,7 +1431,7 @@ exprListTail[List<TypeAttribute> attrList] returns [String exp]:
     if($s1.exp == null) {
       $exp = "";
     } else {
-      $exp = ", " + $s1.exp + ($s1.scopeId == -1 ? "" : $s1.scopeId) + $s2.exp;
+      $exp = ", " + $s1.exp + ($s1.scopeId == -1 ? "" : "$" + $s1.scopeId) + $s2.exp;
       attrList.add($s1.typeAttribute);
     }
   }
@@ -1362,7 +1445,7 @@ funcExprListTail[List<TypeAttribute> attrList] returns [String exp]:
     if($s1.exp == null) {
       $exp = "";
     } else {
-      $exp = ", " + $s1.exp + ($s1.scopeId == -1 ? "" : $s1.scopeId) + $s2.exp;
+      $exp = ", " + $s1.exp + ($s1.scopeId == -1 ? "" : "$" + $s1.scopeId) + $s2.exp;
       attrList.add($s1.typeAttribute);
     }
   }
@@ -1429,8 +1512,9 @@ OP_PERIOD  : '.'  ;
 
 
 INTLIT :
-	'0' |
-	(('1'..'9') (DIGIT)*)
+	'0'
+	|
+	('1'..'9') (DIGIT)*
 ;
 
 FIXEDPTLIT :
@@ -1440,7 +1524,9 @@ FIXEDPTLIT :
 skip
 :
   SKIP
-  {System.err.println("Warning: the whole file was skipped");}  
+  {
+    System.err.println("Warning: the whole file was skipped");
+  }  
 ;
 SKIP:
   'SKIP'
@@ -1511,7 +1597,14 @@ id[IdType idType] returns [String exp, TypeAttribute typeAttribute, int scopeId]
 ;
 
 ID :
-  ALPHANUM (ALPHANUM | DIGIT | OP_UNDER)*
+  ALPHANUM
+  (
+    ALPHANUM
+    |
+    DIGIT
+    |
+    OP_UNDER
+  )*
 ;
 
 fragment
@@ -1521,7 +1614,8 @@ DIGIT :
 
 fragment
 ALPHANUM :
-  'a'..'z' |
+  'a'..'z'
+  |
   'A'..'Z'
 ;
 

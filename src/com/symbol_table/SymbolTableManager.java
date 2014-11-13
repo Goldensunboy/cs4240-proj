@@ -437,20 +437,3 @@ public class SymbolTableManager {
 		return getTypeAttributeInCurrentScope(typeName, attributeMap) != null;
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
