@@ -13,6 +13,8 @@ import com.antlr.generated.TigerParser;
 import com.compiler.TigerCompiler;
 import com.compiler.TigerCompiler.CompilerErrorReport;
 import com.exception.BadDeveloperException;
+import com.exception.ExceptionHandler;
+import com.exception.UnrecoverableException;
 
 
 public class TigerTest {
@@ -23,6 +25,7 @@ public class TigerTest {
 	 * tester figures out which set of test cases to execute
 	 */
 	public static void main(String[] args) throws RecognitionException {
+		ExceptionHandler exceptionHandler = new ExceptionHandler();
 		
 		String mainDeveloperName = System.getProperty("user.name");
 		DeveloperName[] developerNames = DeveloperName.lookup(mainDeveloperName);
@@ -61,8 +64,10 @@ public class TigerTest {
 					}
 					
 					System.out.println(errorReport.getErrorReportMessage());
-				} catch (IOException e) {
+				} catch (IOException  e ) {
 					e.printStackTrace();
+				}catch (NullPointerException e) {
+					exceptionHandler.handleException(-1,null, null, null, UnrecoverableException.class);
 				} finally{
 				}
 	
@@ -96,9 +101,16 @@ public class TigerTest {
 			break;
 		
 		case SAMAN:
-//			System.out.println("\n-----------------"); 
-//			parser.printSymbolTable();
-//			System.out.println("-----------------\n");
+			List<String> IRList1 = parser.getIRCode();
+			System.out.println("IR code:\n**********");
+			if(IRList1 == null) {
+				System.out.println(IRList1);
+				break;
+			}
+		    for(String s : IRList1) {
+		      System.out.println(s);
+		    }
+		    System.out.println("**********");
 			break;
 			
 		case ANDREW:

@@ -161,9 +161,10 @@ public class SymbolTableManager {
 		}
 		
 		// if the symbol is in the nested scopes of a function
-		for(Symbol symbol : symbolList) {
-			if(haveSameParentScope(symbol.getScope())) {
-				return symbol.getAttribute();
+		for(int i=symbolList.size()-1; i>=0 ; i--) {
+			if(haveSameParentScope(symbolList.get(i).getScope())) {
+				return symbolList.get(i).getAttribute();
+			
 			}
 		}
 		
@@ -401,7 +402,7 @@ public class SymbolTableManager {
 	public TypeAttribute getTypeAttributeInCurrentScope(String idName, 
 			Map<String, Attribute> attributeMap) {
 		Attribute attribute = getAttributeInCurrentScope(idName, attributeMap);
-		return getTypeAttributeInCurrentScope(attribute, attributeMap);
+		return (TypeAttribute) getTypeAttributeInCurrentScope(attribute, attributeMap);
 	}
 	
 	public TypeAttribute getTypeAttributeInCurrentScope(Attribute attribute, 
@@ -427,7 +428,7 @@ public class SymbolTableManager {
 				Symbol symbol = symbolList.get(0);
 				typeAttribute = (TypeAttribute)symbol.getAttribute();
 			}
-			return typeAttribute;
+			return (TypeAttribute) typeAttribute;
 		} catch (ClassCastException e) {
 			throw new AttributeCastException();
 		}

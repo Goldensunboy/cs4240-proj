@@ -8,7 +8,7 @@ public class FunctionAttribute implements Attribute{
 	private String functionName;
 	private String returnTypeName;
 	private List<TypeAttribute> params;
-	private int scopeId;
+	private final int scopeId;
 	
 	public FunctionAttribute(String functionName, String returnTypeName, List<TypeAttribute> params,
 			int scopeId) {
@@ -80,4 +80,9 @@ public class FunctionAttribute implements Attribute{
 	public int getScopeId() {
 		return scopeId;
 	}
+
+//	@Override
+//	public Attribute getAttributeClone() {
+//		return new FunctionAttribute(functionName, returnTypeName, params, scopeId);
+//	}
 }
