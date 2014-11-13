@@ -21,6 +21,7 @@ begin
 		var int_type_var2 : Int_Type := 5;
 		var fixedpt_type_var2 : Fixedpt_Type := 5.0;
 		var int_type2_var : Int_Type2 := 5;
+		var fixedpt_type2_var : Fixedpt_Type2 := 3.1;
 		
 		fixedpt_type_var := 5 + 5.5 * fixedpt_type_var;
 

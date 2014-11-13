@@ -1,4 +1,4 @@
-int function not(x : int)
+int function notr(x : int)
 begin
 	begin
 		var a : int := 8;
@@ -10,6 +10,6 @@ void main()
 begin
 	begin
 		var x : int := 5;
-		x := foo(6);
+		x := notr(6);
 	end;
 end;
