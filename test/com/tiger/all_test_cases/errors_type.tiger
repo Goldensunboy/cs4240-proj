@@ -113,7 +113,7 @@ begin
 		a := 0;
 	end;
 end;
-
+SKIP_S
 
 /*  Using undefined type for a variable */
 void function func1c() 
@@ -124,8 +124,9 @@ begin
 	end;
 end;
 
+
 /*  Using undefined type for a variable */
-void function func2(x:missingType) 
+void function func2b(x:missingType) 
 begin
 	begin
 		var temp1 : int :=0;
@@ -141,7 +142,7 @@ begin
 		return 0;
 	end;
 end;
-
+SKIP_E
 /*  Redefining a type */
 void function func4() 
 begin
@@ -183,7 +184,7 @@ begin
 end;
 
 /*  Redefining a type */
-void function func7() 
+void function func7a() 
 begin
 	begin
 		var temp2 : int :=0;
@@ -198,7 +199,7 @@ begin
 end;
 
 /*  Redefining a type */
-void function func7() 
+void function func7b() 
 begin
 	begin
 		var temp2 : int :=0;
@@ -234,73 +235,75 @@ begin
 		var fixedpt_var : fixedpt := 5.0;
 		var int_type_var : Int_Type := 5;
 		var fixedpt_var2 : fixedpt := 5.0;
-		var int_var2 : Int_Type := 5;
 		var fixedpt_type_var : Fixedpt_Type := 5.0;
 		var int_type_var2 : Int_Type := 5;
 		var fixedpt_type_var2 : Fixedpt_Type := 5.0;
 		var int_type2_var : Int_Type2 := 5;
 		var fixedpt_type2_var : Fixedpt_Type2 := 5.0;
 		
-		int_var := 5.0;
-		int_var := int_var + 5.0;
-		int_var := fixedpt_var + int_var;
-		int_type_var := 5;                                                          
-		int_type_var := 5.0;
-		fixedpt_type_var := 5.0;                                                 
-		fixedpt_type_var := 5;
-		int_type_var := fixedpt_type_var;
-		fixedpt_type_var := int_type_var;
-		int_type_var := int_type_var + 5.0;
-		fixedpt_type_var := fixedpt_type_var + 5;
+		int_var := 5.0;						
+		int_var := int_var + 5.0;					
+		int_var := fixedpt_var + int_var;					
+		int_type_var := 5;                        					                                  
+		int_type_var := 5.0;					
+		fixedpt_type_var := 5.0;                					                                 
+		fixedpt_type_var := 5;					
+		int_type_var := fixedpt_type_var;					
+		fixedpt_type_var := int_type_var;					
+		int_type_var := int_type_var + 5.0;					
+		int_type_var := int_type_var + 5;			
+		fixedpt_type_var := fixedpt_type_var + 5;	
+		fixedpt_type_var := fixedpt_type_var + 5.0;
 		int_type_var := int_var + fixedpt_var;
 		fixedpt_type_var := fixedpt_var + int_type_var;
 		int_type_var := int_type_var + fixedpt_type_var;
-		fixedpt_type_var := fixedpt_type_var + int_type_var
+		fixedpt_type_var := fixedpt_type_var + int_type_var;
 		fixedpt_type_var := 5 + 5.5 * fixedpt_var;
-		fixedpt_type_var := 5 + 5.5 * fixedpt_type_var;
+SKIP_S		fixedpt_type_var := 5 + 5.5 * fixedpt_type_var;SKIP_E
 		fixedpt_type_var := fixedpt_var * int_var + int_type_var;
-		int_type_var := int_var;                                 /* Illegal - type mixin not allowed except in initialization - not name type equivalent */
-		fixedpt_type_var := fixedpt_var;                                 /* Illegal - type mixin not allowed except in initialization - not name type equivalent */
-		int_var := int_type_var;                                 /* Illegal - not name equivalent */
-		fixedpt_var := fixedpt_type_var;                                 /* Illegal - not name equivalent */
-		int_type_var := int_var + 5;                                 /* Illegal - type mixin not allowed except in initialization - not name type equivalent - rhs is type int_var */
-		fixedpt_type_var := fixedpt_var + 5.0;                                 /* Illegal - type mixin not allowed except in initialization - not name type equivalent - rhs is type fixedpt_var */
-		int_type_var := int_type_var + int_var;                                 /* Illegal mixin on rhs types - no implicit conversion (promotion) between a base type and derived type */
-		fixedpt_type_var := fixedpt_type_var + fixedpt_var;                                 /* Illegal due to the same reason as above */
-		int_var := int_type_var + int_var;                                 /* Illegal expression on rhs - cant add the vars - not name equivalent */
-		fixedpt_var := fixedpt_type_var + fixedpt_var;                                 /* Illegal - same reason as above */
-		fixedpt_type_var := 5 * 5.5 + fixedpt_var;                                 /* first 5 is promoted to 5.0 (implicit base type conversion) and thus first subexpression 5 * 5.5 is eval as fixedpt and thus due to type equivalence whole expr legal but assignment of fixedpt_var to fixedpt_type_var illegal */
-		fixedpt_type_var := 5 * 5.5 + fixedpt_type_var;                                 /* First subexpression OK as above - second part (fixedpt_type_var) mixin is illegal - no implicit type conversion except in base types */
-		fixedpt_type_var := fixedpt_var * 5 + fixedpt_type_var;                         /* first expression fixedpt_var * 5 is legal via promotion of 5 to base type fixedpt (like 5.0) - second part + fixed_type_var illegal due to type mixing as in above example */ /* Recheck this one again - I had made a mistake - it was late night */
-		fixedpt_type_var := fixedpt_var * int_var + fixedpt_type_var;                                 /* first expression fixedpt_var * int_var is legal via promotion of int_var to base type fixedpt - second part illegal type mixin */
+		int_type_var := int_var;                                 
+		fixedpt_type_var := fixedpt_var;                          
+		int_var := int_type_var;                                
+		fixedpt_var := fixedpt_type_var;                             
+		int_type_var := int_var + 5;                                 
+		fixedpt_type_var := fixedpt_var + 5.0;                                 
+		int_type_var := int_type_var + int_var;                                
+		fixedpt_type_var := fixedpt_type_var + fixedpt_var;                                
+		int_var := int_type_var + int_var;                                
+		fixedpt_var := fixedpt_type_var + fixedpt_var;                              
+		fixedpt_type_var := 5 * 5.5 + fixedpt_var;                                
+		fixedpt_type_var := 5 * 5.5 + fixedpt_type_var;                                
+		fixedpt_type_var := fixedpt_var * 5 + fixedpt_type_var;                       
+		fixedpt_type_var := fixedpt_var * int_var + fixedpt_type_var;                 
 
 		int_type_var := int_type2_var;
 		int_type_var := int_type_var + int_type2_var;
 		int_type_var := int_type_var * int_type2_var;
 		int_type_var := int_type2_var * int_type2_var;
 		
-		int_type_var := int_type2_var * (int_var + int_type2_var);
+SKIP_S		int_type_var := int_type2_var * (int_var + int_type2_var); SKIP_E
 		int_type_var := int_type2_var + 2;
 		int_type_var := int_type2_var * 2.0;
 		int_type_var := int_type2_var * int_var;
-		int_type_var := int_type2_var * (2 + int_type2_var);
-		int_type_var := int_type2_var * (2.0 + int_type2_var);
-		int_type_var := int_type2_var * (int_type_var + int_type2_var);
-		int_type_var := int_type2_var * (int_type_var + int_type2_var);
+SKIP_S		int_type_var := int_type2_var * (2 + int_type2_var); SKIP_E
+SKIP_S		int_type_var := int_type2_var * (2.0 + int_type2_var); SKIP_E
+SKIP_S		int_type_var := int_type2_var * (int_type_var + int_type2_var); SKIP_E
+SKIP_S		int_type_var := int_type2_var * (int_type_var + int_type2_var); SKIP_E
 		
 		fixedpt_type_var := fixedpt_type2_var;
 		fixedpt_type_var := fixedpt_type_var + fixedpt_type2_var;
 		fixedpt_type_var := fixedpt_type_var * fixedpt_type2_var;
 		fixedpt_type_var := fixedpt_type2_var * fixedpt_type2_var;
 		
-		fixedpt_type_var := fixedpt_type2_var * (fixedpt_var + fixedpt_type2_var);
+SKIP_S		fixedpt_type_var := fixedpt_type2_var * (fixedpt_var + fixedpt_type2_var); SKIP_E
 		fixedpt_type_var := fixedpt_type2_var + 2;
 		fixedpt_type_var := fixedpt_type2_var * 2.0;
 		fixedpt_type_var := fixedpt_type2_var * fixedpt_var;
-		fixedpt_type_var := fixedpt_type2_var * (2 + fixedpt_type2_var);
-		fixedpt_type_var := fixedpt_type2_var * (2.0 + fixedpt_type2_var);
-		fixedpt_type_var := fixedpt_type2_var * (fixedpt_type_var + fixedpt_type2_var);
-		fixedpt_type_var := fixedpt_type2_var * (fixedpt_type_var + fixedpt_type2_var);
+SKIP_S		fixedpt_type_var := (2.0 + fixedpt_type2_var) * fixedpt_type2_var; SKIP_E
+SKIP_S		fixedpt_type_var := fixedpt_type2_var * (2 + fixedpt_type2_var); SKIP_E
+SKIP_S		fixedpt_type_var := fixedpt_type2_var * (2.0 + fixedpt_type2_var); SKIP_E
+SKIP_S		fixedpt_type_var := fixedpt_type2_var * (fixedpt_type_var + fixedpt_type2_var); SKIP_E
+SKIP_S		fixedpt_type_var := fixedpt_type2_var * (fixedpt_type_var + fixedpt_type2_var); SKIP_E
 	end;
 end;
 
@@ -346,7 +349,7 @@ begin
 		if fixedpt_type_var < int_type_var then
 			fixedpt_var := 0.0;
 		endif;
-		
+SKIP_S		
 		if fixedpt_var < fixedpt_type_var + 5 then
 			int_var := 0;
 		endif;
@@ -606,11 +609,11 @@ begin
 		while fixedpt_type2_var < fixedpt_type2_var + fixed_type_var do
 			int_var := 0;
 		enddo;
-				
+	SKIP_E
 	end;
 end;
 
-void function func10()
+void function func11()
 begin
 	begin
 		var int_var : int := 5;
@@ -622,49 +625,81 @@ begin
 		var int_type_var2 : Int_Type := 5;
 		var fixedpt_type_var2 : Fixedpt_Type := 5.0;
 		
-		testFunc1(5.0);
-		testFunc1(5.0 + int_var);
-		testFunc1(fixedpt_var); 
-		testFunc1(fixedpt_type_var);
-		testFunc1(int_type_var);   
+		funcTest1(5.0);
+		funcTest1(5.0 + int_var);
+		funcTest1(fixedpt_var); 
+		funcTest1(fixedpt_type_var);
+		funcTest1(int_type_var);   
 
-		fixedpt_type_var := testFunc1(5);
-		int_type_var := testFunc1(5);  
-		testFunc2(int_type_var);
-		testFunc2(fixedpt_type_var);            
-		int_var := testFunc2(5.0);
-		int_type_var := testFunc2(5.0);
-		fixedpt_type_var := testFunc2(5.0);        
+
+		int_var := funcTest1(5.0);
+		int_var := funcTest1(5.0 + int_var);
+		int_var := funcTest1(fixedpt_var); 
+		int_var := funcTest1(fixedpt_type_var);
+		int_var := funcTest1(int_type_var);   
+
+		fixedpt_type_var := funcTest1(5);
+		int_type_var := funcTest1(5); 
 		
-		testFunc3(5.0);
-		testFunc3(5.0 + int_var);
-		testFunc3(fixedpt_var); 
-		testFunc3(fixedpt_type_var);
-		testFunc3(5);                              
-		testFunc3(int_var);                          
-		testFunc3(5 + int_var);  
-		testFunc3(int_type2_var);                  
+		funcTest2(int_type_var);
+		funcTest2(fixedpt_type_var);   		
+		 
+		fixedpt_var := funcTest2(int_type_var);
+		fixedpt_var := funcTest2(fixedpt_type_var);         
+		   
+		int_var := funcTest2(5.0);
+		int_type_var := funcTest2(5.0);
+		fixedpt_type_var := funcTest2(5.0);        
+		
+		funcTest3(5.0);
+		funcTest3(5.0 + int_var);
+		funcTest3(fixedpt_var); 
+		funcTest3(fixedpt_type_var);
+		funcTest3(5);                              
+		funcTest3(int_var);                          
+		funcTest3(5 + int_var);  
+		funcTest3(int_type2_var);            
+		
+		int_type_var := funcTest3(5.0);
+		int_type_var := funcTest3(5.0 + int_var);
+		int_type_var := funcTest3(fixedpt_var); 
+		int_type_var := funcTest3(fixedpt_type_var);
+		int_type_var := funcTest3(5);                              
+		int_type_var := funcTest3(int_var);                          
+		int_type_var := funcTest3(5 + int_var);  
+		int_type_var := funcTest3(int_type2_var);       
 
-		fixedpt_var := testFunc3(int_type_var);
-		fixedpt_type_var := testFunc3(int_type_var); 
-		int_var := testFunc3(int_type_var);                
+		fixedpt_var := funcTest3(int_type_var);
+		fixedpt_type_var := funcTest3(int_type_var); 
+		int_var := funcTest3(int_type_var);                
 		int_type2_var := funcTest3(int_type_var);
 		fixedpt_type2_var := funcTest3(int_type_var);
 		
-		testFunc4(5);
-		testFunc4(int_var);
-		testFunc4(5 + int_var);
-		testFunc4(int_type_var);
-		testFunc4(5.0);                           
-		testFunc4(fixedpt_var);                     
-		testFunc4(5.0 + fixedpt_var);               
-		testFunc4(5 + fixedpt_var);                
-		testFunc4(5.0 + int_var);   
-		testFunc4(fixedpt_type2_var);         
+		funcTest4(5);
+		funcTest4(int_var);
+		funcTest4(5 + int_var);
+		funcTest4(int_type_var);
+		funcTest4(5.0);                           
+		funcTest4(fixedpt_var);                     
+		funcTest4(5.0 + fixedpt_var);               
+		funcTest4(5 + fixedpt_var);                
+		funcTest4(5.0 + int_var);   
+		funcTest4(fixedpt_type2_var);   
+		
+		fixedpt_type_var := funcTest4(5);
+		fixedpt_type_var := funcTest4(int_var);
+		fixedpt_type_var := funcTest4(5 + int_var);
+		fixedpt_type_var := funcTest4(int_type_var);
+		fixedpt_type_var := funcTest4(5.0);                           
+		fixedpt_type_var := funcTest4(fixedpt_var);                     
+		fixedpt_type_var := funcTest4(5.0 + fixedpt_var);               
+		fixedpt_type_var := funcTest4(5 + fixedpt_var);                
+		fixedpt_type_var := funcTest4(5.0 + int_var);   
+		fixedpt_type_var := funcTest4(fixedpt_type2_var);         
 
-		int_var := testFunc4(fixedpt_type_var);
-		int_type_var := testFunc4(fixedpt_type_var);
-		fixedpt_var := testFunc4(fixedpt_type_var);          
+		int_var := funcTest4(fixedpt_type_var);
+		int_type_var := funcTest4(fixedpt_type_var);
+		fixedpt_var := funcTest4(fixedpt_type_var);          
 		int_type2_var := funcTest4(fixedpt_type_var);
 		fixedpt_type2_var := funcTest4(fixedpt_type_var);
 	end;

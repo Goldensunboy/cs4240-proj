@@ -3,10 +3,20 @@ begin
 	begin
 		var x : int := 9;
 		var y : fixedpt := 7.2;
+		x := x;
+		x := 1 + x;
+		x := x + 1;
+		x := x * 1;
+		x := 1 * x;
 		x := 1 * 2 + 3;
 		x := 1 + 2 * 3;
 		x := (1 + 2) * 3;
+		begin
+			var x : int := 9;
+			x := x;
+		end;
 		x := 1 * (2 / 3);
+		x := x;
 		y := ((x + 4) / 4 * 8.2 - x) * 14 + y * (1 - 9 / 3);
 	end;
 end;

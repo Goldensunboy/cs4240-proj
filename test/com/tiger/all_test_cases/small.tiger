@@ -1,0 +1,36 @@
+
+
+type name1 = int;
+type name2 = int;
+
+
+void function func1() 
+begin
+	begin
+		var name3, name6 : int :=0;
+		begin
+			var name3 : int :=0;
+			begin
+				var name3 : int :=0;
+				begin
+					var name3 : int :=0;
+					name3 :=0;
+				end;
+				name3 :=0;
+			end;
+			name3 :=0;
+		end;
+		name3 := 0;
+	end;
+end;
+
+
+
+
+void main()
+begin
+	begin
+		var x : int := 10;
+		x := 2;
+	end;
+end;

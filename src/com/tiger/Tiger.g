@@ -196,6 +196,9 @@ import com.exception.NameSpaceConflictException;
 	  return unregisteredNameSpaces;
   }
   
+  private boolean hasScopeId(VariableAttribute v) {
+    return !(v == null || v.getScopeId() == -1);
+  }
 }
 
 tigerProgram :
@@ -468,17 +471,23 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		  s2=valueTail OP_ASSIGN s3=expr[null, null]
 		  {
 		    // Verify that the assignment is valid
-		    VariableAttribute att = null;
+		    VariableAttribute s1varAttr = null;
+		    VariableAttribute s3varAttr = null;
 		    try {
-		      att = (VariableAttribute)symbolTableManager.getAttributeInCurrentScope($s1.exp, attributeMap);
+		      s1varAttr = (VariableAttribute)symbolTableManager
+		        .getAttributeInCurrentScope($s1.exp, attributeMap);
+		      s3varAttr = (VariableAttribute)symbolTableManager
+		        .getAttributeInCurrentScope($s3.exp, attributeMap);
 		    } catch (ClassCastException e) {
 		      String customMessage = $s1.exp + " can't be used as a variable";
 		      exceptionHandler.handleException(s1, customMessage, null, null, AttributeCastException.class);
 		    }
 		    
 				ArrayTypeSpecific s2ArrayTypeSpecific = $s2.arrayTypeSpecific;
-		    TypeAttribute s1TypeAttribute = symbolTableManager.getTypeAttributeInCurrentScope(att, attributeMap);
-				TypeAttribute s3TypeAttribute = $s3.typeAttribute;
+		    TypeAttribute s1TypeAttribute = symbolTableManager
+		      .getTypeAttributeInCurrentScope(s1varAttr, attributeMap);
+				TypeAttribute s3TypeAttribute = s3varAttr == null ? $s3.typeAttribute :
+				  symbolTableManager.getTypeAttributeInCurrentScope(s3varAttr, attributeMap);
 				
 				if(s1TypeAttribute != null && s1TypeAttribute.isArray()) {    
 				  s1TypeAttribute.setReceivedArrayTypeSpecific(s2ArrayTypeSpecific);
@@ -486,12 +495,14 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 				
         if(!$s3.exp.contains("#")) {
 		      // Expr assignment
-		      if(att == null) { //TODO change this with s1TypeAttribute and get rid of att
+		      if(s1varAttr == null) { //TODO change this with s1TypeAttribute and get rid of s1varAttr
 		        // Variable not declared yet
 		        String customMessage = "Assignment to undeclared variable: " + $s1.exp;
 		        exceptionHandler.handleException(s1, customMessage, null, null, UndeclaredVariableException.class);
 		      } else {
 			      if(!s1TypeAttribute.assignableBy(s3TypeAttribute)) {
+			        System.out.println(s1TypeAttribute);
+			        System.out.println(s3TypeAttribute);
               // Illegal assignment
 			        String customMessage;
 			        if(s1TypeAttribute.isArray()){
@@ -511,22 +522,35 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		      // Assignment statement
 		      if("".equals($s2.exp)) {
             IRList.addFirst("assign, " + $s1.exp +
-              (att == null ? "" : "$" + att.getScopeId()) + ", " + $s3.exp +
-              (ANDREW == -1 ? "" : "$" + ANDREW));
+              (s1varAttr == null ? "" : "$" + s1varAttr.getScopeId()) + ", " + $s3.exp +
+              (hasScopeId(s3varAttr) ? "$" + s3varAttr.getScopeId() : ""));
           } else {
             String[] parts = $s2.exp.substring(1, $s2.exp.length() - 1).split("\\]\\[");
             if(parts.length == 1) {
-              IRList.addFirst("array_store, " + $s1.exp +
-                (ANDREW  == -1 ? "" : "$" + ANDREW) + ", " + parts[0] + ", " + $s3.exp +
-                (ANDREW == -1 ? "" : "$" + ANDREW));
+              IRList.addFirst("array_store, " + $s1.exp + "$" + s1varAttr.getScopeId() +
+                ", " + parts[0] + ", " + $s3.exp +
+                (hasScopeId(s3varAttr) ? "$" + s3varAttr.getScopeId() : ""));
             } else {
-              IRList.addFirst("array_store, " + $s1.exp +
-                (ANDREW == -1 ? "" : "$" + ANDREW) + ", " + parts[0] + ", " + parts[1] + ", " + $s3.exp +
-                (ANDREW == -1 ? "" : "$" + ANDREW));
+              IRList.addFirst("array_store, " + $s1.exp + "$" + s1varAttr.getScopeId() +
+                // ------------
+                
+                
+                
+                
+                
+                // TODO linearize array
+                
+                
+                
+                
+                
+                // -----------
+                ", " + parts[0] + ", " + parts[1] + ", " + $s3.exp +
+                (hasScopeId(s3varAttr) ? "$" + s3varAttr.getScopeId() : ""));
             }
           }
 		    } else {
-		      if(att == null) {
+		      if(s1varAttr == null) {
             // Variable not declared yet
             String customMessage = "Assignment to undeclared variable: " + $s1.exp;
             exceptionHandler.handleException(s1, customMessage, null, null, UndeclaredVariableException.class);
@@ -558,19 +582,30 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
             exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
 		      }
 		      IRList.addFirst("callr, " + callr_assign_to +
-		        ((ANDREW == -1 || !"".equals($s2.exp)) ? "" : "$" + ANDREW) + ", FUNC_" + parts[0] +
-		        // Be careful not to reference parts[1] which is out
-		        // of bounds for parameterless functions
-		        (parts.length == 1 ? "" : ", " + parts[1]));
+		        ("".equals($s2.exp) ? "" : "$" + s1varAttr.getScopeId()) + ", FUNC_" +
+		        parts[0] + (parts.length == 1 ? "" : ", " + parts[1])); // parts[1] null for paramless func
 		        
 		      if(!"".equals($s2.exp)) {
 		        parts = $s2.exp.substring(1, $s2.exp.length() - 1).split("\\]\\[");
             if(parts.length == 1) {
-              IRList.addFirst("array_store, " + $s1.exp +
-                (ANDREW == -1 ? "" : "$" + ANDREW) + ", " + parts[0] + ", " + callr_assign_to);
+              IRList.addFirst("array_store, " + $s1.exp + "$" + s1varAttr.getScopeId() +
+                ", " + parts[0] + ", " + callr_assign_to);
             } else {
-              IRList.addFirst("array_store, " + $s1.exp +
-                (ANDREW == -1 ? "" : "$" + ANDREW) + ", " + parts[0] + ", " + parts[1] + ", " +
+              IRList.addFirst("array_store, " + $s1.exp + "$" + s1varAttr.getScopeId() +
+              // ------------
+                
+                
+                
+                
+                
+                // TODO linearize array
+                
+                
+                
+                
+                
+                // -----------
+              ", " + parts[0] + ", " + parts[1] + ", " +
                 callr_assign_to);
             }
 		      }
@@ -706,12 +741,25 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		} s6=id[IdType.VARIABLE_DECLARATION]
 		  OP_ASSIGN s7=indexExpr KEY_TO s8=indexExpr
 		  {
+		    // Get var attributes for bounds
+		    VariableAttribute s7varAttr = null,
+		                      s8varAttr = null;                            {boolean b = false;
+		    try {
+          s7varAttr = (VariableAttribute)symbolTableManager
+            .getAttributeInCurrentScope($s7.exp, attributeMap);
+          b = true;
+          s8varAttr = (VariableAttribute)symbolTableManager
+            .getAttributeInCurrentScope($s8.exp, attributeMap);
+        } catch (ClassCastException e) {
+          String customMessage = (b ? $s8.exp : $s7.exp) + " can't be used as a variable";
+          exceptionHandler.handleException((b ? s8 : s7), customMessage, null, null, AttributeCastException.class);
+        }}
 		    String forTop = lf.nextLabel("FOR_START");
 		    String endSubLoopFor = lf.nextLabel("FOR_END");
 		    // Store upper bound
 		    String upperBoundTemp = tvf.nextTemp();
 		    IRList.addFirst("assign, " + upperBoundTemp + ", " + $s8.exp +
-		      (ANDREW == -1 ? "" : "$" + ANDREW));
+		      (hasScopeId(s8varAttr) ? "$" + s8varAttr.getScopeId() : ""));
 		    // Generate index variable
 		    ArrayList<String> varList = new ArrayList<String>();
 		    varList.add($s6.text);
@@ -752,16 +800,6 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		{
 		  TypeAttribute expectedReturnType = symbolTableManager.getReturnType();
 		  TypeAttribute actualReturnType = $myReturnValue.typeAttribute;
-		  // TODO VOID return 
-//	    if(expectedReturnType.getType() == Type.VOID) {
-//	      // Can't have return statements in a void function
-//	      String customMessage = "Return statement in a void function";
-//        exceptionHandler.handleException(myReturnValue, customMessage, 
-//                                          expectedReturnType.getAliasName(), 
-//                                          ($myReturnValue.myIsBool)? "boolean":actualReturnType.getAliasName(), 
-//                                          TypeMismatchException.class);
-//	    }
-//		  
 		  if(!expectedReturnType.doReturnValuesMatch(actualReturnType)|| $myReturnValue.myIsBool) {
 		    
         String customMessage = "Type doesn't match the expected return type";
@@ -770,6 +808,14 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		                                      ($myReturnValue.myIsBool)? "boolean":actualReturnType.getAliasName(), 
 		                                      TypeMismatchException.class);
 		  } else {
+		    VariableAttribute mrv_varAttr = null;
+		    try {
+          mrv_varAttr = (VariableAttribute)symbolTableManager
+            .getAttributeInCurrentScope($myReturnValue.exp, attributeMap);
+        } catch (ClassCastException e) {
+          String customMessage = $myReturnValue.exp + " can't be returned";
+          exceptionHandler.handleException(myReturnValue, customMessage, null, null, AttributeCastException.class);
+        }
 		    IRList.addFirst("return, " + $myReturnValue.exp +
 		      (ANDREW == -1 ? "" : "$" + ANDREW));
 		    symbolTableManager.setCurrentScopeReturnType(actualReturnType);
@@ -887,30 +933,42 @@ binOp1[String startLabel, String endLabel] returns [String exp, TypeAttribute ty
       }
       $myIsBool = true;
       $myIsFunc = false;
+      VariableAttribute s1varAttr = null,
+                        s7varAttr = null;                                  {boolean b = false;
+      try {
+        s1varAttr = (VariableAttribute)symbolTableManager
+          .getAttributeInCurrentScope($s1.exp, attributeMap);
+        b = true;
+        s7varAttr = (VariableAttribute)symbolTableManager
+          .getAttributeInCurrentScope($s7.exp, attributeMap);
+      } catch (ClassCastException e) {
+        String customMessage = (b ? $s7.exp : $s1.exp) + " can't be used as a variable";
+        exceptionHandler.handleException((b ? s7 : s1), customMessage, null, null, AttributeCastException.class);
+      }}
       if(s2 != null) {
         IRList.addFirst("brgt, "  + $s1.exp +
-          (ANDREW == -1 ? "" : "$" + ANDREW) + ", " + $s7.exp +
-          (ANDREW == -1 ? "" : "$" + ANDREW) + ", " + endLabel);
+          (hasScopeId(s1varAttr) ? "$" + s1varAttr.getScopeId() : "") + ", " + $s7.exp +
+          (hasScopeId(s7varAttr) ? "$" + s7varAttr.getScopeId() : "") + ", " + endLabel);
       } else if(s3 != null) {
         IRList.addFirst("brlt, "  + $s1.exp +
-          (ANDREW == -1 ? "" : "$" + ANDREW) + ", " + $s7.exp +
-          (ANDREW == -1 ? "" : "$" + ANDREW) + ", " + endLabel);
+          (hasScopeId(s1varAttr) ? "$" + s1varAttr.getScopeId() : "") + ", " + $s7.exp +
+          (hasScopeId(s7varAttr) ? "$" + s7varAttr.getScopeId() : "") + ", " + endLabel);
       } else if(s4 != null) {
         IRList.addFirst("brgeq, " + $s1.exp +
-          (ANDREW == -1 ? "" : "$" + ANDREW) + ", " + $s7.exp +
-          (ANDREW == -1 ? "" : "$" + ANDREW) + ", " + endLabel);
+          (hasScopeId(s1varAttr) ? "$" + s1varAttr.getScopeId() : "") + ", " + $s7.exp +
+          (hasScopeId(s7varAttr) ? "$" + s7varAttr.getScopeId() : "") + ", " + endLabel);
       } else if(s5 != null) {
         IRList.addFirst("brleq, " + $s1.exp +
-          (ANDREW == -1 ? "" : "$" + ANDREW) + ", " + $s7.exp +
-          (ANDREW == -1 ? "" : "$" + ANDREW) + ", " + endLabel);
+          (hasScopeId(s1varAttr) ? "$" + s1varAttr.getScopeId() : "") + ", " + $s7.exp +
+          (hasScopeId(s7varAttr) ? "$" + s7varAttr.getScopeId() : "") + ", " + endLabel);
       } else if(s6 != null) {
         IRList.addFirst("breq, "  + $s1.exp +
-          (ANDREW == -1 ? "" : "$" + ANDREW) + ", " + $s7.exp +
-          (ANDREW == -1 ? "" : "$" + ANDREW) + ", " + endLabel);
+          (hasScopeId(s1varAttr) ? "$" + s1varAttr.getScopeId() : "") + ", " + $s7.exp +
+          (hasScopeId(s7varAttr) ? "$" + s7varAttr.getScopeId() : "") + ", " + endLabel);
       } else {
         IRList.addFirst("brneq, " + $s1.exp +
-          (ANDREW == -1 ? "" : "$" + ANDREW) + ", " + $s7.exp +
-          (ANDREW == -1 ? "" : "$" + ANDREW) + ", " + endLabel);
+          (hasScopeId(s1varAttr) ? "$" + s1varAttr.getScopeId() : "") + ", " + $s7.exp +
+          (hasScopeId(s7varAttr) ? "$" + s7varAttr.getScopeId() : "") + ", " + endLabel);
       }
       $exp = "";
       if(s1TypeAttribute.getType() == Type.FIXPT || (s7TypeAttribute == null ? false : s7TypeAttribute.getType() == Type.FIXPT)) {
@@ -965,14 +1023,26 @@ binOp2[String startLabel, String endLabel] returns [String exp, TypeAttribute ty
       $myIsBool = false;
       $myIsFunc = false;
       String temp = tvf.nextTemp();
+      VariableAttribute s1varAttr = null,
+                        s3varAttr = null;                                  {boolean b = false;
+      try {
+        s1varAttr = (VariableAttribute)symbolTableManager
+          .getAttributeInCurrentScope($s1.exp, attributeMap);
+        b = true;
+        s3varAttr = (VariableAttribute)symbolTableManager
+          .getAttributeInCurrentScope($s3.exp, attributeMap);
+      } catch (ClassCastException e) {
+        String customMessage = (b ? $s3.exp : $s1.exp) + " can't be used as a variable";
+        exceptionHandler.handleException((b ? s3 : s1), customMessage, null, null, AttributeCastException.class);
+      }}
       if(s2 != null) {
         IRList.addFirst("add, " + $s1.exp +
-          (ANDREW== -1 ? "" : "$" + ANDREW) + ", " + $s3.exp +
-          (ANDREW== -1 ? "" : "$" + ANDREW) + ", " + temp);
+          (hasScopeId(s1varAttr) ? "$" + s1varAttr.getScopeId() : "") + ", " + $s3.exp +
+          (hasScopeId(s3varAttr) ? "$" + s3varAttr.getScopeId() : "") + ", " + temp);
       } else {
         IRList.addFirst("sub, " + $s1.exp +
-          (ANDREW == -1 ? "" : "$" + ANDREW) + ", " + $s3.exp +
-          (ANDREW == -1 ? "" : "$" + ANDREW) + ", " + temp);
+          (hasScopeId(s1varAttr) ? "$" + s1varAttr.getScopeId() : "") + ", " + $s3.exp +
+          (hasScopeId(s3varAttr) ? "$" + s3varAttr.getScopeId() : "") + ", " + temp);
       }
       $exp = temp;
       if(s1TypeAttribute.isPrimitive() && s3TypeAttribute.isPrimitive()) {
@@ -1023,14 +1093,26 @@ funcBinOp2[IdType idType] returns [String exp, TypeAttribute typeAttribute, bool
       }
       $myIsBool = false;
       String temp = tvf.nextTemp();
+      VariableAttribute s1varAttr = null,
+                        s3varAttr = null;                                  {boolean b = false;
+      try {
+        s1varAttr = (VariableAttribute)symbolTableManager
+          .getAttributeInCurrentScope($s1.exp, attributeMap);
+        b = true;
+        s3varAttr = (VariableAttribute)symbolTableManager
+          .getAttributeInCurrentScope($s3.exp, attributeMap);
+      } catch (ClassCastException e) {
+        String customMessage = (b ? $s3.exp : $s1.exp) + " can't be used as a variable";
+        exceptionHandler.handleException((b ? s3 : s1), customMessage, null, null, AttributeCastException.class);
+      }}
       if(s2 != null) {
         IRList.addFirst("add, " + $s1.exp +
-          (ANDREW == -1 ? "" : "$" + ANDREW) + ", " + $s3.exp +
-          (ANDREW== -1 ? "" : "$" + ANDREW) + ", " + temp);
+          (hasScopeId(s1varAttr) ? "$" + s1varAttr.getScopeId() : "") + ", " + $s3.exp +
+          (hasScopeId(s3varAttr) ? "$" + s3varAttr.getScopeId() : "") + ", " + temp);
       } else {
         IRList.addFirst("sub, " + $s1.exp +
-          (ANDREW== -1 ? "" : "$" + ANDREW) + ", " + $s3.exp +
-          (ANDREW== -1 ? "" : "$" + ANDREW) + ", " + temp);
+          (hasScopeId(s1varAttr) ? "$" + s1varAttr.getScopeId() : "") + ", " + $s3.exp +
+          (hasScopeId(s3varAttr) ? "$" + s3varAttr.getScopeId() : "") + ", " + temp);
       }
       $exp = temp;
       if(s1TypeAttribute.isPrimitive() && s3TypeAttribute.isPrimitive()) {
@@ -1090,14 +1172,26 @@ binOp3[String startLabel, String endLabel] returns [String exp, TypeAttribute ty
 	      $myIsBool = false;
 	      $myIsFunc = false;
 	      String temp = tvf.nextTemp();
+	      VariableAttribute s1varAttr = null,
+	                        s3varAttr = null;                                  {boolean b = false;
+	      try {
+	        s1varAttr = (VariableAttribute)symbolTableManager
+	          .getAttributeInCurrentScope($s1.exp, attributeMap);
+	        b = true;
+	        s3varAttr = (VariableAttribute)symbolTableManager
+	          .getAttributeInCurrentScope($s3.exp, attributeMap);
+	      } catch (ClassCastException e) {
+	        String customMessage = (b ? $s3.exp : $s1.exp) + " can't be used as a variable";
+	        exceptionHandler.handleException((b ? s3 : s1), customMessage, null, null, AttributeCastException.class);
+	      }}
 	      if(s2 != null) {
-	        IRList.addFirst("div, "  + $s1.exp +
-	          (ANDREW== -1 ? "" : "$" + ANDREW) + ", " + $s3.exp +
-	          (ANDREW == -1 ? "" : "$" + ANDREW) + ", " + temp);
+	        IRList.addFirst("div, " + $s1.exp +
+	          (hasScopeId(s1varAttr) ? "$" + s1varAttr.getScopeId() : "") + ", " + $s3.exp +
+	          (hasScopeId(s3varAttr) ? "$" + s3varAttr.getScopeId() : "") + ", " + temp);
 	      } else {
 	        IRList.addFirst("mult, " + $s1.exp +
-	          (ANDREW== -1 ? "" : "$" + ANDREW) + ", " + $s3.exp +
-	          (ANDREW == -1 ? "" : "$" + ANDREW) + ", " + temp);
+	          (hasScopeId(s1varAttr) ? "$" + s1varAttr.getScopeId() : "") + ", " + $s3.exp +
+	          (hasScopeId(s3varAttr) ? "$" + s3varAttr.getScopeId() : "") + ", " + temp);
 	      }
 	      $exp = temp;
 	      if(s1TypeAttribute.isPrimitive() && s3TypeAttribute.isPrimitive()) {
@@ -1149,14 +1243,26 @@ funcBinOp3[IdType idType] returns [String exp, TypeAttribute typeAttribute, bool
       }
       $myIsBool = false;
       String temp = tvf.nextTemp();
+      VariableAttribute s1varAttr = null,
+                        s3varAttr = null;                                  {boolean b = false;
+      try {
+        s1varAttr = (VariableAttribute)symbolTableManager
+          .getAttributeInCurrentScope($s1.exp, attributeMap);
+        b = true;
+        s3varAttr = (VariableAttribute)symbolTableManager
+          .getAttributeInCurrentScope($s3.exp, attributeMap);
+      } catch (ClassCastException e) {
+        String customMessage = (b ? $s3.exp : $s1.exp) + " can't be used as a variable";
+        exceptionHandler.handleException((b ? s3 : s1), customMessage, null, null, AttributeCastException.class);
+      }}
       if(s2 != null) {
-        IRList.addFirst("div, "  + $s1.exp +
-          (ANDREW== -1 ? "" : "$" + ANDREW) + ", " + $s3.exp +
-          (ANDREW== -1 ? "" : "$" + ANDREW) + ", " + temp);
+        IRList.addFirst("div, " + $s1.exp +
+          (hasScopeId(s1varAttr) ? "$" + s1varAttr.getScopeId() : "") + ", " + $s3.exp +
+          (hasScopeId(s3varAttr) ? "$" + s3varAttr.getScopeId() : "") + ", " + temp);
       } else {
         IRList.addFirst("mult, " + $s1.exp +
-          (ANDREW== -1 ? "" : "$" + ANDREW) + ", " + $s3.exp +
-          (ANDREW== -1 ? "" : "$" + ANDREW) + ", " + temp);
+          (hasScopeId(s1varAttr) ? "$" + s1varAttr.getScopeId() : "") + ", " + $s3.exp +
+          (hasScopeId(s3varAttr) ? "$" + s3varAttr.getScopeId() : "") + ", " + temp);
       }
       $exp = temp;
       if(s1TypeAttribute.isPrimitive() && s3TypeAttribute.isPrimitive()) {

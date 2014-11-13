@@ -313,6 +313,7 @@ public class TypeAttribute implements Attribute{
 		retVal += ", type: " + type;
 		retVal += ", isArray: " + isArray;
 		retVal += isArray ? ", typeOfArray: " + typeOfArray : "";
+		retVal += ", scopeId: " + getScopeId() + " ";
 		if(expectedArrayTypeSpecific != null) {
 			retVal += ", Expected Array Type Specific";
 			retVal += ", isTwoDimensionalArray: " + expectedArrayTypeSpecific.isTwoDimensionalArray();
