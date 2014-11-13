@@ -56,7 +56,7 @@ begin
 			 break;
 		enddo;
 	end;
-end; */
+end; 
 
 /*  arrays should not be used with aggregate operations */ 
 void function func9()
@@ -68,7 +68,7 @@ begin
 	end;
 end;
 
-/* Cannot use an fixedpt  */ /*
+/* Cannot use an fixedpt  */ 
 void function func10() 
 begin
 	begin
@@ -77,13 +77,14 @@ begin
 		var i : fixedpt := 3.5;
 		x[0] := y[i];
 	end;
-end; */
+end; 
 
 /*  (Wrong error message) Using an array as an index in another array should produce an error */ 
 void function func11()
 begin
 	begin
 		var X : ArrayInt := 10;
+		var i : int :=0;
 		i := X[X];
 	end;
 end; 

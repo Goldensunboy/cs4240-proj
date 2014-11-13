@@ -21,7 +21,7 @@ begin
 		var int_type_var2 : Int_Type := 5;
 		var fixedpt_type_var2 : Fixedpt_Type := 5.0;
 		var int_type2_var : Int_Type2 := 5;
-		
+SKIP_S		
 		fixedpt_type_var := 5 + 5.5 * fixedpt_type_var;
 
 		int_type_var := int_type2_var * (int_var + int_type2_var);
@@ -41,7 +41,7 @@ begin
 		fixedpt_type_var := fixedpt_type2_var * (fixedpt_type_var + fixedpt_type2_var);
 		
 		fixedpt_type_var := fixedpt_type2_var * (fixedpt_type_var + fixedpt_type2_var);
-		
+		SKIP_E
 	end;
 end;
 		

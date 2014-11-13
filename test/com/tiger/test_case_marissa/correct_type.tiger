@@ -302,7 +302,7 @@ begin
 			fixedpt_type_var := fixedpt_type_var;
 		endif;
 		
-		SKIP_S
+		
 		while int_var < 5 do
 			int_var := 0;
 		enddo;
@@ -355,7 +355,7 @@ begin
 			fixedpt_type_var := fixedpt_type_var;
 		enddo;
 		
-		SKIP_E
+		
 	end;
 end;
 
