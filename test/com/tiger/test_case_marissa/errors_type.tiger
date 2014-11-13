@@ -739,7 +739,7 @@ begin
 	end;
 end;
 
-int function func15() 
+int function func16a() 
 begin
 	begin
 		var a : ArrayInt :=0;
@@ -747,21 +747,31 @@ begin
 	end;
 end;
 
-int function func16() 
+int function func16b() 
 begin
 	begin
-		var a : ArrayFixedpt := 0;
+		var a : ArrayFixedPt := 0;
+		return a;
 	end;
 end;
-SKIP_E
-int function func16() 
+
+fixedpt function func16c() 
+begin
+	begin
+		var a : ArrayInt :=0;
+		return a;
+	end;
+end;
+
+fixedpt function func16d() 
 begin
 	begin
 		var a : ArrayFixedPt :=0;
 		return a;
 	end;
 end;
-SKIP_S
+
+
 int function func17() 
 begin
 	begin
