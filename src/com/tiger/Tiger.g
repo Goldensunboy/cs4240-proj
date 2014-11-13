@@ -257,7 +257,7 @@ afterBegin[String myFunctionName, String typeName, TypeAttribute returnTypeAttri
       TypeAttribute expectedReturnType = symbolTableManager.getReturnType();
 //      TypeAttribute actualReturnType = symbolTableManager.getCurrentScopeReturnType();
       String customMessage = "Function \"" + myFunctionName + "\" doesn't have a proper return statement." 
-        + "Should have returned \"" + expectedReturnType.getAliasName() + "\"";
+        + " Should have returned \"" + expectedReturnType.getAliasName() + "\"";
       exceptionHandler.handleException(myKey_begin, customMessage, null, 
                                        null, TypeMismatchException.class);
 	  } else {
