@@ -1,5 +1,5 @@
 
-SKIP_S
+
 /*  Do not allow functions from the standard library to be redefined with same types */ 
 int function not(i:int)
 begin
@@ -27,7 +27,7 @@ begin
 	end;
 end; 
 
-SKIP_E
+
 /* TODO (claims function is undefined) do not call library functions with bad parameters */ 
 void function func2()
 begin

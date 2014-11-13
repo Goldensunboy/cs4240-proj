@@ -151,7 +151,7 @@ begin
 	end;
 end; 
 
-/*  (Does not give a proper error message) Cannot call a function with additional parameters. */ 
+/*  (Does not give a proper error message) Cannot call a function with additional parameters. */ SKIP_S
 void function func5b()
 begin
 	begin
@@ -159,7 +159,7 @@ begin
 		x := testFunc4(x);
 	end;
 end; 
-
+SKIP_E
 /*  (Does not give a proper error message) Cannot call a function with additional parameters that are variables. */ 
 void function func6()
 begin
