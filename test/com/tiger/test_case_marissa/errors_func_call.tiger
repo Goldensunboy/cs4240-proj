@@ -9,6 +9,7 @@ begin
 		a := 9;
 	end;
 end; 
+
 int function testFunc2() 
 begin
 	begin
@@ -61,6 +62,14 @@ begin
 end;
 
 fixedpt function testFunc9(x:int) 
+begin
+	begin
+		var x, b : int :=0;
+		return 8;
+	end;
+end;
+
+void function testFunc9b(x:int) 
 begin
 	begin
 		var x, b : int :=0;
@@ -177,13 +186,13 @@ begin
 		x := testFunc3();
 	end;
 end; 
-
+SKIP_S
 /* Cannot pass an undeclared variable into a function */ 
 void function func12()
 begin
 	begin
 		var x : fixedpt :=0;
-		testFunc4(y,z);
+		testFunc9(y);
 	end;
 end; 
 
@@ -195,7 +204,7 @@ begin
 		y := testFunc7(5);
 	end;
 end; 
-
+SKIP_E
 /* TODO should not be able to pass an int instead of an array of ints */ 
 void function func14a()
 begin
@@ -204,7 +213,7 @@ begin
 		testFunc5(Y);
 	end;
 end; 
-
+SKIP_S
 /* TODO should not be able to pass an int instead of an array of ints */ 
 void function func14b()
 begin
@@ -214,7 +223,7 @@ begin
 		x := testFunc5(Y);
 	end;
 end; 
-
+SKIP_E
 /* TODO should not be able to pass a fixedpt instead of an array of ints */ 
 void function func15a()
 begin
@@ -223,7 +232,7 @@ begin
 		testFunc5(Y);
 	end;
 end; 
-
+SKIP_S
 /* TODO should not be able to pass a fixedpt instead of an array of ints */ 
 void function func15b()
 begin
@@ -233,22 +242,13 @@ begin
 		x := testFunc5(Y);
 	end;
 end; 
-
+SKIP_E
 /* Should not be able to assign a fixedpt return value to an int */ 
 void function func16()
 begin
 	begin
 		var x : int :=0;
 		x := testFunc3();
-	end;
-end; 
-
-/*  Bad error message for using a function as a parameter to another function when the return value is NOT assigned to a variable */ 
-void function func17()
-begin
-	begin
-		var a, b : int :=0;
-		testFunc7(testFunc7(a));
 	end;
 end; 
 

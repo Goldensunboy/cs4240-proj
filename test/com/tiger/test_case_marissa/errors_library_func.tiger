@@ -1,5 +1,5 @@
-SKIP_S
 
+SKIP_S
 /*  Do not allow functions from the standard library to be redefined with same types */ 
 int function not(i:int)
 begin
@@ -8,6 +8,7 @@ begin
 		return 0;
 	end;
 end; 
+
 /*  do not allow functions from the standard library that are implemented to be redefined with different parameters or return type */ 
 fixedpt function printi()
 begin
@@ -26,6 +27,7 @@ begin
 	end;
 end; 
 
+SKIP_E
 /* TODO (claims function is undefined) do not call library functions with bad parameters */ 
 void function func2()
 begin
@@ -62,7 +64,7 @@ begin
 		return 5.0;
 	end;
 end; 
-SKIP_E
+
 void main()
 begin
 	begin

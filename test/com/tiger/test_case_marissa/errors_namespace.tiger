@@ -38,7 +38,7 @@ begin
 		var testFunc : int :=0;
 		testFunc := 0;
 	end;
-end; 
+end;
 
 /* function and variable can't have the same names */ 
 void function name4() 
@@ -65,13 +65,22 @@ begin
 		temp3 := 0;
 	end;
 end; 
-
+SKIP_E
 /* variables can't have the same name in the same scope */ 
-void function temp4() 
+void function temp4a() 
 begin
 	begin
 		var name6 : int :=0;
 		var name6 : int :=0;
+		name6 := 0;
+	end;
+end; 
+
+/* variables can't have the same name in the same scope */ 
+void function temp4b() 
+begin
+	begin
+		var name6,name6 : int :=0;
 		name6 := 0;
 	end;
 end; 
@@ -87,8 +96,16 @@ begin
 	end;
 end; 
 
-SKIP_E
 
+SKIP_S
+void function temp7() 
+begin
+	begin
+		var x : int :=0;
+		testFunc := 0;
+	end;
+end; 
+SKIP_E
 void main()
 begin
 	begin

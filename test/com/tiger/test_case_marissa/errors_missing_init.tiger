@@ -596,6 +596,15 @@ begin
 	end;
 end; 
 
+/* Cannot read values from array before initialized */
+void function funcName9a() 
+begin
+	begin
+		var y : ArrayInt;
+		var x : int;
+		x := y[2];
+	end;
+end;
 
 
 SKIP_E

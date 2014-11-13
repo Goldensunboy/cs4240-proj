@@ -20,26 +20,7 @@ begin
 	end;
 end; 
 
-/* array indexes should not be negative */ 
-void function func1()
-begin
-	begin
-		var X : ArrayInt := 10;
-		var i : int := 0;
-		i := X[-1];
-	end;
-end; 
- 
 
-/* array indexes should not be fixed point numbers */ 
-void function func4()
-begin
-	begin
-		var X : ArrayInt := 10;
-		var i : int := 0;
-		i := X[5.0];
-	end;
-end; 
 
 /* array indexes should not be fixed point numbers */ 
 void function func5()
@@ -51,27 +32,10 @@ begin
 		i := X[f];
 	end;
 end; 
-SKIP_S
-/*   (Wrong error message) array indexes should not be function calls */ 
-void function func6()
-begin
-	begin
-		var X : ArrayInt := 10;
-		var i : int := 0;
-		i := X[testFunc()];
-	end;
-end; 
 
-/*   (Wrong error message) array indexes should not be function calls */ 
-void function func6()
-begin
-	begin
-		var X : ArrayInt := 10;
-		var i : int := 0;
-		X[testFunc()] = i;
-	end;
-end; 
-SKIP_E
+
+
+
 /*  arrays should not be used without an index. Not type compatible */ 
 void function func7()
 begin

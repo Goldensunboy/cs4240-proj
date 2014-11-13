@@ -1,5 +1,5 @@
-
 SKIP_S
+
 /* function called a reserved word should not be allowed */ 
 void function function()
 begin
@@ -27,8 +27,8 @@ begin
 		id := 3;
 	end;
 end; 
-SKIP_E
 
+SKIP_E
 
 void main()
 begin

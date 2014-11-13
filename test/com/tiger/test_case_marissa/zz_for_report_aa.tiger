@@ -45,8 +45,8 @@ begin
 end;
 
 
-
-void function func9() 
+/* Using types incorrectly */
+void function func1() 
 begin
 	begin
 		var int_var : int := 5;
@@ -54,320 +54,87 @@ begin
 		var int_type_var : Int_Type := 5;
 		var fixedpt_type_var : Fixedpt_Type := 5.0;
 		var int_type2_var : Int_Type2 := 5;
-		var fixedpt_type2_var : Fixedpt_Type2 := 5.0;
 		
 		int_var := fixedpt_var + int_var;
-		int_type_var := 5;                    
-		fixedpt_type_var := 5.0;                                                 
+		int_type_var := 5;                                                     
 		fixedpt_type_var := fixedpt_var * 5 + fixedpt_type_var; 
-		fixedpt_type_var := fixedpt_var * int_var + fixedpt_type_var; 
-		int_type_var := int_type2_var + 2;
-		fixedpt_type_var := fixedpt_type2_var * (fixedpt_type_var + fixedpt_type2_var);
-	end;
-end;
-
-
-void function func10()
-begin
-	begin
-		var int_var : int := 5;
-		var fixedpt_var : fixedpt := 5.0;
-		var int_type_var : Int_Type := 5;
-		var fixedpt_var2 : fixedpt := 5.0;
-		var int_var2 : Int_Type := 5;
-		var fixedpt_type_var : Fixedpt_Type := 5.0;
-		var int_type_var2 : Int_Type := 5;
-		var fixedpt_type_var2 : Fixedpt_Type := 5.0;
-		var int_type2_var : Int_Type2 := 5;
-		var fixedpt_type2_var : Fixedpt_Type2 := 5.0;
-		
-		if int_type_var < 5 then
-			int_var := 0;
-		endif;
-		
-		if int_type_var < 5.0 then
-			int_var := 0;
-		endif;
-		
-		if fixedpt_type_var < 5 then
-			fixedpt_var := 0;
-		endif;
 		
 		if int_var < fixedpt_type_var then
 			fixedpt_var := 0;
 		endif;
 		
-		if fixedpt_var < int_type_var then
-			fixedpt_var := 0.0;
-		endif;
-		
-		if int_type_var < fixedpt_type_var then
-			fixedpt_var := 0.0;
-		endif;
-		
-		if fixedpt_type_var < int_type_var then
-			fixedpt_var := 0.0;
-		endif;
-		
-		if fixedpt_var < fixedpt_type_var + 5 then
-			int_var := 0;
-		endif;
-		
-		if int_var < int_type_var + 5.0 then
-			int_var := 0;
-		endif;
-		
-		if int_var + 5.0 < int_type_var then
-			fixedpt_var := 0.0;
-		endif;
-		
-		if int_var + 5 < int_type_var  then
-			fixedpt_var := 0.0;
-		endif;
-		
-		if fixedpt_var < fixedpt_type_var + 5.0  then
-			int_type_var := int_type_var;
-		endif;
-		
-		if fixedpt_type_var < 5.0  then
-			fixedpt_type_var := fixedpt_type_var;
-		endif;
-		
-		if int_var < int_type_var then
-			fixedpt_var := 0.0;
-		endif;
-		
-		if fixedpt_var < fixedpt_type_var then
-			fixedpt_var := 0.0;
-		endif;
-		
-		if int_var < int_type_var + 5   then
-			fixedpt_var := 0.0;
-		endif;
-		
-		if fixedpt_var + 5.0 < fixedpt_type_var  then
-			int_var := 0;
-		endif;
-		
-		if fixedpt_var + 5 < fixedpt_type_var then
-			int_var := 0;
-		endif;
-		
-		if int_var + 5.0 < fixedpt_type_var  then
-			fixedpt_var := 0.0;
-		endif;
-		
-		if int_type_var < int_var + int_type_var  then
-			fixedpt_var := 0.0;
-		endif;
-		
-		if fixedpt_type_var < fixedpt_var + fixedpt_type_var   then
-			int_type_var := int_type_var;
-		endif;
-		
-		
-		
-		if int_type_var < int_type2_var then
-			int_var := 0;
-		endif;
-		
-		if int_type_var < int_type_var + int_type2_var then
-			int_var := 0;
-		endif;
-		
-		if int_type_var > (int_var * int_type_var) + int_type2_var then
-			int_var := 0;
-		endif;
-		
-		if int_type_var < 5 * int_type2_var then
-			int_var := 0;
-		endif;
-		
-		if int_type_var <> (int_type_var + 5) * int_type2_var then
-			int_var := 0;
-		endif;
-		
-		if int_type2_var < int_type_var then
-			int_var := 0;
-		endif;
-		
-		if int_type2_var < int_type2_var + int_type_var then
-			int_var := 0;
-		endif;
-		
-		
-		
-		if fixed_type_var < fixedpt_type2_var then
-			int_var := 0;
-		endif;
-		
-		if fixed_type_var < fixed_type_var + fixedpt_type2_var then
-			int_var := 0;
-		endif;
-		
-		if fixed_type_var > (fixedpt_var * fixed_type_var) + fixedpt_type2_var then
-			int_var := 0;
-		endif;
-		
-		if fixed_type_var < 5 * fixedpt_type2_var then
-			int_var := 0;
-		endif;
-		
-		if fixed_type_var <> (fixed_type_var + 5) * fixedpt_type2_var then
-			int_var := 0;
-		endif;
-		
-		if fixedpt_type2_var < fixed_type_var then
-			int_var := 0;
-		endif;
-		
-		if fixedpt_type2_var < fixedpt_type2_var + fixed_type_var then
-			int_var := 0;
-		endif;
-		
-		
-		
-		while int_type_var < 5 do
-			int_var := 0;
-		enddo;
-		
-		while int_type_var < 5.0 do
-			int_var := 0;
-		enddo;
-		
-		while fixedpt_type_var < 5 do
-			fixedpt_var := 0;
-		enddo;
-		
-		while int_var < fixedpt_type_var do
-			fixedpt_var := 0;
-		enddo;
-		
-		while fixedpt_var < int_type_var do
-			fixedpt_var := 0.0;
-		enddo;
-		
-		while int_type_var < fixedpt_type_var do
-			fixedpt_var := 0.0;
-		enddo;
-		
-		while fixedpt_type_var < int_type_var do
-			fixedpt_var := 0.0;
-		enddo;
-		
-		while fixedpt_var < fixedpt_type_var + 5 do
-			int_var := 0;
-		enddo;
-		
-		while int_var < int_type_var + 5.0 do
-			int_var := 0;
-		enddo;
-		
-		while int_var + 5.0 < int_type_var do
-			fixedpt_var := 0.0;
-		enddo;
-		
-		while int_var + 5 < int_type_var  do
-			fixedpt_var := 0.0;
-		enddo;
-		
-		while fixedpt_var < fixedpt_type_var + 5.0  do
-			int_type_var := int_type_var;
-		enddo;
-		
-		while fixedpt_type_var < 5.0  do
-			fixedpt_type_var := fixedpt_type_var;
-		enddo;
-		
-		while int_var < int_type_var do
-			fixedpt_var := 0.0;
-		enddo;
-		
-		while fixedpt_var < fixedpt_type_var do
-			fixedpt_var := 0.0;
-		enddo;
-		
-		while int_var < int_type_var + 5   do
-			fixedpt_var := 0.0;
-		enddo;
-		
-		while fixedpt_var + 5.0 < fixedpt_type_var  do
-			int_var := 0;
-		enddo;
-		
-		while fixedpt_var + 5 < fixedpt_type_var do
-			int_var := 0;
-		enddo;
-		
-		while int_var + 5.0 < fixedpt_type_var  do
-			fixedpt_var := 0.0;
-		enddo;
-		
-		while int_type_var < int_var + int_type_var  do
-			fixedpt_var := 0.0;
-		enddo;
-		
-		while fixedpt_type_var < fixedpt_var + fixedpt_type_var  do
-			int_type_var := int_type_var;
-		enddo;
-		
-		
-		
-		while int_type_var < int_type2_var do
-			int_var := 0;
-		enddo;
-		
-		while int_type_var < int_type_var + int_type2_var do
-			int_var := 0;
-		enddo;
-		
-		while int_type_var > (int_var * int_type_var) + int_type2_var do
-			int_var := 0;
-		enddo;
-		
-		while int_type_var < 5 * int_type2_var do
-			int_var := 0;
-		enddo;
-		
-		while int_type_var <> (int_type_var + 5) * int_type2_var do
-			int_var := 0;
-		enddo;
-		
 		while int_type2_var < int_type_var do
 			int_var := 0;
 		enddo;
-		
-		while int_type2_var < int_type2_var + int_type_var do
-			int_var := 0;
-		enddo;
-		
-		while fixed_type_var < fixedpt_type2_var do
-			int_var := 0;
-		enddo;
-		
-		while fixed_type_var < fixed_type_var + fixedpt_type2_var do
-			int_var := 0;
-		enddo;
-		
-		while fixed_type_var > (fixedpt_var * fixed_type_var) + fixedpt_type2_var do
-			int_var := 0;
-		enddo;
-		
-		while fixed_type_var < 5 * fixedpt_type2_var do
-			int_var := 0;
-		enddo;
-		
-		while fixed_type_var <> (fixed_type_var + 5) * fixedpt_type2_var do
-			int_var := 0;
-		enddo;
-		
-		while fixedpt_type2_var < fixed_type_var do
-			int_var := 0;
-		enddo;
-		
-		while fixedpt_type2_var < fixedpt_type2_var + fixed_type_var do
-			int_var := 0;
-		enddo;
-				
 	end;
 end;
+
+/* Should not be able to put break randomly in a function */
+void function func2()
+begin
+	begin
+		var a, b : int :=0;
+		break;
+	end;
+end; 
+
+/* if condition statement resolves to (boolean & int) */ 
+void function func3()
+begin
+	begin
+		var a, b : int :=0;
+		if b < a  & a + b then
+			a := 1;
+		endif;
+	end;
+end; 
+
+/* Used in func4, func5, func6 for testing */
+fixedpt function testFunc(x:int, y:fixedpt) 
+begin
+	begin
+		var x : fixedpt :=0;
+		return x;
+	end;
+end;
+
+/* Calling a function with parameters of the wrong types */ 
+void function func4()
+begin
+	begin
+		var x : fixedpt := 0;
+		testFunc(x,5);
+	end;
+end;  
+
+/* Calling a function with a missing parameter */
+void function func5()
+begin
+	begin
+		var x : int := 0;
+		testFunc(x);
+	end;
+end; 
+
+/* Setting a fixedpt return value to an int */
+void function func6()
+begin
+	begin
+		var x : int := 0;
+		x := testFunc(5, 5.0);
+	end;
+end; 
+
+
+
+
+void main()
+begin
+	begin
+		var x : int := 10;
+		x := 2;
+	end;
+end;
+
+
+

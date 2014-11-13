@@ -1,4 +1,4 @@
-SKIP_S
+
 
 type Int = int;
 type ArrayInt = array [100] of int;
@@ -52,20 +52,12 @@ begin
 	end;
 end;
 
-/* Cannot instantiate an array without using a type  */ 
-void function funcName5() 
-begin
-	begin
-		var x : array [99] of int := 0;
-		x := y;
-	end;
-end; 
 
 /*  Should not be able to pass an int instead of an int array */
 void function funcName6() 
 begin
 	begin
-		var x : int;
+		var x : int := 0;
 		testFunc2(x);
 	end;
 end;
@@ -88,25 +80,6 @@ begin
 	end;
 end;
 
-/* Cannot read values from array before initialized */
-void function funcName9a() 
-begin
-	begin
-		var y : ArrayInt;
-		var x : int;
-		x := y[2];
-	end;
-end;
-
-/* Cannot set values from array before initialized? */
-void function funcName9b() 
-begin
-	begin
-		var y : ArrayInt;
-		y[2] = 5;
-	end;
-end;
-
 
 /* returning an array instead of the default type */
 int function funcName10() 
@@ -116,8 +89,6 @@ begin
 		return x;
 	end;
 end;
-
-SKIP_E
 
 
 void main()
