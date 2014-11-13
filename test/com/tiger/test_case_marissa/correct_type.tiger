@@ -229,7 +229,13 @@ begin
 	end;
 end;
 
-
+void function func18b()
+begin
+	begin
+		var int_type_var2 : Int_Type := 6;
+		int_type_var2 := int_type_var2*(int_type_var2+ int_type_var2);
+	end;
+end;
 
 
 void function func20()

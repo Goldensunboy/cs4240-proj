@@ -1,4 +1,4 @@
-SKIP_S
+
 type ArrayInt = array [100] of int;
 
 /* Used in testing */
@@ -52,34 +52,69 @@ begin
 	end;
 end;
 
+fixedpt function testFunc8(x:int, y:fixedpt) 
+begin
+	begin
+		var x, b : int :=0;
+		return 8;
+	end;
+end;
 
-/* Cannot call a function with parameters of the wrong type (fixedpt instead of int) */ /*
+fixedpt function testFunc9(x:int) 
+begin
+	begin
+		var x, b : int :=0;
+		return 8;
+	end;
+end;
+
+
+/*  (Does not give a proper error message) Cannot assign a void return value to a variable. */ 
+void function func8b()
+begin
+	begin
+		var x : fixedpt :=0;
+		x := testFunc();
+	end;
+end; 
+
+
+/* Cannot call a function with parameters of the wrong type (fixedpt instead of int) */ 
 void function func1()
 begin
 	begin
 		var x : int :=0;
 		testFunc4(5.0,5);
 	end;
-end; */
+end; 
 
-/* Cannot call a function with parameters of the wrong type (fixedpt instead of int) */ /*
+/* Cannot call a function with parameters of the wrong type (fixedpt instead of int) */ 
 void function func2a()
 begin
 	begin
 		var x : fixedpt :=0;
 		testFunc4(x,5);
 	end;
-end; */
-
-/* Cannot call a function with parameters of the wrong type (fixedpt instead of int) */ /*
+end; 
+SKIP_S
+/* Cannot call a function with parameters of the wrong type (fixedpt instead of int) */ 
 void function func2b()
 begin
 	begin
 		var x : fixedpt :=0;
-		x := testFunc6(x,5);
+		x := testFunc9(3.0);
 	end;
-end; */
+end; 
 
+/* Cannot call a function with parameters of the wrong type (fixedpt instead of int) */ 
+void function func2b()
+begin
+	begin
+		var x : fixedpt :=0;
+		x := testFunc6(3.0,5); 
+	end;
+end;
+SKIP_E
 /*  (Does not give a proper error message) Cannot call a function with missing parameters. */ 
 void function func3ab()
 begin
@@ -125,52 +160,52 @@ begin
 	end;
 end; 
 
-/*  (Does not give a proper error message) Cannot assign a void return value to a variable. */ /*
+/*  (Does not give a proper error message) Cannot assign a void return value to a variable. */ 
 void function func8()
 begin
 	begin
 		var x : fixedpt :=0;
 		x := testFunc();
 	end;
-end; */
+end; 
 
-/* Should not be able to assign a fixedpt to an int */ /*
+/* Should not be able to assign a fixedpt to an int */ 
 void function func11()
 begin
 	begin
 		var x : int :=0;
 		x := testFunc3();
 	end;
-end; */
+end; 
 
-/* Cannot pass an undeclared variable into a function */ /*
+/* Cannot pass an undeclared variable into a function */ 
 void function func12()
 begin
 	begin
 		var x : fixedpt :=0;
 		testFunc4(y,z);
 	end;
-end; */
+end; 
 
-/*  Cannot assign the return value of a function to an undeclared variable. */ /*
+/*  Cannot assign the return value of a function to an undeclared variable. */ 
 void function func13()
 begin
 	begin
 		var x : fixedpt :=0;
 		y := testFunc7(5);
 	end;
-end; */
+end; 
 
-/* TODO should not be able to pass an int instead of an array of ints */ /*
+/* TODO should not be able to pass an int instead of an array of ints */ 
 void function func14a()
 begin
 	begin
 		var Y : int := 0;
 		testFunc5(Y);
 	end;
-end; */
+end; 
 
-/* TODO should not be able to pass an int instead of an array of ints */ /*
+/* TODO should not be able to pass an int instead of an array of ints */ 
 void function func14b()
 begin
 	begin
@@ -178,18 +213,18 @@ begin
 		var x : int := 0;
 		x := testFunc5(Y);
 	end;
-end; */
+end; 
 
-/* TODO should not be able to pass a fixedpt instead of an array of ints */ /*
+/* TODO should not be able to pass a fixedpt instead of an array of ints */ 
 void function func15a()
 begin
 	begin
 		var Y : fixedpt := 0;
 		testFunc5(Y);
 	end;
-end; */
+end; 
 
-/* TODO should not be able to pass a fixedpt instead of an array of ints */ /*
+/* TODO should not be able to pass a fixedpt instead of an array of ints */ 
 void function func15b()
 begin
 	begin
@@ -197,27 +232,27 @@ begin
 		var x : int := 0;
 		x := testFunc5(Y);
 	end;
-end; */
+end; 
 
-/* Should not be able to assign a fixedpt return value to an int */ /*
+/* Should not be able to assign a fixedpt return value to an int */ 
 void function func16()
 begin
 	begin
 		var x : int :=0;
 		x := testFunc3();
 	end;
-end; */
+end; 
 
-/*  Bad error message for using a function as a parameter to another function when the return value is NOT assigned to a variable */ /*
+/*  Bad error message for using a function as a parameter to another function when the return value is NOT assigned to a variable */ 
 void function func17()
 begin
 	begin
 		var a, b : int :=0;
 		testFunc7(testFunc7(a));
 	end;
-end; */
+end; 
 
-SKIP_E
+
 
 void main()
 begin
