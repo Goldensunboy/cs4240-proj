@@ -509,13 +509,15 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		      TypeAttribute rettype = symbolTableManager.getFunctionReturnType(parts[0]);
 
 		      // Edge case: assign function return value to array location
+		      String callr_assign_to  = $s1.exp;
 		      if(!"".equals($s2.exp)) {
 		        try {
-              s1TypeAttribute = (TypeAttribute) att.clone();
+              s1TypeAttribute = (TypeAttribute) s1TypeAttribute.clone();
             } catch (CloneNotSupportedException e) {
               e.printStackTrace();
             }
             s1TypeAttribute.dereference();
+            callr_assign_to = tvf.nextTemp();
 		      }
 
 		      if(!s1TypeAttribute.assignableBy2(rettype)) {
@@ -525,11 +527,23 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		          + "\" to \"" + $s1.exp + "\" with the type: \"" + $s1.typeAttribute.getAliasName() + "\"";
             exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
 		      }
-		      IRList.addFirst("callr, " + $s1.exp +
-		        ($s1.scopeId == -1 ? "" : "$" + $s1.scopeId) + ", FUNC_" + parts[0] +
+		      IRList.addFirst("callr, " + callr_assign_to +
+		        (($s1.scopeId == -1 || !"".equals($s2.exp)) ? "" : "$" + $s1.scopeId) + ", FUNC_" + parts[0] +
 		        // Be careful not to reference parts[1] which is out
 		        // of bounds for parameterless functions
 		        (parts.length == 1 ? "" : ", " + parts[1]));
+		        
+		      if(!"".equals($s2.exp)) {
+		        parts = $s2.exp.substring(1, $s2.exp.length() - 1).split("\\]\\[");
+            if(parts.length == 1) {
+              IRList.addFirst("array_store, " + $s1.exp +
+                ($s1.scopeId == -1 ? "" : "$" + $s1.scopeId) + ", " + parts[0] + ", " + callr_assign_to);
+            } else {
+              IRList.addFirst("array_store, " + $s1.exp +
+                ($s1.scopeId == -1 ? "" : "$" + $s1.scopeId) + ", " + parts[0] + ", " + parts[1] + ", " +
+                callr_assign_to);
+            }
+		      }
 		    }
 		  }
 		  | OP_LPAREN s4=funcExprList[attrList] OP_RPAREN
