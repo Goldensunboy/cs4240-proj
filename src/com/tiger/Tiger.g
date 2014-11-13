@@ -254,11 +254,12 @@ afterBegin[String myFunctionName, String typeName, TypeAttribute returnTypeAttri
   blockList[myFunctionName] 
   {
     if(!symbolTableManager.returnStatementSatisfied(myFunctionName)) {
-      String customMessage = "Function \"" + myFunctionName + "\" doesn't have a proper return statement";
       TypeAttribute expectedReturnType = symbolTableManager.getReturnType();
-      TypeAttribute actualReturnType = symbolTableManager.getCurrentScopeReturnType();
-      exceptionHandler.handleException(myKey_begin, customMessage, expectedReturnType.getAliasName(), 
-                                       actualReturnType.getAliasName(), TypeMismatchException.class);
+//      TypeAttribute actualReturnType = symbolTableManager.getCurrentScopeReturnType();
+      String customMessage = "Function \"" + myFunctionName + "\" doesn't have a proper return statement." 
+        + "Should have returned \"" + expectedReturnType.getAliasName() + "\"";
+      exceptionHandler.handleException(myKey_begin, customMessage, null, 
+                                       null, TypeMismatchException.class);
 	  } else {
 	    // If it's a void function, generate a parameterless return
 	    if(symbolTableManager.getCurrentScopeReturnType().getType() == Type.VOID) {
