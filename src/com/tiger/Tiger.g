@@ -965,6 +965,7 @@ binOp2[String startLabel, String endLabel] returns [String exp, TypeAttribute ty
           // Math on a user-defined type
           String customMessage = "Cannot perform math on user-defined type and something else";
           exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
+          $typeAttribute = new TypeAttribute();
         }
       }
     }
@@ -982,7 +983,6 @@ funcBinOp2[IdType idType] returns [String exp, TypeAttribute typeAttribute, bool
   )?
   {
     TypeAttribute s1TypeAttribute = $s1.typeAttribute;
-    TypeAttribute s3TypeAttribute;
     if($s3.exp == null) {
       $exp = $s1.exp;
       $typeAttribute = $s1.typeAttribute;
@@ -990,7 +990,7 @@ funcBinOp2[IdType idType] returns [String exp, TypeAttribute typeAttribute, bool
       $scopeId = $s1.scopeId;
     } else {
       $scopeId = -1;
-      s3TypeAttribute = $s3.typeAttribute;
+      TypeAttribute s3TypeAttribute = $s3.typeAttribute;
       if($s1.myIsBool == true || $s3.myIsBool == true){
         if(s2 != null) {
           String customMessage = "Cannot add using a boolean value";
@@ -1025,6 +1025,7 @@ funcBinOp2[IdType idType] returns [String exp, TypeAttribute typeAttribute, bool
           // Math on a user-defined type
           String customMessage = "Cannot perform math on user-defined type and something else";
           exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
+          $typeAttribute = new TypeAttribute();
         }
       }
     }
@@ -1055,42 +1056,47 @@ binOp3[String startLabel, String endLabel] returns [String exp, TypeAttribute ty
       if(!s1TypeAttribute.canBeInOperationWith(s3TypeAttribute)) {
         String customMessage = $s1.text + " and " + $s3.text + " cannot be " + divMult;
         exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
-      }
-      
-      if($s1.myIsBool || $s3.myIsBool){
-	      String customMessage = "Boolean values cannot be " + divMult;
-	      exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
-      } else if($s1.myIsFunc || $s3.myIsFunc) {
-        String customMessage = "Cannot perform operations on a function rvalue";
-        exceptionHandler.handleException(s1, customMessage, null, null, InvalidInvocationException.class);
-      }
-      $myIsBool = false;
-      $myIsFunc = false;
-      String temp = tvf.nextTemp();
-      if(s2 != null) {
-        IRList.addFirst("div, "  + $s1.exp +
-          ($s1.scopeId == -1 ? "" : "$" + $s1.scopeId) + ", " + $s3.exp +
-          ($s3.scopeId == -1 ? "" : "$" + $s3.scopeId) + ", " + temp);
+        $exp = "0";
+        $typeAttribute = new TypeAttribute();
+        $myIsBool = false;
+        $myIsFunc = false;
       } else {
-        IRList.addFirst("mult, " + $s1.exp +
-          ($s1.scopeId == -1 ? "" : "$" + $s1.scopeId) + ", " + $s3.exp +
-          ($s3.scopeId == -1 ? "" : "$" + $s3.scopeId) + ", " + temp);
-      }
-      $exp = temp;
-      if(s1TypeAttribute.isPrimitive() && s3TypeAttribute.isPrimitive()) {
-	      if(s1TypeAttribute.getType() == Type.FIXPT || (s3TypeAttribute == null ? false : s3TypeAttribute.getType() == Type.FIXPT)) {
-	        $typeAttribute = FIXEDPT_TYPE_ATTRIBUTE;
-	      } else {
-	        $typeAttribute = INT_TYPE_ATTRIBUTE;
+	      if($s1.myIsBool || $s3.myIsBool){
+		      String customMessage = "Boolean values cannot be " + divMult;
+		      exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
+	      } else if($s1.myIsFunc || $s3.myIsFunc) {
+	        String customMessage = "Cannot perform operations on a function rvalue";
+	        exceptionHandler.handleException(s1, customMessage, null, null, InvalidInvocationException.class);
 	      }
-      } else {
-        if(s1TypeAttribute.getAliasName().equals(s3TypeAttribute.getAliasName())) {
-          $typeAttribute = $s1.typeAttribute;
-        } else {
-          // Math on a user-defined type
-          String customMessage = "Cannot perform math on user-defined type and something else";
-          exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
-        }
+	      $myIsBool = false;
+	      $myIsFunc = false;
+	      String temp = tvf.nextTemp();
+	      if(s2 != null) {
+	        IRList.addFirst("div, "  + $s1.exp +
+	          ($s1.scopeId == -1 ? "" : "$" + $s1.scopeId) + ", " + $s3.exp +
+	          ($s3.scopeId == -1 ? "" : "$" + $s3.scopeId) + ", " + temp);
+	      } else {
+	        IRList.addFirst("mult, " + $s1.exp +
+	          ($s1.scopeId == -1 ? "" : "$" + $s1.scopeId) + ", " + $s3.exp +
+	          ($s3.scopeId == -1 ? "" : "$" + $s3.scopeId) + ", " + temp);
+	      }
+	      $exp = temp;
+	      if(s1TypeAttribute.isPrimitive() && s3TypeAttribute.isPrimitive()) {
+		      if(s1TypeAttribute.getType() == Type.FIXPT || (s3TypeAttribute == null ? false : s3TypeAttribute.getType() == Type.FIXPT)) {
+		        $typeAttribute = FIXEDPT_TYPE_ATTRIBUTE;
+		      } else {
+		        $typeAttribute = INT_TYPE_ATTRIBUTE;
+		      }
+	      } else {
+	        if(s1TypeAttribute.getAliasName().equals(s3TypeAttribute.getAliasName())) {
+	          $typeAttribute = $s1.typeAttribute;
+	        } else {
+	          // Math on a user-defined type
+	          String customMessage = "Cannot perform math on user-defined type and something else";
+	          exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
+	          $typeAttribute = new TypeAttribute();
+	        }
+	      }
       }
     }
   }
@@ -1107,7 +1113,6 @@ funcBinOp3[IdType idType] returns [String exp, TypeAttribute typeAttribute, bool
   )?
   {
     TypeAttribute s1TypeAttribute  = $s1.typeAttribute;
-    TypeAttribute s3TypeAttribute;
     if($s3.exp == null) {
       $exp = $s1.exp;
       $typeAttribute = $s1.typeAttribute;
@@ -1115,7 +1120,7 @@ funcBinOp3[IdType idType] returns [String exp, TypeAttribute typeAttribute, bool
       $scopeId = $s1.scopeId;
     } else {
       $scopeId = -1;
-      s3TypeAttribute = $s3.typeAttribute;
+      TypeAttribute s3TypeAttribute = $s3.typeAttribute;
       if($s1.myIsBool || $s3.myIsBool){
         if(s2 != null) {
           String customMessage = "Cannot divide using a boolean value";
@@ -1150,6 +1155,7 @@ funcBinOp3[IdType idType] returns [String exp, TypeAttribute typeAttribute, bool
           // Math on a user-defined type
           String customMessage = "Cannot perform math on user-defined type and something else";
           exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
+          $typeAttribute = new TypeAttribute();
         }
       }
     }
@@ -1621,9 +1627,7 @@ id[IdType idType] returns [String exp, TypeAttribute typeAttribute, int scopeId]
 		    typeNamespace.add($myId.text);
 	    }
 	    
-	    TypeAttribute tempTypeAttribute = new TypeAttribute();
-	    tempTypeAttribute.setScopeId(-4);
-      $typeAttribute = tempTypeAttribute;
+      $typeAttribute = new TypeAttribute();
     } else if(idType == IdType.VARIABLE_TYPE) {
       if(!symbolTableManager.isValidType($myId.text, attributeMap)) {
         String customMessage = "Type " + $myId.text + " is not defined";
@@ -1641,11 +1645,17 @@ id[IdType idType] returns [String exp, TypeAttribute typeAttribute, int scopeId]
     else { 
       TypeAttribute attribute = symbolTableManager
 	                            .getTypeAttributeInCurrentScope($myId.text, attributeMap);
-	    $scopeId = attribute.getScopeId();
-		  try {
-	      $typeAttribute = (TypeAttribute) attribute.clone();
-	    } catch (CloneNotSupportedException e) {
-	      e.printStackTrace();
+	    if(attribute != null) {
+		    $scopeId = attribute.getScopeId();
+			  try {
+		      $typeAttribute = (TypeAttribute) attribute.clone();
+		    } catch (CloneNotSupportedException e) {
+		      e.printStackTrace();
+		    }
+	    } else {
+	      // Invalid type
+	      $scopeId = -1;
+	      $typeAttribute = new TypeAttribute();
 	    }
 	  }
   }

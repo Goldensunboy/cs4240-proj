@@ -92,7 +92,7 @@ public class TypeAttribute implements Attribute{
 	}
 
 	public boolean isPrimitive() {
-		return aliasName.equals(type.getName()) && (type == Type.INT || type == Type.FIXPT);
+		return aliasName != null && aliasName.equals(type.getName()) && (type == Type.INT || type == Type.FIXPT);
 	}
 	
 	private boolean hasProperDimension() {
@@ -287,6 +287,11 @@ public class TypeAttribute implements Attribute{
 	}
 	
 	public boolean canBeInOperationWith(TypeAttribute secondTypeAttribute) {
+		
+		// Can't operate on null
+		if(secondTypeAttribute == null || aliasName == null) {
+			return false;
+		}
 		
 		// can't have an array in an operation
 		if(isArray || secondTypeAttribute.isArray) {
