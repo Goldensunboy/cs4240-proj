@@ -249,7 +249,7 @@ begin
 		var fixedpt_type_var : Fixedpt_Type := 5.0;
 		var int_type_var2 : Int_Type := 5;
 		var fixedpt_type_var2 : Fixedpt_Type := 5.0;
-		
+	SKIP_S	
 		if int_var < 5 then
 			int_var := 0;
 		endif;
@@ -302,6 +302,7 @@ begin
 			fixedpt_type_var := fixedpt_type_var;
 		endif;
 		
+		
 		while int_var < 5 do
 			int_var := 0;
 		enddo;
@@ -353,6 +354,8 @@ begin
 		while fixedpt_type_var < fixedpt_type_var do
 			fixedpt_type_var := fixedpt_type_var;
 		enddo;
+		SKIP_E
+		
 	end;
 end;
 
