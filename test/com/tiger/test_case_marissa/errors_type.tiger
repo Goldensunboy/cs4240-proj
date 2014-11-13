@@ -625,49 +625,81 @@ begin
 		var int_type_var2 : Int_Type := 5;
 		var fixedpt_type_var2 : Fixedpt_Type := 5.0;
 		
-		testFunc1(5.0);
-		testFunc1(5.0 + int_var);
-		testFunc1(fixedpt_var); 
-		testFunc1(fixedpt_type_var);
-		testFunc1(int_type_var);   
+		funcTest1(5.0);
+		funcTest1(5.0 + int_var);
+		funcTest1(fixedpt_var); 
+		funcTest1(fixedpt_type_var);
+		funcTest1(int_type_var);   
 
-		fixedpt_type_var := testFunc1(5);
-		int_type_var := testFunc1(5);  
-		testFunc2(int_type_var);
-		testFunc2(fixedpt_type_var);            
-		int_var := testFunc2(5.0);
-		int_type_var := testFunc2(5.0);
-		fixedpt_type_var := testFunc2(5.0);        
+
+		int_var := funcTest1(5.0);
+		int_var := funcTest1(5.0 + int_var);
+		int_var := funcTest1(fixedpt_var); 
+		int_var := funcTest1(fixedpt_type_var);
+		int_var := funcTest1(int_type_var);   
+
+		fixedpt_type_var := funcTest1(5);
+		int_type_var := funcTest1(5); 
 		
-		testFunc3(5.0);
-		testFunc3(5.0 + int_var);
-		testFunc3(fixedpt_var); 
-		testFunc3(fixedpt_type_var);
-		testFunc3(5);                              
-		testFunc3(int_var);                          
-		testFunc3(5 + int_var);  
-		testFunc3(int_type2_var);                  
+		funcTest2(int_type_var);
+		funcTest2(fixedpt_type_var);   		
+		 
+		fixedpt_var := funcTest2(int_type_var);
+		fixedpt_var := funcTest2(fixedpt_type_var);         
+		   
+		int_var := funcTest2(5.0);
+		int_type_var := funcTest2(5.0);
+		fixedpt_type_var := funcTest2(5.0);        
+		
+		funcTest3(5.0);
+		funcTest3(5.0 + int_var);
+		funcTest3(fixedpt_var); 
+		funcTest3(fixedpt_type_var);
+		funcTest3(5);                              
+		funcTest3(int_var);                          
+		funcTest3(5 + int_var);  
+		funcTest3(int_type2_var);            
+		
+		int_type_var := funcTest3(5.0);
+		int_type_var := funcTest3(5.0 + int_var);
+		int_type_var := funcTest3(fixedpt_var); 
+		int_type_var := funcTest3(fixedpt_type_var);
+		int_type_var := funcTest3(5);                              
+		int_type_var := funcTest3(int_var);                          
+		int_type_var := funcTest3(5 + int_var);  
+		int_type_var := funcTest3(int_type2_var);       
 
-		fixedpt_var := testFunc3(int_type_var);
-		fixedpt_type_var := testFunc3(int_type_var); 
-		int_var := testFunc3(int_type_var);                
+		fixedpt_var := funcTest3(int_type_var);
+		fixedpt_type_var := funcTest3(int_type_var); 
+		int_var := funcTest3(int_type_var);                
 		int_type2_var := funcTest3(int_type_var);
 		fixedpt_type2_var := funcTest3(int_type_var);
 		
-		testFunc4(5);
-		testFunc4(int_var);
-		testFunc4(5 + int_var);
-		testFunc4(int_type_var);
-		testFunc4(5.0);                           
-		testFunc4(fixedpt_var);                     
-		testFunc4(5.0 + fixedpt_var);               
-		testFunc4(5 + fixedpt_var);                
-		testFunc4(5.0 + int_var);   
-		testFunc4(fixedpt_type2_var);         
+		funcTest4(5);
+		funcTest4(int_var);
+		funcTest4(5 + int_var);
+		funcTest4(int_type_var);
+		funcTest4(5.0);                           
+		funcTest4(fixedpt_var);                     
+		funcTest4(5.0 + fixedpt_var);               
+		funcTest4(5 + fixedpt_var);                
+		funcTest4(5.0 + int_var);   
+		funcTest4(fixedpt_type2_var);   
+		
+		fixedpt_type_var := funcTest4(5);
+		fixedpt_type_var := funcTest4(int_var);
+		fixedpt_type_var := funcTest4(5 + int_var);
+		fixedpt_type_var := funcTest4(int_type_var);
+		fixedpt_type_var := funcTest4(5.0);                           
+		fixedpt_type_var := funcTest4(fixedpt_var);                     
+		fixedpt_type_var := funcTest4(5.0 + fixedpt_var);               
+		fixedpt_type_var := funcTest4(5 + fixedpt_var);                
+		fixedpt_type_var := funcTest4(5.0 + int_var);   
+		fixedpt_type_var := funcTest4(fixedpt_type2_var);         
 
-		int_var := testFunc4(fixedpt_type_var);
-		int_type_var := testFunc4(fixedpt_type_var);
-		fixedpt_var := testFunc4(fixedpt_type_var);          
+		int_var := funcTest4(fixedpt_type_var);
+		int_type_var := funcTest4(fixedpt_type_var);
+		fixedpt_var := funcTest4(fixedpt_type_var);          
 		int_type2_var := funcTest4(fixedpt_type_var);
 		fixedpt_type2_var := funcTest4(fixedpt_type_var);
 	end;
