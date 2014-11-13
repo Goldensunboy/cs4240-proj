@@ -82,21 +82,27 @@ import com.exception.NameSpaceConflictException;
   
   private void putVariableAttributeMap(List<String> variableNameList, String typeName, 
            TypeAttribute typeAttribute, String declaringFunctionName, boolean initialized) {
+    Scope currScope = symbolTableManager.getCurrentScope();
+    int scopeId = currScope == null ? -1 : currScope.getScopeId();
     for (String variableName : variableNameList) {
-        VariableAttribute variableAttribute = new VariableAttribute(variableName, typeName, declaringFunctionName, initialized);
+        VariableAttribute variableAttribute = new VariableAttribute(variableName, typeName, declaringFunctionName, initialized, scopeId);
         attributeMap.put(variableName, variableAttribute);
     }
   }
   
   private void putFunctionAttributeMap(String functionName,  TypeAttribute returnTypeAttribute, List<TypeAttribute> parameters) {
+    Scope currScope = symbolTableManager.getCurrentScope();
+    int scopeId = currScope == null ? -1 : currScope.getScopeId();
     String typeName = returnTypeAttribute.getAliasName();
-    FunctionAttribute functionAttribute = new FunctionAttribute(functionName, typeName, parameters);
+    FunctionAttribute functionAttribute = new FunctionAttribute(functionName, typeName, parameters, scopeId);
     attributeMap.put(functionName, functionAttribute);
   }
 
-  public void putTypeAttributeMap(int lineNumber ,String aliasName, Type type,
+  public void putTypeAttributeMap(int lineNumber, String aliasName, Type type,
       Type typeOfArray, ArrayTypeSpecific arrayTypeSpecific, int dim1, int dim2) {
-    TypeAttribute typeAttribute = new TypeAttribute(aliasName, type, dim1, dim2);
+    Scope currScope = symbolTableManager.getCurrentScope();
+    int scopeId = currScope == null ? -1 : currScope.getScopeId();
+    TypeAttribute typeAttribute = new TypeAttribute(aliasName, type, dim1, dim2, scopeId);
     typeAttribute.setTypeOfArray(typeOfArray);
     typeAttribute.setExpectedArrayTypeSpecific(arrayTypeSpecific);
     attributeMap.put(aliasName, typeAttribute); 
@@ -298,7 +304,10 @@ param[String declaringFunctionName] :
 	id[IdType.FUNCTION_PARAMETER] OP_COLON typeId[IdType.VARIABLE_TYPE]
 	{
     $funcDeclaration::parameterTypeList.add($typeId.typeAttribute);
-	  VariableAttribute variableAttribute = new VariableAttribute($id.text, $typeId.text, declaringFunctionName, false);
+    Scope currScope = symbolTableManager.getCurrentScope();
+    int scopeId = currScope == null ? -1 : currScope.getScopeId();
+	  VariableAttribute variableAttribute = new VariableAttribute($id.text, $typeId.text,
+	    declaringFunctionName, false, scopeId);
     $funcDeclaration::parameterValueList.add(variableAttribute);
 	}
 ;
@@ -379,6 +388,10 @@ scope
 	  putVariableAttributeMap($varDeclaration::aggregatedMyIdList,
 	                          $myTypeId.text, $myTypeId.typeAttribute,
 	                          $functionName, false);
+	  for(String varName : $varDeclaration::aggregatedMyIdList) {
+	    TypeAttribute varTypeAttr = symbolTableManager.getTypeAttributeInCurrentScope(varName, attributeMap);
+	    varTypeAttr.setScopeId(symbolTableManager.getCurrentScope().getScopeId());
+	  }
 	}
   initialized=optionalInit[$varDeclaration::aggregatedMyIdList] OP_SCOLON
 ;
@@ -487,7 +500,7 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
           }
 		    } else {
 		      if(att == null) {
-          // Variable not declared yet
+            // Variable not declared yet
             String customMessage = "Assignment to undeclared variable: " + $s1.exp;
             exceptionHandler.handleException(s1, customMessage, null, null, UndeclaredVariableException.class);
           }
@@ -495,11 +508,21 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		      String[] parts = $s3.exp.split("#");
 		      TypeAttribute rettype = symbolTableManager.getFunctionReturnType(parts[0]);
 
-		      if(!s1TypeAttribute.assignableBy(rettype)) {
+		      // Edge case: assign function return value to array location
+		      if(!"".equals($s2.exp)) {
+		        try {
+              s1TypeAttribute = (TypeAttribute) att.clone();
+            } catch (CloneNotSupportedException e) {
+              e.printStackTrace();
+            }
+            s1TypeAttribute.dereference();
+		      }
+
+		      if(!s1TypeAttribute.assignableBy2(rettype)) {
 		        // (fixpt to int)
 		        String customMessage = "Can't assign function \"" + parts[0] 
-		          +"\"\'s return value with the type: \"" + rettype.getAliasName() 
-		          + "\" to \"" + $s1.exp + "\" with the type: \"" + $s1.typeAttribute.getAliasName()+"\"";
+		          + "\"\'s return value with the type: \"" + rettype.getAliasName() 
+		          + "\" to \"" + $s1.exp + "\" with the type: \"" + $s1.typeAttribute.getAliasName() + "\"";
             exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
 		      }
 		      IRList.addFirst("callr, " + $s1.exp +
@@ -612,7 +635,11 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		  String endSubLoopWhile = lf.nextLabel("WHILE_END");
 		  IRList.addFirst(whileTop + ":");
 		}
-		KEY_WHILE myWhileCond=expr[whileBegin, endSubLoopWhile]
+		KEY_WHILE
+		{
+		  makeNewScope();
+		}
+		myWhileCond=expr[whileBegin, endSubLoopWhile]
 		{
 		  if(!$myWhileCond.myIsBool) {
         String customMessage = "while conditional statements must resolve to a boolean value";
@@ -624,12 +651,16 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
     {
       IRList.addFirst("goto, " + whileTop);
       IRList.addFirst(endSubLoopWhile + ":");
+      goToEnclosingScope();
     }
 		|
 		{
 		  String endSubLoop = lf.nextLabel("LOOP_END");
 		}
-		sym_for=key_for s6=id[IdType.VARIABLE_DECLARATION]
+		sym_for=key_for
+		{
+		  makeNewScope();
+		} s6=id[IdType.VARIABLE_DECLARATION]
 		  OP_ASSIGN s7=indexExpr KEY_TO s8=indexExpr
 		  {
 		    String forTop = lf.nextLabel("FOR_START");
@@ -642,7 +673,7 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		    ArrayList<String> varList = new ArrayList<String>();
 		    varList.add($s6.text);
 		    int scopeId = symbolTableManager.getCurrentScope().getScopeId();
-		    putVariableAttributeMap(varList, Type.INT.getName(), INT_TYPE_ATTRIBUTE, $functionName, true /*TODO Andrew*/);
+		    putVariableAttributeMap(varList, Type.INT.getName(), INT_TYPE_ATTRIBUTE, $functionName, true);
         IRList.addFirst("assign, " + $s6.text +
           (scopeId == -1 ? "" : "$" + scopeId) + ", " + $s7.exp);
         // Begin loop here
@@ -1134,7 +1165,11 @@ binOp4[String startLabel, String endLabel] returns [String exp, TypeAttribute ty
     $myIsBool = $s2.myIsBool;
     $scopeId = -1;
   }
-  | s3=id[IdType.VARIABLE_NAME]
+  |
+  s3=id[IdType.VARIABLE_NAME]
+  {
+    $scopeId = $id.scopeId;
+  }
   (
     s4=valueTail
     {
@@ -1556,7 +1591,6 @@ id[IdType idType] returns [String exp, TypeAttribute typeAttribute, int scopeId]
     boolean isAlreadyDeclared = idType.isAlreadyDeclared();
     //If not declared, check to see it would be valid in namespace or not 
     if (!isAlreadyDeclared) {
-      //$scopeId = symbolTableManager.getCurrentScope().getScopeId();
       $scopeId = -1;
 	    Map<String, Set<String>> unregisteredNameSpaceMap = getUnregisteredNamespacesMap();
 	    if(symbolTableManager.doesNameSpaceConflict(myId.getLine(), idType, $myId.text, unregisteredNameSpaceMap)) {
@@ -1576,6 +1610,7 @@ id[IdType idType] returns [String exp, TypeAttribute typeAttribute, int scopeId]
 	    }
 	    
 	    TypeAttribute tempTypeAttribute = new TypeAttribute();
+	    tempTypeAttribute.setScopeId(-4);
       $typeAttribute = tempTypeAttribute;
     } else if(idType == IdType.VARIABLE_TYPE) {
       if(!symbolTableManager.isValidType($myId.text, attributeMap)) {
@@ -1589,7 +1624,7 @@ id[IdType idType] returns [String exp, TypeAttribute typeAttribute, int scopeId]
 	    } catch (CloneNotSupportedException e) {
 	      e.printStackTrace();
 	    }
-	    $scopeId = -1;
+	    $scopeId = attribute.getScopeId();
     } 
     else { 
       TypeAttribute attribute = symbolTableManager

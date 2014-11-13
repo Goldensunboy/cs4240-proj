@@ -7,12 +7,15 @@ public class VariableAttribute implements Attribute{
 	private String declaringProcedure;
 	private String typeName;
 	private boolean initialized;
+	private int scopeId;
 	
-	public VariableAttribute(String variableName, String typeName, String declaringFunctionName, boolean initialized){
+	public VariableAttribute(String variableName, String typeName, String declaringFunctionName,
+			boolean initialized, int scopeId) {
 		this.variableName = variableName;
 		this.declaringProcedure = declaringFunctionName;
 		this.typeName = typeName;
 		this.initialized = initialized;
+		this.scopeId = scopeId;
 	}
 	
 	public void setInitialized(boolean initialized) {
@@ -55,7 +58,6 @@ public class VariableAttribute implements Attribute{
 
 	@Override
 	public int getScopeId() {
-		// TODO Auto-generated method stub
-		return 0;
+		return scopeId;
 	}
 }

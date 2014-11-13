@@ -1,13 +1,31 @@
-type ArrayInt = array [100] of int;
-type ArrayFixedpt = array [100] of fixedpt;
+int function foo()
+begin
+	begin
+		var x : int := 7;
+		return x;
+	end;
+end;
+
+void function bar()
+begin
+	begin
+		var x : int := 7;
+		x := x;
+	end;
+end;
+
+void function baz()
+begin
+	begin
+		var x : fixedpt := 0;
+		x := bar();
+	end;
+end;
 
 void main()
 begin
 	begin
-		var x : ArrayInt := 0;
-		var y : ArrayFixedpt := 0;
-		if x[5] < y[8] then
-			x[0] := x[0];
-		endif;
+		var x : int := 0;
+		x := bar();
 	end;
 end;

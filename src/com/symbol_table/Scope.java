@@ -26,7 +26,7 @@ public class Scope {
 		this.enclosingScope = enclosingScope;
 		this.scopeId = scopeId;
 		this.enclosingFunctionName = enclosingFunctionName;
-		returnType = new TypeAttribute(Type.VOID.getName(), Type.VOID);
+		returnType = new TypeAttribute(Type.VOID.getName(), Type.VOID, scopeId);
 		varNameSpace = new HashSet<>();
 		typeNameSpace = new HashSet<>();
 		functionNameSpace = new HashSet<>();

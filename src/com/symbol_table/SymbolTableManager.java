@@ -335,7 +335,7 @@ public class SymbolTableManager {
 		String path = "reserved/types";
 		Map<String, Attribute> attributeMap = new Hashtable<>();
 		for(String typeName : readReservedFile(path)) {
-			Attribute typeAttribute = new TypeAttribute(typeName, Type.getType(typeName));
+			Attribute typeAttribute = new TypeAttribute(typeName, Type.getType(typeName), -1);
 			attributeMap.put(typeName, typeAttribute);
 			expiredFunctionName.add(typeName);
 			globalTypeFunctionNameSpace.add(typeName);
@@ -357,13 +357,13 @@ public class SymbolTableManager {
 			if(func.length > 2) {
 				TypeAttribute[] params = new TypeAttribute[func.length - 2];
 				for(int i = 0; i < func.length - 2; ++i) {
-					params[i] = new TypeAttribute(Type.INT.getName(), Type.INT);
+					params[i] = new TypeAttribute(Type.INT.getName(), Type.INT, -1);
 				}
 				//System.arraycopy(func, 2, params, 0,  func.length - 2);
-				funcAttribute = new FunctionAttribute(func[0], func[1], new ArrayList<TypeAttribute>(Arrays.asList(params)));
+				funcAttribute = new FunctionAttribute(func[0], func[1], new ArrayList<TypeAttribute>(Arrays.asList(params)), -1);
 			}
 			else if(func.length == 2){
-				funcAttribute = new FunctionAttribute(func[0], func[1], new ArrayList<TypeAttribute>());
+				funcAttribute = new FunctionAttribute(func[0], func[1], new ArrayList<TypeAttribute>(), -1);
 			}
 			else
 				continue;
