@@ -674,9 +674,17 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		    IRList.addFirst("goto, " + endLoop);
 		  }
 		}
-		| KEY_RETURN myReturnValue=expr[null, null]
+		| KEY_RETURN myReturnValue=funcExpr[IdType.VARIABLE_NAME]
 		{
 		  TypeAttribute expectedReturnType = symbolTableManager.getReturnType();
+	    if(expectedReturnType.getType() == Type.VOID) {
+	      // Can't have return statements in a void function
+	      String customMessage = "Return statement in a void function";
+        exceptionHandler.handleException(myReturnValue, customMessage, 
+                                          expectedReturnType.getAliasName(), 
+                                          ($myReturnValue.myIsBool)? "boolean":Type.VOID.getName(), 
+                                          TypeMismatchException.class);
+	    }
 		  TypeAttribute actualReturnType = $myReturnValue.typeAttribute;
 		  
 		  if(!expectedReturnType.doReturnValuesMatch(actualReturnType)|| $myReturnValue.myIsBool) {
