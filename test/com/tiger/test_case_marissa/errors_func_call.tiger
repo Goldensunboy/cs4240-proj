@@ -151,6 +151,15 @@ begin
 	end;
 end; 
 
+/*  (Does not give a proper error message) Cannot call a function with additional parameters. */ 
+void function func5b()
+begin
+	begin
+		var x : fixedpt :=0;
+		x := testFunc4(x);
+	end;
+end; 
+
 /*  (Does not give a proper error message) Cannot call a function with additional parameters that are variables. */ 
 void function func6()
 begin
