@@ -568,11 +568,10 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
         if(params.size() != attrList.size()) {
           String expected = params.size() == 0 ? "[void]" : FunctionAttribute.getParamListStringRepresentationFactoryInTigerCodeForPhase2ErrorReporting(params);
           List<TypeAttribute> foundList = new ArrayList<TypeAttribute>();
-          
-          int offset = Math.abs(params.size() - attrList.size());
-          for(int i = params.size() - offset - 1; i >= 0; --i) {
+
+          for(int i = attrList.size() - 1; i >= 0; --i) {
             foundList.add(attrList.get(i));
-            }
+          }
           String actual = attrList.size() == 0 ? "[void]" : FunctionAttribute.getParamListStringRepresentationFactoryInTigerCodeForPhase2ErrorReporting(foundList);
           
           String customMessage = "Invalid invocation of function: [" + $s1.exp + "]";
@@ -1243,8 +1242,7 @@ binOp4[String startLabel, String endLabel] returns [String exp, TypeAttribute ty
         String expected = params.size() == 0 ? "[void]" : FunctionAttribute.getParamListStringRepresentationFactoryInTigerCodeForPhase2ErrorReporting(params);
         List<TypeAttribute> foundList = new ArrayList<TypeAttribute>();
         
-        int offset = Math.abs(params.size() - attrList.size());
-        for(int i = attrList.size() - offset - 1; i >= 0; --i) {
+        for(int i = attrList.size() - 1; i >= 0; --i) {
           foundList.add(attrList.get(i));
         }
         String actual = attrList.size() == 0 ? "[void]" : FunctionAttribute.getParamListStringRepresentationFactoryInTigerCodeForPhase2ErrorReporting(foundList);

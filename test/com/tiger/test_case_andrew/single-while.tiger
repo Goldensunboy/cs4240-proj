@@ -1,8 +1,8 @@
-int function foo(x : int)
+int function not(x : int)
 begin
 	begin
 		var a : int := 8;
-		return a + x;
+		return a;
 	end;
 end;
 
@@ -10,6 +10,6 @@ void main()
 begin
 	begin
 		var x : int := 5;
-		x := foo(6.8);
+		x := foo(6);
 	end;
 end;
