@@ -105,7 +105,7 @@ begin
 		testFunc4(x,5);
 	end;
 end; 
-SKIP_S
+
 /* Cannot call a function with parameters of the wrong type (fixedpt instead of int) */ 
 void function func2b()
 begin
@@ -116,14 +116,14 @@ begin
 end; 
 
 /* Cannot call a function with parameters of the wrong type (fixedpt instead of int) */ 
-void function func2b()
+void function func2c()
 begin
 	begin
 		var x : fixedpt :=0;
 		x := testFunc6(3.0,5); 
 	end;
 end;
-SKIP_E
+
 /*  (Does not give a proper error message) Cannot call a function with missing parameters. */ 
 void function func3ab()
 begin

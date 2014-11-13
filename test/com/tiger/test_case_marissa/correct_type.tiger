@@ -302,12 +302,8 @@ begin
 			fixedpt_type_var := fixedpt_type_var;
 		endif;
 		
-		
+
 		while int_var < 5 do
-			int_var := 0;
-		enddo;
-		
-		while int_var < int_var2 do
 			int_var := 0;
 		enddo;
 		
@@ -319,31 +315,17 @@ begin
 			fixedpt_var := 0;
 		enddo;
 		
-		while fixedpt_var < fixedpt_var2 do
-			fixedpt_var := 0.0;
-		enddo;
-		
+
 		while fixedpt_var < int_var do
 			fixedpt_var := 0.0;
 		enddo;
-		
-		while fixedpt_var < int_var + 5.4 do
-			fixedpt_var := 0.0;
-		enddo;
+				
 		
 		while int_var < int_var + 5.4 do
 			int_var := 0;
 		enddo;
 		
-		while int_var < int_var + 5 do
-			int_var := 0;
-		enddo;
-		
 		while fixedpt_var < fixedpt_var2 + 5 do
-			fixedpt_var := 0.0;
-		enddo;
-		
-		while fixedpt_var < fixedpt_var2 + 5.3 do
 			fixedpt_var := 0.0;
 		enddo;
 		
@@ -354,8 +336,11 @@ begin
 		while fixedpt_type_var < fixedpt_type_var do
 			fixedpt_type_var := fixedpt_type_var;
 		enddo;
+
+
 		
-		
+
+
 	end;
 end;
 

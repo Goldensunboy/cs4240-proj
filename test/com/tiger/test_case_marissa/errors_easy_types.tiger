@@ -41,7 +41,7 @@ begin
 		int_type_var := int_type_var + fixedpt_type_var;
 		fixedpt_type_var := fixedpt_type_var + int_type_var;
 		fixedpt_type_var := 5 + 5.5 * fixedpt_var;
-SKIP_S		fixedpt_type_var := 5 + 5.5 * fixedpt_type_var;SKIP_E
+		fixedpt_type_var := 5 + 5.5 * fixedpt_type_var;
 		fixedpt_type_var := fixedpt_var * int_var + int_type_var;
 		int_type_var := int_var;                                 
 		fixedpt_type_var := fixedpt_var;                          
@@ -63,29 +63,29 @@ SKIP_S		fixedpt_type_var := 5 + 5.5 * fixedpt_type_var;SKIP_E
 		int_type_var := int_type_var * int_type2_var;
 		int_type_var := int_type2_var * int_type2_var;
 		
-SKIP_S		int_type_var := int_type2_var * (int_var + int_type2_var); SKIP_E
+		int_type_var := int_type2_var * (int_var + int_type2_var); 
 		int_type_var := int_type2_var + 2;
 		int_type_var := int_type2_var * 2.0;
 		int_type_var := int_type2_var * int_var;
-SKIP_S		int_type_var := int_type2_var * (2 + int_type2_var); SKIP_E
-SKIP_S		int_type_var := int_type2_var * (2.0 + int_type2_var); SKIP_E
-SKIP_S		int_type_var := int_type2_var * (int_type_var + int_type2_var); SKIP_E
-SKIP_S		int_type_var := int_type2_var * (int_type_var + int_type2_var); SKIP_E
+		int_type_var := int_type2_var * (2 + int_type2_var); 
+		int_type_var := int_type2_var * (2.0 + int_type2_var); 
+		int_type_var := int_type2_var * (int_type_var + int_type2_var); 
+		int_type_var := int_type2_var * (int_type_var + int_type2_var); 
 		
 		fixedpt_type_var := fixedpt_type2_var;
 		fixedpt_type_var := fixedpt_type_var + fixedpt_type2_var;
 		fixedpt_type_var := fixedpt_type_var * fixedpt_type2_var;
 		fixedpt_type_var := fixedpt_type2_var * fixedpt_type2_var;
 		
-SKIP_S		fixedpt_type_var := fixedpt_type2_var * (fixedpt_var + fixedpt_type2_var); SKIP_E
+		fixedpt_type_var := fixedpt_type2_var * (fixedpt_var + fixedpt_type2_var); 
 		fixedpt_type_var := fixedpt_type2_var + 2;
 		fixedpt_type_var := fixedpt_type2_var * 2.0;
 		fixedpt_type_var := fixedpt_type2_var * fixedpt_var;
-SKIP_S		fixedpt_type_var := (2.0 + fixedpt_type2_var) * fixedpt_type2_var; SKIP_E
-SKIP_S		fixedpt_type_var := fixedpt_type2_var * (2 + fixedpt_type2_var); SKIP_E
-SKIP_S		fixedpt_type_var := fixedpt_type2_var * (2.0 + fixedpt_type2_var); SKIP_E
-SKIP_S		fixedpt_type_var := fixedpt_type2_var * (fixedpt_type_var + fixedpt_type2_var); SKIP_E
-SKIP_S		fixedpt_type_var := fixedpt_type2_var * (fixedpt_type_var + fixedpt_type2_var); SKIP_E
+		fixedpt_type_var := (2.0 + fixedpt_type2_var) * fixedpt_type2_var; 
+		fixedpt_type_var := fixedpt_type2_var * (2 + fixedpt_type2_var); 
+		fixedpt_type_var := fixedpt_type2_var * (2.0 + fixedpt_type2_var); 
+		fixedpt_type_var := fixedpt_type2_var * (fixedpt_type_var + fixedpt_type2_var); 
+		fixedpt_type_var := fixedpt_type2_var * (fixedpt_type_var + fixedpt_type2_var); 
 	end;
 end;
 

@@ -1,4 +1,4 @@
-SKIP_S
+
 type ArrayInt = array [100] of int;
 type ArrayFixedPt = array [100] of fixedpt;
 
@@ -36,7 +36,6 @@ begin
 		var a, b : int :=0;
 		while 4.0 do
 			a := a + 1;
-			return 6;
 		enddo;
 	end;
 end; 
@@ -117,14 +116,6 @@ begin
 	end;
 end; 
 
-/* Cannot return a conditional */ 
-int function func12()
-begin
-	begin
-		var i: int := 0;
-		return 6 <= 9;
-	end;
-end; 
 
 /*  Cannot perform a comparison of two arrays */
 void function func14() 
@@ -150,7 +141,7 @@ end;
 
 
 
-SKIP_E
+
 
 
 
