@@ -22,6 +22,12 @@ public class ExceptionHandler {
 	public ExceptionHandler(TigerParser parser) {
 		this.parser = parser;
 	}
+	public ExceptionHandler() {
+	}
+	
+	public void setTigerParser(TigerParser parser) {
+		this.parser = parser;
+	}
 	
 	/**
 	 * Throws an exception based on the information passed in 
@@ -42,7 +48,6 @@ public class ExceptionHandler {
 			StringBuilder errorMessage = new StringBuilder();
 			errorMessage.append(lineNumber == -1 ? "" : "Line " + lineNumber + " :: ");			
 			errorMessage.append(customMessage == null ? exceptionClass.getAnnotation(DefaultErrorMessage.class).value() : customMessage);
-			errorMessage.append(".");
 			
 			if(expected != null && actual != null) {				
 				errorMessage.append(" :: ");
@@ -54,7 +59,9 @@ public class ExceptionHandler {
 			}
 			RuntimeException exception = constructor.newInstance(errorMessage.toString());
 			System.err.println(exception.getClass()+ " :: " + exception.getMessage() + "\n");
-			parser.invalidateIRCode();
+			if(parser != null) {
+				parser.invalidateIRCode();				
+			}
 //			exception.printStackTrace();
 //			System.out.println();
 //			throw constructor.newInstance(errorMessage.toString());

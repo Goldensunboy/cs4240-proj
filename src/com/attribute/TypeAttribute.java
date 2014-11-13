@@ -11,7 +11,7 @@ public class TypeAttribute implements Attribute{
 	private ArrayTypeSpecific receivedArrayTypeSpecific;
 	private int dim1;
 	private int dim2;
-	private int scopeId;
+	private final int scopeId;
 	
 	public TypeAttribute() {
 		this(null, Type.TEMPORARY, -1);
@@ -36,10 +36,6 @@ public class TypeAttribute implements Attribute{
 	
 	public int getDim2() {
 		return dim2;
-	}
-	
-	public void setScopeId(int scopeId) {
-		this.scopeId = scopeId;
 	}
 	
 	public Type getType() {

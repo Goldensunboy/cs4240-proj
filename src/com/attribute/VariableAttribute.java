@@ -4,15 +4,15 @@ package com.attribute;
 public class VariableAttribute implements Attribute{
 	
 	private String variableName;
-	private String declaringProcedure;
+	private String declaringFunctionName;
 	private String typeName;
 	private boolean initialized;
-	private int scopeId;
+	private final int scopeId;
 	
 	public VariableAttribute(String variableName, String typeName, String declaringFunctionName,
 			boolean initialized, int scopeId) {
 		this.variableName = variableName;
-		this.declaringProcedure = declaringFunctionName;
+		this.declaringFunctionName = declaringFunctionName;
 		this.typeName = typeName;
 		this.initialized = initialized;
 		this.scopeId = scopeId;
@@ -33,10 +33,10 @@ public class VariableAttribute implements Attribute{
 		this.variableName = variableName;
 	}
 	public String getDeclaringProcedure() {
-		return declaringProcedure;
+		return declaringFunctionName;
 	}
-	public void setDeclaringProcedure(String declaringProcedure) {
-		this.declaringProcedure = declaringProcedure;
+	public void setDeclaringProcedure(String declaringFunctionName) {
+		this.declaringFunctionName = declaringFunctionName;
 	}
 	
 	
@@ -45,9 +45,11 @@ public class VariableAttribute implements Attribute{
 		buffer.append("Variable Name: ");
 		buffer.append(variableName);
 		buffer.append(", Declaring Procedure: ");
-		buffer.append(declaringProcedure);
+		buffer.append(declaringFunctionName);
 		buffer.append(", Type Name: ");
 		buffer.append(typeName);
+		buffer.append(", scopeId: ");
+		buffer.append(scopeId);
 		return buffer.toString();
 	}
 
@@ -60,4 +62,9 @@ public class VariableAttribute implements Attribute{
 	public int getScopeId() {
 		return scopeId;
 	}
+
+//	@Override
+//	public Attribute getAttributeClone() {
+//		return new VariableAttribute(variableName, typeName, declaringFunctionName, initialized, scopeId);
+//	}
 }
