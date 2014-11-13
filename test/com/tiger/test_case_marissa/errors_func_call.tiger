@@ -1,5 +1,8 @@
 
 type ArrayInt = array [100] of int;
+type ArrayFixedpt = array [100] of fixedpt;
+type ArrayInt2 = array [10] of int;
+type ArrayFixedpt2 = array [10] of fixedpt;
 
 /* Used in testing */
 void function testFunc()
@@ -150,22 +153,31 @@ begin
 		testFunc4(x,5,6);
 	end;
 end; 
-
-/*  (Does not give a proper error message) Cannot call a function with additional parameters. */ SKIP_S
+SKIP_S
+/*  (Does not give a proper error message) Cannot call a function with missing parameters. */ 
 void function func5b()
 begin
 	begin
 		var x : fixedpt :=0;
-		x := testFunc4(x);
+		x := testFunc4(4);
 	end;
 end; 
-
+SKIP_E
 /*  (Does not give a proper error message) Cannot call a function with additional parameters that are variables. */ 
 void function func6()
 begin
 	begin
 		var x : fixedpt :=0;
 		testFunc3(x);
+	end;
+end; 
+
+/*  (Does not give a proper error message) Cannot call a function with additional parameters that are variables. */ 
+void function func6b()
+begin
+	begin
+		var x : fixedpt :=0;
+		x := testFunc3(x);
 	end;
 end; 
 
@@ -196,24 +208,8 @@ begin
 	end;
 end; 
 
-/* Cannot pass an undeclared variable into a function */ 
-void function func12()
-begin
-	begin
-		var x : fixedpt :=0;
-		testFunc9(y);
-	end;
-end; 
 
-/*  Cannot assign the return value of a function to an undeclared variable. */ 
-void function func13()
-begin
-	begin
-		var x : fixedpt :=0;
-		y := testFunc7(5);
-	end;
-end; 
-SKIP_E
+
 /* TODO should not be able to pass an int instead of an array of ints */ 
 void function func14a()
 begin
@@ -222,7 +218,7 @@ begin
 		testFunc5(Y);
 	end;
 end; 
-SKIP_S
+
 /* TODO should not be able to pass an int instead of an array of ints */ 
 void function func14b()
 begin
@@ -232,7 +228,7 @@ begin
 		x := testFunc5(Y);
 	end;
 end; 
-SKIP_E
+
 /* TODO should not be able to pass a fixedpt instead of an array of ints */ 
 void function func15a()
 begin
@@ -241,7 +237,7 @@ begin
 		testFunc5(Y);
 	end;
 end; 
-SKIP_S
+
 /* TODO should not be able to pass a fixedpt instead of an array of ints */ 
 void function func15b()
 begin
@@ -251,7 +247,7 @@ begin
 		x := testFunc5(Y);
 	end;
 end; 
-SKIP_E
+
 /* Should not be able to assign a fixedpt return value to an int */ 
 void function func16()
 begin
@@ -261,7 +257,32 @@ begin
 	end;
 end; 
 
+/* testfunc takes in ArrayInt */
+void function func17a()
+begin
+	begin
+		var Y : ArrayFixedpt := 0;
+		testFunc5(Y);
+	end;
+end; 
 
+/* testfunc takes in ArrayInt */
+void function func17b()
+begin
+	begin
+		var Y : ArrayInt2 := 0;
+		testFunc5(Y);
+	end;
+end; 
+
+/* testfunc takes in ArrayInt */
+void function func17c()
+begin
+	begin
+		var Y : ArrayFixedpt2 := 0;
+		testFunc5(Y);
+	end;
+end; 
 
 void main()
 begin

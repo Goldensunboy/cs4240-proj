@@ -105,6 +105,14 @@ begin
 		testFunc := 0;
 	end;
 end; 
+
+void function temp8() 
+begin
+	begin
+		var x : int :=0;
+		name1 := 0;
+	end;
+end; 
 SKIP_E
 void main()
 begin
