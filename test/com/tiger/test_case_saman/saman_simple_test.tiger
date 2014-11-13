@@ -1,13 +1,25 @@
+type Int = int;
+type Int_Type = int;
+type Int_Type2 = int;
 type ArrayInt = array [100] of int;
+type Array2DInt = array [100][100] of int;
+type FixedPtLit = fixedpt;
+type Fixedpt_Type = fixedpt;
+type Fixedpt_Type2 = fixedpt;
+type ArrayFixedPt = array [100] of fixedpt;
+type Array2DFixedPt = array [100][100] of fixedpt;
 
-/* Used in testing */
-int function func1()
+int function typeComp() 
 begin
 	begin
-		var a : ArrayInt :=0;
-		return a;
+		var int_var : Int_Type := 5;
+		var int_var2 : Int_Type;
+		var int_type_var : Int_Type := 5;
+		var int_type2_var : Int_Type2 := 5;
+		int_var2 := int_var;
+		return 1;
 	end;
-end; 
+end;
 
 void main()
 begin
