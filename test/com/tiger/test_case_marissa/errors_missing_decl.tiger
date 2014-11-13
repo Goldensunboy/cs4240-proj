@@ -1,4 +1,4 @@
-
+SKIP_S
 int function funcTest1(x:int) 
 begin
      begin
@@ -307,7 +307,7 @@ void function func3()
 begin
 	begin
 		var temp3 : int :=0;
-		x := missingFunc();
+		temp3 := missingFunc();
 	end;
 end; 
 
