@@ -1249,7 +1249,7 @@ binOp4[String startLabel, String endLabel] returns [String exp, TypeAttribute ty
         }
         String actual = attrList.size() == 0 ? "[void]" : FunctionAttribute.getParamListStringRepresentationFactoryInTigerCodeForPhase2ErrorReporting(foundList);
         String customMessage = "Invalid invocation of function: [" + $s3.exp + "]";
-        exceptionHandler.handleException(s1, customMessage, expected, actual, InvalidInvocationException.class);
+        exceptionHandler.handleException(s5, customMessage, expected, actual, InvalidInvocationException.class);
       }
       for(int i = 0; i < params.size(); ++i) {
         if(!params.get(i).isProperParameter(attrList.get(params.size() - i - 1))) {
@@ -1260,7 +1260,7 @@ binOp4[String startLabel, String endLabel] returns [String exp, TypeAttribute ty
           }
           String actual = attrList.size() == 0 ? "[void]" : FunctionAttribute.getParamListStringRepresentationFactoryInTigerCodeForPhase2ErrorReporting(foundList);
           String customMessage = "Invalid invocation of function: [" + $s3.exp + "]";
-          exceptionHandler.handleException(s1, customMessage, expected, actual, InvalidInvocationException.class);
+          exceptionHandler.handleException(s5, customMessage, expected, actual, InvalidInvocationException.class);
         }
       }
     }
