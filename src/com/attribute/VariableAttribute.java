@@ -6,24 +6,13 @@ public class VariableAttribute implements Attribute{
 	private String variableName;
 	private String declaringFunctionName;
 	private String typeName;
-	private boolean initialized;
 	private final int scopeId;
 	
-	public VariableAttribute(String variableName, String typeName, String declaringFunctionName,
-			boolean initialized, int scopeId) {
+	public VariableAttribute(String variableName, String typeName, String declaringFunctionName, int scopeId) {
 		this.variableName = variableName;
 		this.declaringFunctionName = declaringFunctionName;
 		this.typeName = typeName;
-		this.initialized = initialized;
 		this.scopeId = scopeId;
-	}
-	
-	public void setInitialized(boolean initialized) {
-		this.initialized = initialized;
-	}
-	
-	public boolean getInitialized() {
-		return initialized;
 	}
 	
 	public String getVariableName() {

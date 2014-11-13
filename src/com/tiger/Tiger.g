@@ -38,6 +38,7 @@ import com.exception.InvalidInvocationException;
 import com.exception.UndeclaredFunctionException;
 import com.exception.UndeclaredVariableException;
 import com.exception.ShouldNotHappenException;
+import com.exception.AttributeCastException;
 import com.exception.ExceptionHandler;
 import com.exception.TypeMismatchException;
 import com.exception.NameSpaceConflictException;
@@ -81,12 +82,12 @@ import com.exception.NameSpaceConflictException;
   public static final String FUNCTION_NAMESPACE = "functionNameSpace";
   private static int ANDREW = -1;
   private void putVariableAttributeMap(List<String> variableNameList, String typeName, 
-           TypeAttribute typeAttribute, String declaringFunctionName, boolean initialized) {
+           TypeAttribute typeAttribute, String declaringFunctionName) {
     Scope currScope = symbolTableManager.getCurrentScope();
     int scopeId = currScope == null ? -1 : currScope.getScopeId();
     for (String variableName : variableNameList) {
         VariableAttribute variableAttribute = new VariableAttribute(variableName, typeName, 
-          declaringFunctionName, initialized, scopeId);
+          declaringFunctionName, scopeId);
         attributeMap.put(variableName, variableAttribute);
     }
   }
@@ -310,7 +311,7 @@ param[String declaringFunctionName] :
     Scope currScope = symbolTableManager.getCurrentScope();
     int scopeId = currScope == null ? -1 : currScope.getScopeId();
 	  VariableAttribute variableAttribute = new VariableAttribute($id.text, $typeId.text,
-	    declaringFunctionName, false, scopeId);
+	    declaringFunctionName, scopeId);
     $funcDeclaration::parameterValueList.add(variableAttribute);
 	}
 ;
@@ -390,9 +391,17 @@ scope
 	{
 	  putVariableAttributeMap($varDeclaration::aggregatedMyIdList,
 	                          $myTypeId.text, $myTypeId.typeAttribute,
-	                          $functionName, false);
+	                          $functionName);
 	}
   initialized=optionalInit[$varDeclaration::aggregatedMyIdList] OP_SCOLON
+  {
+    if(!$initialized.isInitialized) {
+      System.out.println("WARNING " + " :: line " 
+        + initialized.start.getLine() + " :: variable(s) \"" 
+        + $idList.text + "\" with type \"" + $myTypeId.text
+        + "\" has not been initialized. Default to 0." );
+    }
+  }
 ;
 
 idList[IdType idType] : 
@@ -405,13 +414,24 @@ idList[IdType idType] :
 	}
 ;
 
-optionalInit[List<String> varNames] :
+optionalInit[List<String> varNames] returns [boolean isInitialized]
+@init
+{
+$isInitialized = false;
+}
+:
 	(
 	  OP_ASSIGN s1=constant
 	  {
+	    $isInitialized = true;
 	    for(String varName : varNames) {
-	      VariableAttribute attribute = (VariableAttribute)symbolTableManager.getAttributeInCurrentScope(varName, attributeMap);
-	      attribute.setInitialized(true);
+	      VariableAttribute attribute = null;
+	      try {
+	        attribute = (VariableAttribute)symbolTableManager.getAttributeInCurrentScope(varName, attributeMap);
+	      } catch (ClassCastException e) {
+          String customMessage = varName + " can't be used as a variable";
+          exceptionHandler.handleException(-1, customMessage, null, null, AttributeCastException.class);
+        }
 	      TypeAttribute typeAttribute = symbolTableManager.getTypeAttributeInCurrentScope(attribute, attributeMap);
 	      int scopeId = attribute == null ? -1 : attribute.getScopeId();
 	      if(! typeAttribute.isArray()) {
@@ -447,7 +467,14 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		  s2=valueTail OP_ASSIGN s3=expr[null, null]
 		  {
 		    // Verify that the assignment is valid
-		    VariableAttribute att = (VariableAttribute)symbolTableManager.getAttributeInCurrentScope($s1.exp, attributeMap);
+		    VariableAttribute att = null;
+		    try {
+		      att = (VariableAttribute)symbolTableManager.getAttributeInCurrentScope($s1.exp, attributeMap);
+		    } catch (ClassCastException e) {
+		      String customMessage = $s1.exp + " can't be used as a variable";
+		      exceptionHandler.handleException(s1, customMessage, null, null, AttributeCastException.class);
+		    }
+		    
 				ArrayTypeSpecific s2ArrayTypeSpecific = $s2.arrayTypeSpecific;
 		    TypeAttribute s1TypeAttribute = symbolTableManager.getTypeAttributeInCurrentScope(att, attributeMap);
 				TypeAttribute s3TypeAttribute = $s3.typeAttribute;
@@ -482,7 +509,6 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		      }
 		      // Assignment statement
 		      if("".equals($s2.exp)) {
-		        System.out.println(att);
             IRList.addFirst("assign, " + $s1.exp +
               (att == null ? "" : "$" + att.getScopeId()) + ", " + $s3.exp +
               (ANDREW == -1 ? "" : "$" + ANDREW));
@@ -515,7 +541,10 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
               s1TypeAttribute = (TypeAttribute) s1TypeAttribute.clone();
             } catch (CloneNotSupportedException e) {
               e.printStackTrace();
-            }
+            } catch (ClassCastException e) {
+		          String customMessage = $s1.exp + " can't be used as a type";
+		          exceptionHandler.handleException(s1, customMessage, null, null, AttributeCastException.class);
+		        }
             s1TypeAttribute.dereference();
             callr_assign_to = tvf.nextTemp();
 		      }
@@ -686,7 +715,7 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		    ArrayList<String> varList = new ArrayList<String>();
 		    varList.add($s6.text);
 		    int scopeId = symbolTableManager.getCurrentScope().getScopeId();
-		    putVariableAttributeMap(varList, Type.INT.getName(), INT_TYPE_ATTRIBUTE, $functionName, true);
+		    putVariableAttributeMap(varList, Type.INT.getName(), INT_TYPE_ATTRIBUTE, $functionName);
         IRList.addFirst("assign, " + $s6.text +
           (scopeId == -1 ? "" : "$" + scopeId) + ", " + $s7.exp);
         // Begin loop here
@@ -1198,6 +1227,9 @@ binOp4[String startLabel, String endLabel] returns [String exp, TypeAttribute ty
           $typeAttribute = (TypeAttribute) s3TypeAttribute.clone();
         } catch (CloneNotSupportedException e) {
           e.printStackTrace();
+        } catch (ClassCastException e) {
+          String customMessage = $s3.text + " can't be used as a type";
+          exceptionHandler.handleException(s3, customMessage, null, null, AttributeCastException.class);
         }
         $typeAttribute.dereference();
       }
@@ -1412,7 +1444,7 @@ indexExpr3 returns [String exp]:
     }
     if($id.typeAttribute.getType() != Type.INT) {
       // Invalid type (must be int)
-      String customMessage = "Use of fixedpt variable in array index expression: \"" + $id.exp + "\""; 
+      String customMessage = "Use of " + $id.typeAttribute.getAliasName() + " in array index expression: \"" + $id.exp + "\""; 
       exceptionHandler.handleException(myId, customMessage, null, null, 
                                        InvalidTypeException.class);
     }
@@ -1580,6 +1612,12 @@ id[IdType idType] returns [String exp, TypeAttribute typeAttribute]
     $exp = $ID.text;
     boolean isAlreadyDeclared = idType.isAlreadyDeclared();
     //If not declared, check to see it would be valid in namespace or not 
+    if (idType == IdType.RETURN_TYPE) {
+      TypeAttribute returnType = symbolTableManager.getTypeAttributeInCurrentScope($myId.text, attributeMap);
+      if(returnType == null) {
+        exceptionHandler.handleException(myId, "Using the type " + $myId.text + " before declaring it", null, null, InvalidTypeException.class);
+      }
+    }
     if (!isAlreadyDeclared) {
 	    Map<String, Set<String>> unregisteredNameSpaceMap = getUnregisteredNamespacesMap();
 	    if(symbolTableManager.doesNameSpaceConflict(myId.getLine(), idType, $myId.text, unregisteredNameSpaceMap)) {
@@ -1610,7 +1648,10 @@ id[IdType idType] returns [String exp, TypeAttribute typeAttribute]
         $typeAttribute = (TypeAttribute) attribute.clone();
 	    } catch (CloneNotSupportedException e) {
 	      e.printStackTrace();
-	    }
+	    } catch (ClassCastException e) {
+        String customMessage = $myId.text + " can't be used as a type";
+        exceptionHandler.handleException(myId, customMessage, null, null, AttributeCastException.class);
+      }
     } 
     else { 
       TypeAttribute attribute = symbolTableManager
@@ -1620,7 +1661,10 @@ id[IdType idType] returns [String exp, TypeAttribute typeAttribute]
 		      $typeAttribute = (TypeAttribute) attribute.clone();
 		    } catch (CloneNotSupportedException e) {
 		      e.printStackTrace();
-		    }
+		    } catch (ClassCastException e) {
+          String customMessage = $myId.text + " can't be used as a type";
+          exceptionHandler.handleException(myId, customMessage, null, null, AttributeCastException.class);
+        }
 	    } else {
 	      // Invalid type
 	      $typeAttribute = new TypeAttribute();

@@ -101,16 +101,6 @@ public class TigerTest {
 			break;
 		
 		case SAMAN:
-			List<String> IRList1 = parser.getIRCode();
-			System.out.println("IR code:\n**********");
-			if(IRList1 == null) {
-				System.out.println(IRList1);
-				break;
-			}
-		    for(String s : IRList1) {
-		      System.out.println(s);
-		    }
-		    System.out.println("**********");
 			break;
 			
 		case ANDREW:
