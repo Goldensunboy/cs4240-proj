@@ -178,8 +178,8 @@ public class SymbolTableManager {
 		if(symbolList == null) {
 			return null;
 		} else if (symbolList.size() > 1){
-			System.err.println(symbolList);
-			throw new ShouldNotHappenException("The global scope's symbolList is not a singleton");
+		//	System.err.println(symbolList);
+			return null;
 		} else {
 			return symbolList.get(0).getAttribute();
 		}

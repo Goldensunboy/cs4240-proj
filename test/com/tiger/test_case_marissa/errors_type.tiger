@@ -10,6 +10,7 @@ type Fixedpt_Type2 = fixedpt;
 type ArrayFixedPt = array [100] of fixedpt;
 type Array2DFixedPt = array [100][100] of fixedpt;
 
+
 /* Used in testing */
 void function testFunc()
 begin
@@ -113,36 +114,10 @@ begin
 		a := 0;
 	end;
 end;
-SKIP_S
-
-/*  Using undefined type for a variable */
-void function func1c() 
-begin
-	begin
-		var temp1 : missingType :=0;
-		temp1 := 0;
-	end;
-end;
 
 
-/*  Using undefined type for a variable */
-void function func2b(x:missingType) 
-begin
-	begin
-		var temp1 : int :=0;
-		temp1 := 0;
-	end;
-end;
 
-/*  Using undefined type for a return */
-missingType function func3() 
-begin
-	begin
-		var temp1 : int :=0;
-		return 0;
-	end;
-end;
-SKIP_E
+
 /*  Redefining a type */
 void function func4() 
 begin
@@ -325,7 +300,7 @@ begin
 		if int_type_var < 5 then
 			int_var := 0;
 		endif;
-		
+	SKIP_S	
 		if int_type_var < 5.0 then
 			int_var := 0;
 		endif;
@@ -349,7 +324,7 @@ begin
 		if fixedpt_type_var < int_type_var then
 			fixedpt_var := 0.0;
 		endif;
-SKIP_S		
+		
 		if fixedpt_var < fixedpt_type_var + 5 then
 			int_var := 0;
 		endif;
@@ -707,6 +682,8 @@ begin
 	end;
 end;
 
+
+
 int function func11a() 
 begin
 	begin
@@ -764,7 +741,6 @@ begin
 end;
 
 fixedpt function func16d() 
-begin
 	begin
 		var a : ArrayFixedPt :=0;
 		return a;
@@ -828,7 +804,7 @@ begin
 	end;
 end;
 
-fixedpt function func16b() 
+fixedpt function func16f() 
 begin
 	begin
 		var a : ArrayFixedPt :=0;
@@ -893,7 +869,7 @@ begin
 	end;
 end;
 
-Int_Type function func16c() 
+Int_Type function func16e() 
 begin
 	begin
 		var a : ArrayFixedPt :=0;
@@ -989,4 +965,3 @@ begin
 		x := 2;
 	end;
 end;
-

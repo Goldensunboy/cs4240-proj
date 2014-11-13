@@ -57,7 +57,8 @@ public class FunctionAttribute implements Attribute{
 				} else {
 					ret += ", ";
 				}
-				ret += t.getType();
+				ret += t.getAliasName();
+//				ret += t.getType();
 			}
 			return ret + "]";
 		}
