@@ -72,5 +72,11 @@ public class FunctionAttribute implements Attribute{
 	public void setReturnTypeName(String returnTypeName) {
 		this.returnTypeName = returnTypeName;
 	}
+
+	@Override
+	public int getScopeId() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
 	
 }

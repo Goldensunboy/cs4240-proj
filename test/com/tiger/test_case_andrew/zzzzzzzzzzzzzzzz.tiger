@@ -1,0 +1,13 @@
+type ArrayInt = array [100] of int;
+type ArrayFixedpt = array [100] of fixedpt;
+
+void main()
+begin
+	begin
+		var x : ArrayInt := 0;
+		var y : ArrayFixedpt := 0;
+		if x[5] < y[8] then
+			x[0] := x[0];
+		endif;
+	end;
+end;

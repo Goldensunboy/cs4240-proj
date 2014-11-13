@@ -41,7 +41,7 @@ public class TypeAttribute implements Attribute{
 	}
 
 	public void setType(Type type) {
-		this.type = type; ;
+		this.type = type;
 	}
 
 	public String getAliasName() {
@@ -113,7 +113,7 @@ public class TypeAttribute implements Attribute{
 		return typeAttribute;
 	}
 	
-	private boolean assignability(TypeAttribute secondTypeAttribute) {		
+	private boolean assignability(TypeAttribute secondTypeAttribute) {
 		// If RHS or LHS is user defined, but not both. RHS is not assignable to LHS
 		if(this.isPrimitive() == !secondTypeAttribute.isPrimitive()) {
 			return false;
@@ -315,5 +315,27 @@ public class TypeAttribute implements Attribute{
 		typeAttribute.setReceivedArrayTypeSpecific(receivedArrayTypeSpecific);
 		typeAttribute.setTypeOfArray(typeOfArray);
 		return typeAttribute;
+	}
+
+	@Override
+	public int getScopeId() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+	
+	/**
+	 * Dereference an array type to its contained type
+	 */
+	public void dereference() {
+		if(!isArray) {
+			throw new ShouldNotHappenException("Dereferenced a non-array type");
+		} else {
+			isArray = false;
+			dim1 = dim2 = -1;
+			type = typeOfArray;
+			typeOfArray = null;
+			expectedArrayTypeSpecific = receivedArrayTypeSpecific = null;
+			aliasName = type.getName();
+		}
 	}
 }

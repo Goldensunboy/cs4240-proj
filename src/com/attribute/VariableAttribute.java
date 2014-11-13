@@ -52,4 +52,10 @@ public class VariableAttribute implements Attribute{
 	public String getTypeName() {
 		return typeName;
 	}
+
+	@Override
+	public int getScopeId() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
 }
