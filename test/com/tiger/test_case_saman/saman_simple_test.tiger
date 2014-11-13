@@ -1,0 +1,46 @@
+type ArrayInt = array [100] of int;
+
+/* Used in testing */
+int function testFunc1()
+begin
+	begin
+		var a, b : int :=0;
+		return 9;
+	end;
+end; 
+
+fixedpt function testFunc2(x:fixedpt, y:int) 
+begin
+	begin
+		var x, b : int :=0;
+		return x;
+	end;
+end;
+
+void function func1() 
+begin
+	begin
+		var x : fixedpt := 0;
+		x := testFunc1(x);
+	end;
+end;
+
+void function func2() 
+begin
+	begin
+		var x : fixedpt := 0;
+		x := testFunc2(x);
+	end;
+end;
+
+void main()
+begin
+	begin
+		var b : int := 10;
+		b :=3;
+		begin
+			var i : int:= 0;
+			i := b;
+		end;
+	end;
+end;

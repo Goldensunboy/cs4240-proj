@@ -234,13 +234,13 @@ public class SymbolTableManager {
 	private FunctionAttribute getFunctionAttribute(String functionName) {
 		List<Symbol> symbolList = symbolTable.get(functionName);
 		if (symbolList.size() != 1) {
-			throw new ShouldNotHappenException("More than one function with the same name.");
+			return null;
 		}
 		FunctionAttribute functionNameAttribute;
 		try {			
 			functionNameAttribute= (FunctionAttribute)symbolList.get(0).getAttribute();
 		} catch (ClassCastException e) {
-			throw new ShouldNotHappenException("Couldn't cast to FunctionNameAttribute");
+			throw new AttributeCastException("Couldn't cast to FunctionNameAttribute");
 		}
 		
 		return functionNameAttribute;
