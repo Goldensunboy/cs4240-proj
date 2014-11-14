@@ -36,7 +36,7 @@ begin
 		enddo;
 	end;
 end; 
-SKIP_S
+
 
 /* Using undefined variable */
 void function func1cb()
