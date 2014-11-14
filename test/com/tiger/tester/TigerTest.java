@@ -67,7 +67,8 @@ public class TigerTest {
 				} catch (IOException  e ) {
 					e.printStackTrace();
 				}catch (NullPointerException e) {
-					exceptionHandler.handleException(-1,null, null, null, UnrecoverableException.class);
+					//exceptionHandler.handleException(-1,null, null, null, UnrecoverableException.class);
+					throw e;
 				} finally{
 				}
 	

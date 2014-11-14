@@ -149,7 +149,10 @@ public class SymbolTableManager {
 	 * @return the attribute that has the attributeName which is accessible from the current scope.
 	 */
 	public Attribute getAttributeInCurrentScope(String attributeName, Map<String, Attribute> attributeMap) {
-		Attribute retVal = attributeMap.get(attributeName); 
+		if(attributeName == null || "".equals(attributeName)) {
+			return null;
+		}
+		Attribute retVal = attributeMap.get(attributeName);
 		if(retVal != null){
 			return retVal;
 		}
