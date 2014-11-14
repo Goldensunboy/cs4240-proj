@@ -121,10 +121,14 @@ import com.exception.NameSpaceConflictException;
   
   public void printSymbolTable() {
     System.out.println("****** Printing out the symbol table *******");
-    for(Entry<String, List<Symbol>> symbolMap : symbolTableManager.getSymbolTable().entrySet()) {
-      for (Symbol symbol : symbolMap.getValue()) {
-        System.out.println(symbol);
-      }
+    if(getIRCode() != null ) {
+	    for(Entry<String, List<Symbol>> symbolMap : symbolTableManager.getSymbolTable().entrySet()) {
+	      for (Symbol symbol : symbolMap.getValue()) {
+	        System.out.println(symbol);
+	      }
+	    }
+    } else {
+      System.out.println("Errors occured, couldn't generate the table");
     }
     System.out.println("*********************************************");
   }
