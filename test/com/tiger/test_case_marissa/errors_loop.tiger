@@ -25,7 +25,6 @@ begin
 end; 
 
 
-SKIP_S
 
 void function func5c()
 begin
@@ -51,7 +50,7 @@ begin
 		i := 0;
 	end;
 end; 
-SKIP_E
+
 void main()
 begin
 	begin

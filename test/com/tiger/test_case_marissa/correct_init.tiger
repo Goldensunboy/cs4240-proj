@@ -1,6 +1,4 @@
 
-SKIP_S
-???????????????????????????????????????????????????WAIT FOR PROFESSOR??????????????????????????????????????????
 /* Used in testing */
 type Int = int;
 type Int_Type = int;
@@ -12,6 +10,8 @@ type Fixedpt_Type = fixedpt;
 type Fixedpt_Type2 = fixedpt;
 type ArrayFixedPtLit = array [100] of fixedpt;
 type Array2DFixedPtLit = array [100][100] of fixedpt;
+type ArrayFixedPt = array [100] of fixedpt;
+type Array2DFixedPt = array [100][100] of fixedpt;
 
 void function testFunc1(x:int) 
 begin
@@ -83,7 +83,7 @@ begin
 end; 
 
 
-SKIP_S
+
 void function func1n()
 begin
 	begin
@@ -273,7 +273,7 @@ begin
 	begin
 		var x : ArrayFixedPt := 10;
 		var a : int;
-		var b : int := 10;
+		var b : fixedpt := 10;
 		b := x[a];
 	end;
 end; 
@@ -283,8 +283,8 @@ begin
 	begin
 		var x : ArrayFixedPt := 10;
 		var a : int;
-		var b : int := 10;
-		b := x[a*b];
+		var b : fixedpt := 10;
+		b := x[a*a];
 	end;
 end; 
 
@@ -293,7 +293,7 @@ begin
 	begin
 		var x : ArrayFixedPt := 10;
 		var a : int;
-		var b : int := 10;
+		var b : fixedpt := 10;
 		b := x[3*a];
 	end;
 end; 
@@ -301,7 +301,7 @@ end;
 void function func37()
 begin
 	begin
-		var x : ArrayFixedPt := 10;
+		var x : ArrayInt := 10;
 		var a : int;
 		testFunc1(x[a]);
 	end;
@@ -319,7 +319,7 @@ end;
 void function func39()
 begin
 	begin
-		var x : ArrayFixedPt;
+		var x : ArrayInt;
 		var a : int := 10;
 		testFunc1(x[a]);
 	end;
@@ -347,7 +347,7 @@ end;
 void function func42()
 begin
 	begin
-		var x : Array2DFixedPt := 10;
+		var x : Array2DInt := 10;
 		var a : int;
 		testFunc1(x[a][a]);
 	end;
@@ -366,7 +366,7 @@ end;
 void function func44()
 begin
 	begin
-		var x : Array2DFixedPt;
+		var x : Array2DInt;
 		var a : int := 10;
 		testFunc1(x[a][a]);
 	end;
@@ -377,8 +377,8 @@ void function func45()
 begin
 	begin
 		var x : ArrayFixedPt;
-		var a : int := 10;
-		b := x[a];
+		var a : fixedpt := 10;
+		a := x[6];
 	end;
 end; 
 
@@ -387,7 +387,7 @@ begin
 	begin
 		var x : ArrayInt;
 		var a : int := 10;
-		b := x[a];
+		a := x[a];
 	end;
 end; 
 
@@ -395,7 +395,7 @@ end;
 
 
 
-SKIP_E
+
 
 
 void main()

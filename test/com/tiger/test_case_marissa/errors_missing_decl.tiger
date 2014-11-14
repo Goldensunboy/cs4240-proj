@@ -1,4 +1,3 @@
-SKIP_S
 int function funcTest1(x:int) 
 begin
      begin
@@ -37,6 +36,7 @@ begin
 		enddo;
 	end;
 end; 
+SKIP_S
 
 /* Using undefined variable */
 void function func1cb()

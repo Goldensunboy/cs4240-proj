@@ -260,7 +260,7 @@ afterBegin[String myFunctionName, String typeName, TypeAttribute returnTypeAttri
       TypeAttribute expectedReturnType = symbolTableManager.getReturnType();
 //      TypeAttribute actualReturnType = symbolTableManager.getCurrentScopeReturnType();
       String customMessage = "Function \"" + myFunctionName + "\" doesn't have a proper return statement." 
-        + "Should have returned \"" + expectedReturnType.getAliasName() + "\"";
+        + " Should have returned \"" + expectedReturnType.getAliasName() + "\"";
       exceptionHandler.handleException(myKey_begin, customMessage, null, 
                                        null, TypeMismatchException.class);
 	  } else {
@@ -402,7 +402,7 @@ scope
       System.out.println("WARNING " + " :: line "
         + initialized.start.getLine() + " :: variable(s) \""
         + $idList.text + "\" with type \"" + $myTypeId.text
-        + "\" has not been initialized. Default to 0." );
+        + "\" has not been initialized. Default to 0.");
       for(String varName : $varDeclaration::aggregatedMyIdList) {
         VariableAttribute attribute = null;
         try {
@@ -515,8 +515,8 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		        exceptionHandler.handleException(s1, customMessage, null, null, UndeclaredVariableException.class);
 		      } else {
 			      if(!s1TypeAttribute.assignableBy(s3TypeAttribute)) {
-			        System.out.println(s1TypeAttribute);
-			        System.out.println(s3TypeAttribute);
+//			        System.out.println(s1TypeAttribute);
+//			        System.out.println(s3TypeAttribute);
               // Illegal assignment
 			        String customMessage;
 			        if(s1TypeAttribute.isArray()){
@@ -1908,7 +1908,7 @@ COMMENT2 :
   'SKIP_S' ( options {greedy=false;} : . )* 'SKIP_E' 
   {
     $channel=HIDDEN;
-    System.err.println("Warning: skipping some code\n");
+    System.err.println("Warning: skipping some code\n"); 
   }
 ;
 
