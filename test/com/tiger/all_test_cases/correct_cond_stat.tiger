@@ -1,5 +1,6 @@
 
-
+type ArrayInt = array [100] of int;
+type ArrayFixedPt = array [100] of fixedpt;
 /* Used in testing */
 int function testFunc()
 begin
@@ -64,7 +65,17 @@ begin
 	end;
 end; 
 
-
+/* LEGAL??????: Can perform a comparison of an array and an int */ 
+void function func18() 
+begin
+	begin
+		var x : ArrayInt := 9;
+		var y : ArrayFixedPt := 9;
+		if x[6] < y[9] then
+			x[9] := 0;
+		endif;
+	end;
+end;
 
 void main()
 begin

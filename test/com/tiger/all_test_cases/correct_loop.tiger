@@ -1,6 +1,4 @@
 
-
-
 int function testFunc() 
 begin
 	begin
@@ -48,12 +46,43 @@ begin
 	begin
 		var x: int := 0;
 		for i := x - 3 to 8 * 9 do
-			x := x + i;
+			x := x + 1;
 		enddo;
 	end;
 end; 
 
 
+
+void function func5()
+begin
+	begin
+		var x: int := 0;
+		for i := x - 3 to 8 * 9 do
+			x := i + 1;
+		enddo;
+	end;
+end;
+
+void function func5d()
+begin
+	begin
+		var x: int := 0;
+		for i := 1 to 5 do
+			x := (i + i) * i;
+		enddo;
+	end;
+end; 
+
+/*  If a for loop goes from a higher number to a lower number, then the loop should compile but not execute!! */
+void function func6()
+begin
+	begin
+		var x: int := 0;
+		for i := 70 to 5 do
+			x := x + 1;
+		enddo;
+	end;
+end; 
 
 void main()
 begin

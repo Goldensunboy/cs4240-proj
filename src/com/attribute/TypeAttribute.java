@@ -82,6 +82,14 @@ public class TypeAttribute implements Attribute{
 		return isArray;
 	}
 
+	public void setDim1(int dim1) {
+		this.dim1 = dim1;
+	}
+	
+	public void setDim2(int dim2) {
+		this.dim2 = dim2;
+	}
+	
 	@Override
 	public String getTypeName() {
 		return aliasName;
@@ -317,8 +325,8 @@ public class TypeAttribute implements Attribute{
 		if(expectedArrayTypeSpecific != null) {
 			retVal += ", Expected Array Type Specific";
 			retVal += ", isTwoDimensionalArray: " + expectedArrayTypeSpecific.isTwoDimensionalArray();
-			retVal += ", dim1: " + expectedArrayTypeSpecific.getDim1();
-			retVal += ", dim2: " + expectedArrayTypeSpecific.getDim2();			
+			retVal += ", dim1: " + expectedArrayTypeSpecific.getDim1() + " (" + dim1 + ")";
+			retVal += ", dim2: " + expectedArrayTypeSpecific.getDim2() + " (" + dim2 + ")";			
 		}
 		if(receivedArrayTypeSpecific != null) {
 			retVal += ", Received Array Type Specific";
@@ -335,6 +343,8 @@ public class TypeAttribute implements Attribute{
 		typeAttribute.setExpectedArrayTypeSpecific(expectedArrayTypeSpecific);
 		typeAttribute.setReceivedArrayTypeSpecific(receivedArrayTypeSpecific);
 		typeAttribute.setTypeOfArray(typeOfArray);
+		typeAttribute.setDim1(dim1);
+		typeAttribute.setDim2(dim2);
 		return typeAttribute;
 	}
 

@@ -74,7 +74,7 @@ end;
 void function funcName5() 
 begin
 	begin
-		var x : ArrayInt;
+		var x : ArrayInt := 0;
 		testFunc(x[0]);
 	end;
 end; 
@@ -139,8 +139,7 @@ end;
 void function funcName4f() 
 begin
 	begin
-		var x : ArrayFixedPt;
-		x := 10.0;
+		var x : ArrayFixedPt := 10.0;
 		x[0] := 9.0;
 	end;
 end;
@@ -179,7 +178,7 @@ end;
 void function funcName6f() 
 begin
 	begin
-		var x : ArrayFixedPt;
+		var x : ArrayFixedPt :=0;
 		testFunc2f(x);
 	end;
 end;
