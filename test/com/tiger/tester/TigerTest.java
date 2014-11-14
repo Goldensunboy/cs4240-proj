@@ -1,40 +1,39 @@
 package com.tiger.tester;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.List;
-
-import org.antlr.runtime.RecognitionException;
 
 import com.antlr.generated.TigerParser;
 import com.compiler.TigerCompiler;
 import com.compiler.TigerCompiler.CompilerErrorReport;
-import com.exception.BadDeveloperException;
 import com.exception.ExceptionHandler;
 import com.exception.UnrecoverableException;
 
 
 public class TigerTest {
 
+	private ExceptionHandler exceptionHandler;
+	private String mainDeveloperName;
+	private boolean irCodeOn, symbolTableOn;
+	
+	public TigerTest(String mainDeveloperName, boolean irCodeOn, boolean symbolTableOn) {
+		this.exceptionHandler = new ExceptionHandler();
+		this.mainDeveloperName = mainDeveloperName;
+		this.irCodeOn = irCodeOn;
+		this.symbolTableOn = symbolTableOn;
+	}
+	
 	/**
 	 * Each team member has a test_case_<user_name> package in test.com.tiger
 	 * Please put your test cases there. Based on the user name of the system
 	 * tester figures out which set of test cases to execute
 	 */
-	public static void main(String[] args) throws RecognitionException {
-		ExceptionHandler exceptionHandler = new ExceptionHandler();
+	public void runTestCases(){
 		
-		String mainDeveloperName = System.getProperty("user.name");
 		DeveloperName[] developerNames = DeveloperName.lookup(mainDeveloperName);
 
-		checkForThrows(mainDeveloperName);
-		
-		System.out.println(System.getProperty("user.dir"));
-		System.out.println();
-		
 		for(DeveloperName developerName : developerNames) {
 			String path = "test/com/tiger/test_case_" + developerName.getPreferedName();
 			System.out.println("----------Running \""+path + "\"------------");
@@ -60,16 +59,17 @@ public class TigerTest {
 					CompilerErrorReport errorReport = compiler.getErrorReport(); 
 					
 					if (!errorReport.hasError()) {
-						runSpecificTestCases(compiler.getTigerParser(), developerName);
+						runSpecificTestCases(compiler.getTigerParser(), developerName,
+								irCodeOn, symbolTableOn);
 					}
 					
 					System.out.println(errorReport.getErrorReportMessage());
 				} catch (IOException  e ) {
-					e.printStackTrace();
+					exceptionHandler.handleException(-1,null, null, null, UnrecoverableException.class);
 				}catch (NullPointerException e) {
-					//exceptionHandler.handleException(-1,null, null, null, UnrecoverableException.class);
-					throw e;
-				} finally{
+					exceptionHandler.handleException(-1,null, null, null, UnrecoverableException.class);
+				} catch (Exception e) {
+					exceptionHandler.handleException(-1,null, null, null, UnrecoverableException.class);
 				}
 	
 				System.out.println("******************************");
@@ -78,25 +78,11 @@ public class TigerTest {
 		}
 	}
 	
-	private static void checkForThrows(String developerName) {
-		File file = new File("src/com/tiger/Tiger.g");
-		try {
-			BufferedReader br = new BufferedReader(new FileReader(file));
-			String line;
-			while ((line = br.readLine()) != null) {
-			   if(line.contains("throw new"))
-				   throw new BadDeveloperException("Bad " + developerName + "!!! Don't use throw!!! PLEASE " + developerName + " PLEASE");
-			}
-			br.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-	
 	/**
 	 * Put your test methods below your case. It will automatically call those methods
 	 */
-	private static void runSpecificTestCases(TigerParser parser, DeveloperName developerName) {
+	private void runSpecificTestCases(TigerParser parser, DeveloperName developerName,
+			boolean irCodeOn, boolean symbolTableOn) {
 		switch (developerName) {
 		case MARISSA:
 			break;
@@ -105,24 +91,42 @@ public class TigerTest {
 			break;
 			
 		case ANDREW:
-			List<String> IRList = parser.getIRCode();
-			System.out.println("IR code:\n**********");
-			if(IRList == null) {
-				System.out.println(IRList);
-				break;
+			runIRCode(parser);
+			break;
+			
+		case VINCENT:
+			if(irCodeOn) {				
+				runIRCode(parser);
 			}
-		    for(String s : IRList) {
-		      System.out.println(s);
-		    }
-		    System.out.println("**********");
+			if(symbolTableOn) {				
+				printSymbolTable(parser);
+			}
 			break;
 		}
+	}
+
+	private void printSymbolTable(TigerParser parser) {
+		parser.printSymbolTable();
+	}
+	
+	private void runIRCode(TigerParser parser) {
+		List<String> IRList = parser.getIRCode();
+		System.out.println("IR code:\n**********");
+		if(IRList == null) {
+			System.out.println(IRList);
+			return;
+		}
+	    for(String s : IRList) {
+	      System.out.println(s);
+	    }
+	    System.out.println("**********");
 	}
 	
 	public enum DeveloperName {
 		SAMAN("saman", "saman"),
 		MARISSA("Risa", "marissa"),
 		ANDREW("andrew", "andrew"),
+		VINCENT("vincent", "vincent"),
 		INDIVIDUAL("indvidual", "individual");
 		
 		private String actualName, preferedName;
@@ -142,13 +146,14 @@ public class TigerTest {
 		public static DeveloperName[] lookup(String preferedName) {
 			if(preferedName.equals(MARISSA.getActualName())) {
 				return new DeveloperName[]{MARISSA};
-//				return new DeveloperName[]{INDIVIDUAL};
 			} else if (preferedName.equals(SAMAN.getPreferedName())) {
-//				return new DeveloperName[]{SAMAN,MARISSA};
 				return new DeveloperName[]{SAMAN};
 			} else if (preferedName.equals(ANDREW.getPreferedName())) {
 				return new DeveloperName[]{ANDREW};
+			} else if (preferedName.equals(VINCENT.getPreferedName())) {
+				return new DeveloperName[]{VINCENT};
 			}
+			
 			throw new RuntimeException("Invalid user " + preferedName);
 		}
 	}
