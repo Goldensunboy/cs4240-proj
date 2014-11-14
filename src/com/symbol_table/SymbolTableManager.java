@@ -56,6 +56,10 @@ public class SymbolTableManager {
 		expiredFunctionName = new HashSet<>();
 		populateReserved();
 	}
+
+	public int getOverallScopeId() {
+		return scopeId;
+	}
 	
 	/**
 	 * Takes the temporary attributeMap in the TigerParser and insert all of its values
