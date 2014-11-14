@@ -1,0 +1,156 @@
+
+type Int = int;
+type Int_Type = int;
+type Int_Type2 = int;
+type ArrayInt = array [100] of int;
+type Array2DInt = array [100][100] of int;
+type FixedPtLit = fixedpt;
+type Fixedpt_Type = fixedpt;
+type Fixedpt_Type2 = fixedpt;
+type ArrayFixedPt = array [100] of fixedpt;
+type Array2DFixedPt = array [100][100] of fixedpt;
+
+
+/* Following 4 functions are used in testing */
+int function funcTest1(x:int) 
+begin
+     begin
+          var a: int :=0;
+          return a;
+     end;
+end;
+ 
+fixedpt function funcTest2(x:fixedpt) 
+begin
+     begin
+          var a: fixedpt :=0;
+          return a;
+     end;
+end;
+ 
+Int_Type function funcTest3(x:Int_Type) 
+begin
+     begin
+          var a: Int_Type := 0;
+          return a;
+     end;
+end;
+ 
+Fixedpt_Type function funcTest4(x:Fixedpt_Type) 
+begin
+     begin
+          var a: Fixedpt_Type := 0.0;
+          return a;
+     end;
+end;
+
+
+/* Using types incorrectly */
+void function func1() 
+begin
+	begin
+		var int_var : int := 5;
+		var fixedpt_var : fixedpt := 5.0;
+		var int_type_var : Int_Type := 5;
+		var fixedpt_type_var : Fixedpt_Type := 5.0;
+		var int_type2_var : Int_Type2 := 5;
+		
+		int_var := fixedpt_var + int_var;
+		int_type_var := 5;                                                     
+		fixedpt_type_var := fixedpt_var * 5 + fixedpt_type_var; 
+		
+		if int_var < fixedpt_type_var then
+			fixedpt_var := 0;
+		endif;
+		
+		while int_type2_var < int_type_var do
+			int_var := 0;
+		enddo;
+	end;
+end;
+
+/* Should not be able to put break randomly in a function */
+void function func2()
+begin
+	begin
+		var a, b : int :=0;
+		break;
+	end;
+end; 
+
+/* if condition statement resolves to (boolean & int) */ 
+void function func3()
+begin
+	begin
+		var a, b : int :=0;
+		if b < a  & a + b then
+			a := 1;
+		endif;
+	end;
+end; 
+
+/* Used in func4, func5, func6 for testing */
+fixedpt function testFunc(x:int, y:fixedpt) 
+begin
+	begin
+		var x : fixedpt :=0;
+		return x;
+	end;
+end;
+
+/* Calling a function with parameters of the wrong types */ 
+void function func4()
+begin
+	begin
+		var x : fixedpt := 0;
+		testFunc(x,5);
+	end;
+end;  
+
+/* Calling a function with a missing parameter */
+void function func5()
+begin
+	begin
+		var x : int := 0;
+		testFunc(x);
+	end;
+end; 
+
+/* Setting a fixedpt return value to an int */
+void function func6()
+begin
+	begin
+		var x : int := 0;
+		x := testFunc(5, 5.0);
+	end;
+end; 
+
+/* Can't assign a void return value to a variable */
+void function func7()
+begin
+	begin
+		var x : Int_Type :=0;
+		x := funcTest1(5);
+	end;
+end; 
+
+/* Using an uninitialized variable gives a warning */
+void function func8()
+begin
+	begin
+		var a : int;
+		var b : int := 10;
+		b := a;
+	end;
+end; 
+
+void main()
+begin
+	begin
+		var x : int := 10;
+		x := 2;
+	end;
+end;
+
+
+
