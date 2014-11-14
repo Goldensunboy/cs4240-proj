@@ -80,7 +80,6 @@ import com.exception.NameSpaceConflictException;
   public static final String VAR_NAMESPACE = "varNameSpace";
   public static final String TYPE_NAMESPACE = "typeNameSpace";
   public static final String FUNCTION_NAMESPACE = "functionNameSpace";
-  private static int ANDREW = -1;
   private void putVariableAttributeMap(List<String> variableNameList, String typeName, 
            TypeAttribute typeAttribute, String declaringFunctionName) {
     Scope currScope = symbolTableManager.getCurrentScope();
@@ -252,7 +251,9 @@ afterBegin[String myFunctionName, String typeName, TypeAttribute returnTypeAttri
 :
   myKey_begin=key_begin 
   {
+    int scopeId = symbolTableManager.getOverallScopeId();
     for(VariableAttribute attribute : $funcDeclaration::parameterValueList) {
+      attribute.setScopeId(scopeId);
       attributeMap.put(attribute.getVariableName(), attribute);
     }
   }
@@ -817,7 +818,7 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
           exceptionHandler.handleException(myReturnValue, customMessage, null, null, AttributeCastException.class);
         }
 		    IRList.addFirst("return, " + $myReturnValue.exp +
-		      (ANDREW == -1 ? "" : "$" + ANDREW));
+		      (hasScopeId(mrv_varAttr) ? "$" + mrv_varAttr.getScopeId() : ""));
 		    symbolTableManager.setCurrentScopeReturnType(actualReturnType);
 		  }
 		}

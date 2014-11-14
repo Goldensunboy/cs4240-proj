@@ -6,7 +6,7 @@ public class VariableAttribute implements Attribute{
 	private String variableName;
 	private String declaringFunctionName;
 	private String typeName;
-	private final int scopeId;
+	private int scopeId;
 	
 	public VariableAttribute(String variableName, String typeName, String declaringFunctionName, int scopeId) {
 		this.variableName = variableName;
@@ -17,6 +17,10 @@ public class VariableAttribute implements Attribute{
 	
 	public String getVariableName() {
 		return variableName;
+	}
+	
+	public void setScopeId(int scopeId) {
+		this.scopeId = scopeId;
 	}
 	public void setVariableName(String variableName) {
 		this.variableName = variableName;
