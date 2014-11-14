@@ -402,7 +402,7 @@ scope
       System.out.println("WARNING " + " :: line "
         + initialized.start.getLine() + " :: variable(s) \""
         + $idList.text + "\" with type \"" + $myTypeId.text
-        + "\" has not been initialized. Default to 0.");
+        + "\" has not been initialized. Default to 0\n");
       for(String varName : $varDeclaration::aggregatedMyIdList) {
         VariableAttribute attribute = null;
         try {

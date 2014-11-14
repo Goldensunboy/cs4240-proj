@@ -45,6 +45,7 @@ begin
 end;
 
 
+
 /* Using defined type for a variable */
 void function func1b() 
 begin
@@ -228,7 +229,13 @@ begin
 	end;
 end;
 
-
+void function func18b()
+begin
+	begin
+		var int_type_var2 : Int_Type := 6;
+		int_type_var2 := int_type_var2*(int_type_var2+ int_type_var2);
+	end;
+end;
 
 
 void function func20()
@@ -246,7 +253,7 @@ begin
 		if int_var < 5 then
 			int_var := 0;
 		endif;
-
+		
 		if int_var < int_var2 then
 			int_var := 0;
 		endif;
@@ -274,7 +281,7 @@ begin
 		if int_var < int_var + 5.4 then
 			int_var := 0;
 		endif;
-
+		
 		if int_var < int_var + 5 then
 			int_var := 0;
 		endif;
@@ -294,15 +301,12 @@ begin
 		if fixedpt_type_var < fixedpt_type_var then
 			fixedpt_type_var := fixedpt_type_var;
 		endif;
+		
 
 		while int_var < 5 do
 			int_var := 0;
 		enddo;
 		
-		while int_var < int_var2 do
-			int_var := 0;
-		enddo;
-
 		while fixedpt_var < 3.0 do
 			fixedpt_var := 0;
 		enddo;
@@ -310,44 +314,36 @@ begin
 		while fixedpt_var < 3 do
 			fixedpt_var := 0;
 		enddo;
-	
-		while fixedpt_var < fixedpt_var2 do
-			fixedpt_var := 0.0;
-		enddo;
 		
+
 		while fixedpt_var < int_var do
 			fixedpt_var := 0.0;
 		enddo;
+				
 		
-		while fixedpt_var < int_var + 5.4 do
-			fixedpt_var := 0.0;
-		enddo;
-
 		while int_var < int_var + 5.4 do
 			int_var := 0;
 		enddo;
 		
-		while int_var < int_var + 5 do
-			int_var := 0;
-		enddo;
-
 		while fixedpt_var < fixedpt_var2 + 5 do
-			fixedpt_var := 0.0;
-		enddo;
-
-		while fixedpt_var < fixedpt_var2 + 5.3 do
 			fixedpt_var := 0.0;
 		enddo;
 		
 		while int_type_var < int_type_var do
 			int_type_var := int_type_var;
 		enddo;
-	
+		
 		while fixedpt_type_var < fixedpt_type_var do
 			fixedpt_type_var := fixedpt_type_var;
 		enddo;
+
+
+		
+
+
 	end;
 end;
+
 
 void function func21()
 begin
@@ -364,6 +360,10 @@ begin
 		funcTest1(5);
 		funcTest1(int_var);
 		funcTest1(5 + int_var);
+		
+		int_var := funcTest1(5);
+		int_var := funcTest1(int_var);
+		int_var := funcTest1(5 + int_var);
 	
 		int_var := funcTest1(5);
 		fixedpt_var := funcTest1(5);
@@ -378,9 +378,21 @@ begin
 		funcTest2(5 + int_var);
 		
 		fixedpt_var := funcTest2(5.0);
+		fixedpt_var := funcTest2(5);
+		fixedpt_var := funcTest2(fixedpt_var);
+		fixedpt_var := funcTest2(int_var);
+		fixedpt_var := funcTest2(5.0 + fixedpt_var);
+		fixedpt_var := funcTest2(5 + fixedpt_var);
+		fixedpt_var := funcTest2(5.0 + int_var);
+		fixedpt_var := funcTest2(5 + int_var);
+		
+		fixedpt_var := funcTest2(5.0);
 		
 		funcTest3(int_type_var); 
 		funcTest3(int_type_var2);
+
+		int_type_var := funcTest3(int_type_var); 
+		int_type_var := funcTest3(int_type_var2);
 	
 		int_type_var := funcTest3(int_type_var); 
 		int_type_var2 := funcTest3(int_type_var); 
@@ -388,11 +400,15 @@ begin
 		funcTest4(fixedpt_type_var); 
 		funcTest4(fixedpt_type_var2);
 		
+		fixedpt_type_var := funcTest4(fixedpt_type_var); 
+		fixedpt_type_var := funcTest4(fixedpt_type_var2);
+		
 		fixedpt_type_var := funcTest4(fixedpt_type_var);
 		fixedpt_type_var2 := funcTest4(fixedpt_type_var);
 
 	end;
 end;
+
 
 void main()
 begin
