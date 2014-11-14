@@ -37,6 +37,8 @@ public class FunctionAttribute implements Attribute{
 		StringBuffer buffer = new StringBuffer();
 		buffer.append("Function Name: ");
 		buffer.append(functionName);
+		buffer.append(", scope ID: ");
+		buffer.append(scopeId);
 		buffer.append(", Return type name: ");
 		buffer.append(returnTypeName);
 		buffer.append(", Parameters: ");
