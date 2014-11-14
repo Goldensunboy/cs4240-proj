@@ -13,6 +13,7 @@ int function funcTest1(x:int)
 begin
      begin
           var a: int :=0;
+          a := x;
           return a;
      end;
 end;

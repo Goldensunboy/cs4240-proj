@@ -75,8 +75,12 @@ public class SymbolTableManager {
 				List<Symbol> symbolList = symbolTable.get(attribute.getKey());
 				if(symbolList == null) {
 					symbolList = attribute.getValue();
-				} else {					
-					symbolList.addAll(attribute.getValue());
+				} else {
+					for (Symbol symbol : attribute.getValue()) {
+						if(!symbolList.contains(symbol)) {
+							symbolList.add(symbol);
+						}
+					}
 				}
 				symbolTable.put(attribute.getKey(), symbolList);
 			}
