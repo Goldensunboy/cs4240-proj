@@ -664,6 +664,7 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		)
 		| KEY_IF 
 		{
+		  TypeAttribute previousReturnType = symbolTableManager.getCurrentScopeReturnType();
 		  TypeAttribute ifReturnType=VOID_TYPE_ATTRIBUTE;
 		  TypeAttribute elseReturnType=VOID_TYPE_ATTRIBUTE;
 		  makeNewScope();
@@ -703,6 +704,8 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
       goToEnclosingScope();
       if(ifReturnType.equals(elseReturnType) ){
         symbolTableManager.setCurrentScopeReturnType(ifReturnType);
+      } else {
+        symbolTableManager.setCurrentScopeReturnType(previousReturnType);
       }
       IRList.addFirst(elseLabel2 + ":");
     }
