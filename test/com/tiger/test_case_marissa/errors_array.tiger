@@ -31,7 +31,7 @@ begin
 	end;
 end;
 
-
+SKIP_S
 /*  Cannot assign arrays of different types to each other  */
 void function funcName3() 
 begin
@@ -51,6 +51,7 @@ begin
 		x := y;
 	end;
 end;
+SKIP_E
 
 
 /*  Should not be able to pass an int instead of an int array */
@@ -80,7 +81,6 @@ begin
 	end;
 end;
 
-
 /* returning an array instead of the default type */
 int function funcName10() 
 begin
@@ -89,7 +89,6 @@ begin
 		return x;
 	end;
 end;
-
 
 void main()
 begin

@@ -34,7 +34,7 @@ begin
 end; 
 
 
-
+SKIP_S
 
 /*  arrays should not be used without an index. Not type compatible */ 
 void function func7()
@@ -45,6 +45,9 @@ begin
 		i := X;
 	end;
 end;
+
+
+SKIP_E
 
 /*  (Wrong error message) arrays should not be used without an index  */ 
 void function func8()

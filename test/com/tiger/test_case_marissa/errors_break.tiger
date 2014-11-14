@@ -1,4 +1,3 @@
-SKIP_S
 int function testFunc(x:int) 
 begin
 	begin
@@ -53,7 +52,7 @@ begin
 		break;
 	end;
 end; 
-SKIP_E
+
 
 
 void main()
