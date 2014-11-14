@@ -1003,7 +1003,7 @@ binOp2[String startLabel, String endLabel] returns [String exp, TypeAttribute ty
       $myIsFunc = $s1.myIsFunc;
     } else {
       TypeAttribute s3TypeAttribute = $s3.typeAttribute;
-      String addSubtract = s2 == null ? "subtracted" : "added" ;
+      String addSubtract = s2 != null ? "subtracted" : "added" ;
       if(!s1TypeAttribute.canBeInOperationWith(s3TypeAttribute)) {
         String customMessage = $s1.text + " and " + $s3.text + " cannot be " + addSubtract;
         exceptionHandler.handleException(s1, customMessage, null, null, TypeMismatchException.class);
@@ -1080,7 +1080,7 @@ funcBinOp2[IdType idType] returns [String exp, TypeAttribute typeAttribute, bool
     } else {
       TypeAttribute s3TypeAttribute = $s3.typeAttribute;
       if($s1.myIsBool == true || $s3.myIsBool == true){
-        if(s2 != null) {
+        if(s2 == null) {
           String customMessage = "Cannot add using a boolean value";
           exceptionHandler.handleException(s1, customMessage, null, null, InvalidTypeException.class);
         } else {
@@ -1848,13 +1848,18 @@ id[IdType idType] returns [String exp, TypeAttribute typeAttribute]
       }
       TypeAttribute attribute = symbolTableManager
                               .getTypeAttributeInCurrentScope($myId.text, attributeMap);
-      try {
-        $typeAttribute = (TypeAttribute) attribute.clone();
-	    } catch (CloneNotSupportedException e) {
-	      e.printStackTrace();
-	    } catch (ClassCastException e) {
-        String customMessage = $myId.text + " can't be used as a type";
-        exceptionHandler.handleException(myId, customMessage, null, null, AttributeCastException.class);
+      if(attribute != null) {
+	      try {
+	        $typeAttribute = (TypeAttribute) attribute.clone();
+		    } catch (CloneNotSupportedException e) {
+		      e.printStackTrace();
+		    } catch (ClassCastException e) {
+	        String customMessage = $myId.text + " can't be used as a type";
+	        exceptionHandler.handleException(myId, customMessage, null, null, AttributeCastException.class);
+	      }
+      } else {
+        // Invalid type
+        $typeAttribute = new TypeAttribute();
       }
     } 
     else { 
