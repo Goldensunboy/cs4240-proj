@@ -4,18 +4,53 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
 public class NaiveRegisterAllocator implements RegisterAllocator {
+	
+	private List<String> labelList;
+	private Set<String> varSet;
+	private boolean liveMatrix[][];
+	private List<String> allocatedCode;
+	private Map<String, Integer> varMap;
+	private Map<String, GraphNode> varGraph;
+	
+	public List<String> getLabelList() {
+		return labelList;
+	}
+	
+	public Set<String> getVarSet() {
+		return varSet;
+	}
+	
+	public boolean[][] getLiveMatrix() {
+		return liveMatrix;
+	}
+	
+	public List<String> getAllocatedCode() {
+		return allocatedCode;
+	}
+	
+	public Map<String, Integer> getVarMap() {
+		return varMap;
+	}
+	
+	public Map<String, GraphNode> getVarGraph() {
+		return varGraph;
+	}
 
 	@Override
-	public List<String> allocateRegistersFromIRCode(List<String> IRList) {
+	public void analyzeRegistersFromIRCode(List<String> IRList) {
+		
+		labelList = new ArrayList<String>();
+		varSet = new HashSet<String>();
+		allocatedCode = new ArrayList<String>();
 		
 		// First pass: Enumerate the labels, and determine how many variables there are
-		List<String> labelList = new ArrayList<String>();
-		Set<String> varSet = new HashSet<String>();
 		for(String s : IRList) {
 			if(Pattern.matches(".*:", s)) {
 				// This line is a label, add it to the label list
@@ -30,16 +65,13 @@ public class NaiveRegisterAllocator implements RegisterAllocator {
 			}
 		}
 		
-		System.out.println("Labels:\n\t" + labelList);
-		System.out.println("Variables:\n\t" + varSet);
-		
 		/* Second pass: Determine how long each variable is alive
 		 * First  axis: Y, the current IR line in IRList
 		 * Second axis: X, the variable from varSet
 		 * Values in this matrix at [line][var] indicate var is live at line if true
 		 */
-		boolean liveMatrix[][] = new boolean[IRList.size()][varSet.size()];
-		HashMap<String, Integer> varMap = new HashMap<String, Integer>();
+		liveMatrix = new boolean[IRList.size()][varSet.size()];
+		varMap = new HashMap<String, Integer>();
 		int varIndex = 0;
 		for(int i = 0; i < IRList.size(); ++i) {
 			// Don't do anything to labels or parameterless return
@@ -70,9 +102,50 @@ public class NaiveRegisterAllocator implements RegisterAllocator {
 			}
 		}
 		
+		// Third pass: Construct graph
+		varGraph = new HashMap<String, GraphNode>();
+		for(String s : varMap.keySet()) {
+			varGraph.put(s, new GraphNode(s));
+		}
+		for(int i = 0; i < IRList.size(); ++i) {
+			// For each row of the live matrix, locate usage of variables
+			for(String s : varMap.keySet()) {
+				if(liveMatrix[i][varMap.get(s)]) {
+					// Locate concurrent usage of variables
+					for(String s2 : varMap.keySet()) {
+						if(liveMatrix[i][varMap.get(s2)] && !s.equals(s2)) {
+							// If two variables are alive concurrently, connect them
+							varGraph.get(s).connect(varGraph.get(s2));
+						}
+					}
+				}
+			}
+		}
 		
+		// Color the graph
+		LinkedList<GraphNode> nodeStack = new LinkedList<GraphNode>();
+		for(GraphNode n : varGraph.values()) {
+			if(!nodeStack.contains(n)) {
+				n.populateStack(nodeStack);
+			}
+		}
+		while(nodeStack.size() > 0) {
+			GraphNode n = nodeStack.pop();
+			int color = 0;
+			boolean collision;
+			do {
+				collision = false;
+				for(GraphNode g : n.getNeighbors()) {
+					if(color == g.getColor()) {
+						collision = true;
+					}
+				}
+				n.setColor(color++);
+			} while(collision);
+		}
 		
-		return null;
+		// TODO rollover
+		
+		// TODO code gen
 	}
-
 }

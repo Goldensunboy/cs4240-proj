@@ -13,9 +13,9 @@ public class TigerTestRunner {
 		String mainDeveloperName = System.getProperty("user.name");
 		
 		/******** Instructor Specific ***********/
-		mainDeveloperName = "vincent"; //TODO, added for Vincent to test our code
-		boolean irCodeOn = true;
-		boolean symbolTableOn = true;
+		//mainDeveloperName = "vincent"; //TODO, added for Vincent to test our code
+		boolean irCodeOn = false;
+		boolean symbolTableOn = false;
 		/****************************************/
 		
 		checkForThrows(mainDeveloperName);
