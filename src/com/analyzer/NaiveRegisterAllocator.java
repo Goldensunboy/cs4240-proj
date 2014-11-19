@@ -2,19 +2,23 @@ package com.analyzer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 import java.util.regex.Pattern;
+
+import com.exception.ShouldNotHappenException;
 
 public class NaiveRegisterAllocator implements RegisterAllocator {
 	
-	private List<String> labelList;
+	private List<String> IRList, labelList, annotatedIRCode;
 	private Set<String> varSet;
 	private boolean liveMatrix[][];
-	private List<String> annotatedIRCode;
 	private Map<String, Integer> varMap;
 	private Map<String, GraphNode> varGraph;
 	
@@ -43,14 +47,15 @@ public class NaiveRegisterAllocator implements RegisterAllocator {
 	}
 	
 	public NaiveRegisterAllocator(List<String> IRList) {
-		analyzeRegistersFromIRCode(IRList);
+		this.IRList = IRList;
+		analyzeRegistersFromIRCode();
 	}
 
 	/**
 	 * Annotate IRList by the naive method
 	 * @param IRList Correctly generated IR code from the parser
 	 */
-	private void analyzeRegistersFromIRCode(List<String> IRList) {
+	private void analyzeRegistersFromIRCode() {
 		
 		labelList = new ArrayList<String>();
 		varSet = new HashSet<String>();
@@ -156,6 +161,111 @@ public class NaiveRegisterAllocator implements RegisterAllocator {
 				}
 				annotatedIRCode.add(line);
 			}
+		}
+	}
+	
+	public void printRegisterAllocatorData() {
+		// Print labels found
+		System.out.println("Labels:");
+		for(String s : labelList) {
+			System.out.println("\t" + s);
+		}
+		
+		// Print variables found
+		ArrayList<String> varSetSorted =
+				new ArrayList<String>(varSet);
+		Collections.sort(varSetSorted, new Comparator<String>() {
+			public int compare(String s0, String s1) {
+				boolean s0temp = "$t".equals(s0.substring(0, 2));
+				boolean s1temp = "$t".equals(s1.substring(0, 2));
+				if(s0temp && !s1temp) {
+					return 1;
+				} else if(!s0temp && s1temp) {
+					return -1;
+				} else if(s0temp && s1temp) {
+					int L = Integer.parseInt(s0.substring(2));
+					int R = Integer.parseInt(s1.substring(2));
+					return L - R;
+				} else {
+					String[] s0parts = s0.split("$");
+					String[] s1parts = s1.split("$");
+					int cmp = s0parts[0].compareTo(s1parts[0]);
+					if(cmp != 0) {
+						return cmp;
+					} else {
+						return Integer.parseInt(s0parts[1]) - Integer.parseInt(s1parts[1]);
+					}
+				}
+			}
+		});
+		System.out.println("Variables:");
+		for(String s : varSetSorted) {
+			System.out.println("\t" + s);
+		}
+		
+		// Print variable IDs
+		System.out.println("Variable IDs:");
+		for(Entry<String, Integer> e : varMap.entrySet()) {
+			System.out.println("\t" + e);
+		}
+		
+		// Print live matrix
+		System.out.println("Live matrix:");
+		System.out.println("\tHeight: " + liveMatrix.length);
+		System.out.println("\tWidth:  " + liveMatrix[0].length);
+		
+		// Print time alive for each variable
+		int lineLength = 0;
+		int varLength = 0;
+		for(String s : IRList) {
+			lineLength = s.length() > lineLength ? s.length() : lineLength;
+		}
+		for(String s : varMap.keySet()) {
+			varLength = s.length() > varLength ? s.length() : varLength;
+		}
+		for(int i = 0; i < lineLength + 1; ++i) {
+			System.out.print(' ');
+		}
+		for(String s : varMap.keySet()) {
+			System.out.print(" " + s);
+		}
+		System.out.println();
+		for(int i = 0; i < lineLength + 1; ++i) {
+			System.out.print(' ');
+		}
+		System.out.print('+');
+		for(String s : varMap.keySet()) {
+			for(int i = 0; i < s.length() + 1; ++i) {
+				System.out.print('-');
+			}
+		}
+		System.out.println();
+		ArrayList<String> varList = new ArrayList<String>(varMap.keySet());
+		for(int i = 0; i < IRList.size(); ++i) {
+			System.out.print(IRList.get(i));
+			for(int j = 0; j < lineLength - IRList.get(i).length() + 1; ++j) {
+				System.out.print(' ');
+			}
+			System.out.print('|');
+			for(int j = 0; j < liveMatrix[0].length; ++j) {
+				System.out.print(" " + (liveMatrix[i][varMap.get(varList.get(j))] ? '1' : '0'));
+				for(int k = 0; k < varList.get(j).length() - 1; ++k) {
+					System.out.print(' ');
+				}
+			}
+			System.out.println();
+		}
+		
+		// Print graph nodes
+		System.out.println("Variable graph:");
+		for(String s : varSetSorted) {
+			System.out.println("\t" + varGraph.get(s));
+		}
+		
+		// Print annotated IR code
+		System.out.println("Annotated IR code:");
+		for(String s : annotatedIRCode) {
+			System.out.println("\t" + s);
 		}
 	}
 }
