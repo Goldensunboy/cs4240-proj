@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -15,7 +14,7 @@ public class NaiveRegisterAllocator implements RegisterAllocator {
 	private List<String> labelList;
 	private Set<String> varSet;
 	private boolean liveMatrix[][];
-	private List<String> allocatedCode;
+	private List<String> annotatedIRCode;
 	private Map<String, Integer> varMap;
 	private Map<String, GraphNode> varGraph;
 	
@@ -31,8 +30,8 @@ public class NaiveRegisterAllocator implements RegisterAllocator {
 		return liveMatrix;
 	}
 	
-	public List<String> getAllocatedCode() {
-		return allocatedCode;
+	public List<String> getAnnotatedIRCode() {
+		return annotatedIRCode;
 	}
 	
 	public Map<String, Integer> getVarMap() {
@@ -48,7 +47,7 @@ public class NaiveRegisterAllocator implements RegisterAllocator {
 		
 		labelList = new ArrayList<String>();
 		varSet = new HashSet<String>();
-		allocatedCode = new ArrayList<String>();
+		annotatedIRCode = new ArrayList<String>();
 		
 		// First pass: Enumerate the labels, and determine how many variables there are
 		for(String s : IRList) {
@@ -123,14 +122,7 @@ public class NaiveRegisterAllocator implements RegisterAllocator {
 		}
 		
 		// Color the graph
-		LinkedList<GraphNode> nodeStack = new LinkedList<GraphNode>();
 		for(GraphNode n : varGraph.values()) {
-			if(!nodeStack.contains(n)) {
-				n.populateStack(nodeStack);
-			}
-		}
-		while(nodeStack.size() > 0) {
-			GraphNode n = nodeStack.pop();
 			int color = 0;
 			boolean collision;
 			do {
@@ -144,8 +136,19 @@ public class NaiveRegisterAllocator implements RegisterAllocator {
 			} while(collision);
 		}
 		
-		// TODO rollover
-		
-		// TODO code gen
+		// Annotate variable names with register assignments
+		for(String s : IRList) {
+			String parts[] = s.split(", ");
+			if(parts.length == 1) {
+				annotatedIRCode.add(s);
+			} else {
+				String line = parts[0];
+				for(int i = 1; i < parts.length; ++i) {
+					line += ", " + parts[i] +
+							(parts[i].contains("$") ? "#r" + varGraph.get(parts[i]).getColor() : "");
+				}
+				annotatedIRCode.add(line);
+			}
+		}
 	}
 }

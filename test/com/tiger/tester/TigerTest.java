@@ -211,7 +211,7 @@ public class TigerTest {
 			// Print graph nodes
 			System.out.println("Variable graph:");
 			Map<String, GraphNode> varGraph = ((NaiveRegisterAllocator)regalloc).getVarGraph();
-			for(String s : varGraph.keySet()) {
+			for(String s : varSetSorted) {
 				System.out.println("\t" + varGraph.get(s));
 			}
 			
@@ -225,6 +225,13 @@ public class TigerTest {
 						throw new ShouldNotHappenException("Coloring collision: " + g);
 					}
 				}
+			}
+			
+			// Print annotated IR code
+			List<String> annotatedIRCode = regalloc.getAnnotatedIRCode();
+			System.out.println("Annotated IR code:");
+			for(String s : annotatedIRCode) {
+				System.out.println("\t" + s);
 			}
 			
 			break;

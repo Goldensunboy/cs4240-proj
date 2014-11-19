@@ -1,7 +1,6 @@
 package com.analyzer;
 
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.Set;
 
 public class GraphNode {
@@ -27,14 +26,6 @@ public class GraphNode {
 	}
 	public Set<GraphNode> getNeighbors() {
 		return neighbors;
-	}
-	public void populateStack(LinkedList<GraphNode> stack) {
-		stack.addFirst(this);
-		for(GraphNode n : neighbors) {
-			if(!stack.contains(n)) {
-				n.populateStack(stack);
-			}
-		}
 	}
 	public String toString() {
 		String neighborsList = "[";
