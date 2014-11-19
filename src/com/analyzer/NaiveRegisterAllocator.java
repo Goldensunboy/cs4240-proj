@@ -41,9 +41,16 @@ public class NaiveRegisterAllocator implements RegisterAllocator {
 	public Map<String, GraphNode> getVarGraph() {
 		return varGraph;
 	}
+	
+	public NaiveRegisterAllocator(List<String> IRList) {
+		analyzeRegistersFromIRCode(IRList);
+	}
 
-	@Override
-	public void analyzeRegistersFromIRCode(List<String> IRList) {
+	/**
+	 * Annotate IRList by the naive method
+	 * @param IRList Correctly generated IR code from the parser
+	 */
+	private void analyzeRegistersFromIRCode(List<String> IRList) {
 		
 		labelList = new ArrayList<String>();
 		varSet = new HashSet<String>();

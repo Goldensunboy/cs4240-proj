@@ -112,8 +112,7 @@ public class TigerTest {
 			}
 			
 			// Analyze IR code
-			RegisterAllocator regalloc = new NaiveRegisterAllocator();
-			regalloc.analyzeRegistersFromIRCode(IRList);
+			RegisterAllocator regalloc = new NaiveRegisterAllocator(IRList);
 			
 			// Print labels found
 			System.out.println("Labels:");
