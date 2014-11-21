@@ -72,12 +72,13 @@ public class TigerTest {
 					}
 					
 					System.out.println(errorReport.getErrorReportMessage());
-				} catch (IOException  e ) {
-					exceptionHandler.handleException(-1,null, null, null, UnrecoverableException.class);
-				}catch (NullPointerException e) {
-					exceptionHandler.handleException(-1,null, null, null, UnrecoverableException.class);
+//				} catch (IOException  e ) {
+//					exceptionHandler.handleException(-1,null, null, null, UnrecoverableException.class);
+//				} catch (NullPointerException e) {
+//					exceptionHandler.handleException(-1,null, null, null, UnrecoverableException.class);
 				} catch (Exception e) {
-					exceptionHandler.handleException(-1,null, null, null, UnrecoverableException.class);
+//					exceptionHandler.handleException(-1,null, null, null, UnrecoverableException.class);
+					e.printStackTrace();
 				}
 	
 				System.out.println("******************************");
@@ -108,6 +109,38 @@ public class TigerTest {
 			} else {
 				for(String s : IRList) {
 					System.out.println("\t" + s);
+				}
+			}
+			
+			// Verify that the IR code has valid variable names
+			for(String s : IRList) {
+				String parts[] = s.split(", ");
+				// Skip the operation text (i = 1 instead of 0)
+				for(int i = 1; i < parts.length; ++i) {
+					if(parts[i].length() > 1 && "$t".equals(parts[i].substring(0, 2))) {
+						// Temp var
+						if(parts[i].contains("%")) {
+							System.err.println("Type on a temp: " + parts[i]);
+							System.exit(1);
+						}
+					} else if(parts[i].contains("$")) {
+						// Variable
+						if(!parts[i].contains("%")) {
+							System.err.println("No type on variable: " + parts[i]);
+							System.exit(1);
+						}
+						String[] parts2 = parts[i].split("%");
+						if("-1".equals(parts2[1])) {
+							System.err.println("Invalid type on variable: " + parts[i]);
+							System.exit(1);
+						}
+					} else {
+						// Constant
+						if(parts[i].contains("%")) {
+							System.err.println("Type on a constant: " + parts[i]);
+							System.exit(1);
+						}
+					}
 				}
 			}
 			
