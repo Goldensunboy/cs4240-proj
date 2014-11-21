@@ -3,22 +3,15 @@ package com.tiger.tester;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
+import com.analyzer.NaiveRegisterAllocator;
+import com.analyzer.RegisterAllocator;
 import com.antlr.generated.TigerParser;
 import com.compiler.TigerCompiler;
 import com.compiler.TigerCompiler.CompilerErrorReport;
 import com.exception.ExceptionHandler;
-import com.exception.ShouldNotHappenException;
 import com.exception.UnrecoverableException;
-import com.analyzer.GraphNode;
-import com.analyzer.RegisterAllocator;
-import com.analyzer.NaiveRegisterAllocator;
 
 public class TigerTest {
 
@@ -92,17 +85,33 @@ public class TigerTest {
 	 */
 	private void runSpecificTestCases(TigerParser parser, DeveloperName developerName,
 			boolean irCodeOn, boolean symbolTableOn) {
+		List<String> IRList;
+		RegisterAllocator regalloc;
 		switch (developerName) {
 		case MARISSA:
 			break;
 		
 		case SAMAN:
+			// Get IR code
+			IRList = parser.getIRCode();
+			System.out.println("IR Code:");
+			if(IRList == null) {
+				System.out.println(IRList);
+			} else {
+				for(String s : IRList) {
+					System.out.println("\t" + s);
+				}
+			}
+			
+			// Print details about the analyzed IR code
+			regalloc = new NaiveRegisterAllocator(IRList);
+			((NaiveRegisterAllocator)regalloc).printRegisterAllocatorData();
 			break;
 			
 		case ANDREW:
 			
 			// Get IR code
-			List<String> IRList = parser.getIRCode();
+			IRList = parser.getIRCode();
 			System.out.println("IR Code:");
 			if(IRList == null) {
 				System.out.println(IRList);
@@ -145,7 +154,7 @@ public class TigerTest {
 			}
 			
 			// Print details about the analyzed IR code
-			RegisterAllocator regalloc = new NaiveRegisterAllocator(IRList);
+			regalloc = new NaiveRegisterAllocator(IRList);
 			((NaiveRegisterAllocator)regalloc).printRegisterAllocatorData();
 			
 			break;
