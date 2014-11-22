@@ -40,4 +40,33 @@ public class Register {
 		this.inUse = false;
 		this.registerName = "";
 	}
+	
+	public boolean containsVariable(){
+		return inUse;
+	}
+	
+	
+	/**
+	 * Gets register name from complicated IR string. NOTE that this is static!
+	 */
+	public static String getRegisterName(String register){
+		// TODO
+		return register;		
+	}
+	
+	/**
+	 * Gets type from register from complicated IR string. NOTE that this is static!
+	 */
+	public static Type getRegisterType(String register){
+		// TODO
+		return Type.INT;		
+	}
+	
+	/**
+	 * Gets variable name from register from complicated IR string. NOTE that this is static!
+	 */
+	public static String getRegisterVariableName(String register){
+		// TODO
+		return register;		
+	}
 }

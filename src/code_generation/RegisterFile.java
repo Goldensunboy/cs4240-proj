@@ -2,12 +2,17 @@ package code_generation;
 
 import java.util.HashMap;
 
+/*
+ * This is a singleton design class
+ */
 public class RegisterFile {
-
-	HashMap<String,Register> intRegisters = new HashMap<String, Register>();	//The 32 int registers that MIPS contains
-	HashMap<String,Register> floatRegisters = new HashMap<String, Register>(); //The 32 float registers that MIPS contains
 	
-	public RegisterFile(){
+	private static RegisterFile registerFile; 	//This is a singleton design class. Yes, register file should be private.
+
+	private HashMap<String,Register> intRegisters = new HashMap<String, Register>();	//The 32 int registers that MIPS contains
+	private HashMap<String,Register> floatRegisters = new HashMap<String, Register>(); //The 32 float registers that MIPS contains
+	
+	private RegisterFile(){
 		intRegisters.put("$zero", new Register("$zero", "$0", Register.Type.INT));	// Contains an fixed value 0.
 		
 		intRegisters.put("$v0", new Register("$v0", "$2", Register.Type.INT));		// First INT return value.
@@ -51,6 +56,27 @@ public class RegisterFile {
 			String registerName = "$f"+i;
 			floatRegisters.put(registerName, new Register(registerName, registerName, Register.Type.FLOAT));	
 		}
-		
+	}
+	
+	/**
+	 * Call this function to get the one instance if the int registers
+	 * @return
+	 */
+	static public HashMap<String,Register> getIntRegisters(){
+		if(registerFile==null){
+			registerFile = new RegisterFile();
+		}
+		return registerFile.intRegisters;
+	}
+	
+	/**
+	 * Call this function to get the one instance if the float registers
+	 * @return
+	 */
+	static public HashMap<String,Register> getFloatRegisters(){
+		if(registerFile==null){
+			registerFile = new RegisterFile();
+		}
+		return registerFile.floatRegisters;
 	}
 }
