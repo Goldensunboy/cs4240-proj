@@ -1,5 +1,6 @@
 package code_generation;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import code_generation.Register.Type;
@@ -16,75 +17,84 @@ public class Instruction {
 	 * @param instruction
 	 * @return
 	 */
-	private String decodeInstruction(String IRinstruction){
-		if(IRinstruction == null)
+	public String decodeInstruction(String IRInstruction){
+		if(IRInstruction == null)
 			return "";
-		String[] instructionParts = IRinstruction.replaceAll("\\s","").split(",");
+
+		System.out.println("IR Instruction: "+IRInstruction);
 		
-		for(String part:instructionParts){
-			System.out.println(part);
-		}
+		String[] instructionParts = IRInstruction.replaceAll("\\s","").split("\\,");
+//		for(String s: instructionParts){
+//			System.out.println(s);
+//		}
 		
 		// Handle edge cases where the length of the array is zero 
 		if(instructionParts.length==0){
 			return "";
 		}
-		
-		int startIndex = 0; 		// The beginning index of the instruction without any labels
-		while(startIndex<instructionParts.length && instructionParts[startIndex].contains(":")){
-			startIndex++;
+				
+		if(instructionParts[0].contains(":")){
+			return IRInstruction;		// The line is a label
 		}
 		
-		if(startIndex == instructionParts.length){
-			return IRinstruction;		// The line is only labels
-		}
-		
-		int instructionLength = instructionParts.length - startIndex;		// Use this to determine the length of the array minus any beginning labels
-		
-		
+
 		Type type;								// Type of instruction, either int or float
 		String MIPSInstruction = "";			// Final MIPS instruction to be returned;
-		for(int i = 0; i < startIndex; i++){			// Add labels to MIPS instruction
-			MIPSInstruction += instructionParts[i] + " ";
-		}
+
 		
-		switch(instructionParts[startIndex]){
+		switch(instructionParts[0]){
 			case "assign":
-				/*
+				/* TODO
 				 * panic (handle arrays too)
 				 * move between int and float
 				 */
+				if(instructionParts.length != 3) {
+					String message = instructionParts[0] + " must take in exactly two registers";
+					throw new BadIRInstructionException(message);
+				}
+				type = validateRegisters(instructionParts, 1, 2, 1, -1);
 				break;
-				
+//			case "load":
+//				/* TODO
+//				 * Have the instruction load from the stack
+//				 */
+//				type = validateRegisters(instructionParts, 1, 1, 1, -1);
+//				break;
+//			case "store":
+//				/* TODO
+//				 * Have the instruction store the stack
+//				 * Make sure to validate the registers
+//				 */
+//				
+//				break;
 			case "add":
 			case "sub":
 			case "mult":
 			case "div":
 			case "and":
 			case "or":
-				if(instructionLength != 4) {
-					String message = instructionParts[startIndex] + " must take in exactly three registers";
+				if(instructionParts.length != 4) {
+					String message = instructionParts[0] + " must take in exactly three registers";
 					throw new BadIRInstructionException(message);
 				}
-				type = validateRegisters(instructionParts, startIndex+1, startIndex+3, startIndex+1, -1);
+				type = validateRegisters(instructionParts, 1, 3, 3, -1);
 				if(type == Type.FLOAT)
-						if(instructionParts[startIndex].equals("and") || instructionParts[startIndex].equals("or"))
+						if(instructionParts[0].equals("and") || instructionParts[0].equals("or"))
 							throw new InvalidTypeException("Cannot preform 'and' or 'or' on floats");
 						else
-							instructionParts[startIndex]=instructionParts[startIndex]+".s";
-
-				MIPSInstruction += instructionParts[startIndex] + " ";
-				MIPSInstruction += instructionParts[startIndex+1] + ", ";
-				MIPSInstruction += instructionParts[startIndex+2] + ", ";
-				MIPSInstruction += instructionParts[startIndex+3];
+							instructionParts[0]=instructionParts[0]+".s";
+				MIPSInstruction += instructionParts[0] + " ";
+				MIPSInstruction += instructionParts[1] + ", ";
+				MIPSInstruction += instructionParts[2] + ", ";
+				MIPSInstruction += instructionParts[3];
 				
 				break;
 				
 			case "goto":
-				if(instructionLength != 2)
+				if(instructionParts.length != 2)
 					throw new BadIRInstructionException();
 				MIPSInstruction += "j";			// TODO cannot jump the full span of memory.
-				MIPSInstruction += instructionParts[startIndex+1];
+				MIPSInstruction += instructionParts[1];
 				break;
 				
 			case "breq":
@@ -93,13 +103,13 @@ public class Instruction {
 			case "brgt":
 			case "brgeq":
 			case "brleq":
-				if(instructionLength != 3) {
-					String message = instructionParts[startIndex] + " must take in exactly two registers and a label";
+				if(instructionParts.length != 4) {
+					String message = instructionParts[0] + " must take in exactly two registers and a label";
 					throw new BadIRInstructionException(message);
 				}
-				type = validateRegisters(instructionParts, startIndex+1, startIndex+2 ,startIndex+1, -1);
+				type = validateRegisters(instructionParts, 1, 2 , -1, -1);
 				if(type == Type.INT){
-					switch(instructionParts[startIndex]) {
+					switch(instructionParts[0]) {
 					case "breq":
 						MIPSInstruction += "beq ";
 						break;
@@ -113,14 +123,14 @@ public class Instruction {
 						MIPSInstruction += "ble ";
 						break;
 					default:
-						MIPSInstruction += instructionParts[startIndex];
+						MIPSInstruction += instructionParts[0];
 					}
-					MIPSInstruction += instructionParts[startIndex+1] + ", ";
-					MIPSInstruction += instructionParts[startIndex+2] + ", ";
-					MIPSInstruction += instructionParts[startIndex+3];
+					MIPSInstruction += instructionParts[1] + ", ";
+					MIPSInstruction += instructionParts[2] + ", ";
+					MIPSInstruction += instructionParts[3];
 				} 
 				else {
-					switch(instructionParts[startIndex]) {
+					switch(instructionParts[0]) {
 					case "breq":
 						MIPSInstruction += "c.eq.s ";
 						break;
@@ -140,9 +150,9 @@ public class Instruction {
 						MIPSInstruction += "c.le.s ";
 						break;
 					}
-					MIPSInstruction += instructionParts[startIndex+1] + ", ";
-					MIPSInstruction += instructionParts[startIndex+2] + "\n";
-					MIPSInstruction += "bc1t "+ instructionParts[startIndex+3];
+					MIPSInstruction += instructionParts[1] + ", ";
+					MIPSInstruction += instructionParts[2] + "\n";
+					MIPSInstruction += "bc1t "+ instructionParts[3];
 				}
 				break;
 				
@@ -168,6 +178,7 @@ public class Instruction {
 		 * int vs float vs arrayint vs arrayfloat
 		 * 
 		 */
+		System.out.println("Final MIPS Instruction: " +MIPSInstruction + "\n");
 		return MIPSInstruction;
 	}
 	
@@ -186,7 +197,7 @@ public class Instruction {
 	 * 
 	 * Does not check the skipIndex register.
 	 * 
-	 * @param instructionParts - Should not contain any IR register names, only MIPS register names
+	 * @param instructionParts - Should contain only IR register names
 	 * @param startIndex
 	 * @param endIndex - is inclusive
 	 * @param returnValue - does not check this register to see if it has been initialized. It instead adds the variable
@@ -194,11 +205,12 @@ public class Instruction {
 	 * @param skipIndex - ignores this index. If no index should be ignored, pass in a -1
 	 */
 	private Type validateRegisters(String[] instructionParts, int startIndex, int endIndex, int returnValue, int skipIndex){
-		if(startIndex > endIndex || instructionParts == null || instructionParts.length >= endIndex){
+		if(startIndex > endIndex || instructionParts == null || instructionParts.length <= endIndex){
 			throw new BadDeveloperException("Don't call checkForEmptyRegisters with bad parameters");
 		}
+		ArrayList<Integer> literalList = getLiteralIndexes(instructionParts,startIndex,endIndex,returnValue,skipIndex);
 		
-		Type type = determineInstructionRegisterType(instructionParts, startIndex, endIndex, skipIndex);
+		Type type = determineInstructionRegisterType(instructionParts, startIndex, endIndex, skipIndex, literalList);
 		
 		HashMap<String,Register> registerFile;
 		if(type == Type.INT)
@@ -206,8 +218,11 @@ public class Instruction {
 		else
 			registerFile = RegisterFile.getFloatRegisters();
 		
+		String returnValueVariableName = "";
+		String returnValueRegisterName = "";
+		
 		for(int i = startIndex; i <= endIndex; i++){
-			if(i == skipIndex)
+			if(i == skipIndex || literalList.contains(i))
 				continue;
 
 			String registerName = Register.getRegisterName(instructionParts[i]);
@@ -215,17 +230,23 @@ public class Instruction {
 							
 			Register register = registerFile.get(registerName);
 			if(register == null) 
-				throw new BadDeveloperException("Register name not found.");
+				throw new BadIRInstructionException("Register name not found.");
 			
 			// TODO cannot handle spill
-			
-			if(i == returnValue)
-				register.addVariable(variableName);
-			else
-				if(!register.containsVariable()) 
-					throw new BadDeveloperException("Register is empty. Cannot preform instruction on it");
+			if(i != returnValue){
+				if(!register.containsVariable())
+					throw new BadIRInstructionException("Register is empty. Cannot preform instruction on it.");
+			} 
+			else{
+				returnValueVariableName = variableName;
+				returnValueRegisterName = registerName;
+			}
 			
 			instructionParts[i] = registerName;
+		}
+		if(returnValue != -1){
+			Register register = registerFile.get(returnValueRegisterName);
+			register.addVariable(returnValueVariableName);
 		}
 		
 		return type;
@@ -239,17 +260,50 @@ public class Instruction {
 	 * @param skipIndex - ignores this index. If no index should be ignored, pass in a -1
 	 * @return
 	 */
-	private Type determineInstructionRegisterType(String[] instructionParts, int startIndex, int endIndex, int skipIndex){
-		if(startIndex > endIndex || instructionParts == null || instructionParts.length >= endIndex){
+	private Type determineInstructionRegisterType(String[] instructionParts, int startIndex, int endIndex, int skipIndex, ArrayList<Integer> literalList){
+		if(startIndex > endIndex || instructionParts == null || instructionParts.length <= endIndex){
 			throw new BadDeveloperException("Don't call determineInstructionRegisterType with bad parameters");
-		}
-		Type type = Register.getRegisterType(instructionParts[startIndex]);
-		for(int i = startIndex+1; i <= endIndex; i++){
-			if(i == skipIndex)
+		} 
+
+		Type type = Type.UNINITALIZED;
+		for(int i = startIndex; i <= endIndex; i++){
+			if(i == skipIndex || literalList.contains(i))
 				continue;
+			if(type == Type.UNINITALIZED)
+				type = Register.getRegisterType(instructionParts[i]);
 			if(Register.getRegisterType(instructionParts[i]) != type)
 				throw new BadIRInstructionException("IR instruction contains registers with mixed int and float types.");
 		}
 		return type;
 	}
+	/**
+	 * Returns the indexes of all the float/int literals in the instruction
+	 * 
+	 * @param instructionParts - Should contain only IR register names
+	 * @param startIndex
+	 * @param endIndex - is inclusive
+	 * @param returnValue - does not check this register to see if it has been initialized. It instead adds the variable
+	 * 			to the register. If there is no return value, pass in a -1;
+	 * @param skipIndex - ignores this index. If no index should be ignored, pass in a -1
+	 */
+	private ArrayList<Integer> getLiteralIndexes(String[] instructionParts, int startIndex, int endIndex, int returnValue, int skipIndex){
+		ArrayList<Integer> literalList = new ArrayList<Integer>();
+		for(int i = startIndex; i <= endIndex; i++){
+			if(i == skipIndex)
+				continue;
+			String registerName = Register.getRegisterName(instructionParts[i]);
+			if(registerName == null) {
+				if(i == returnValue)
+					throw new InvalidTypeException("Cannot assign values to a literal");
+				if(instructionParts[i].matches("\\d+(\\.\\d+)?")){
+					literalList.add(i);		//The value is not a register, it is an immediate offset
+				}
+				else {
+					throw new BadIRInstructionException("Value is neither a literal nor a register name");
+				}
+			}
+		}
+		return literalList;
+	}
+	
 }

@@ -1,6 +1,8 @@
 package code_generation;
 
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 /*
  * This is a singleton design class
@@ -51,10 +53,23 @@ public class RegisterFile {
 		/* Puts float register values into the hashmap.
 		 * $f0 - $f2 contain the float return values.
 		 * $f12 first float argument. $f14 second float argument.
+		 * $f4 - $f11 Caller saved
+		 * $f16 - $f31 Callee saved
 		 */
 		for(int i = 0; i < 32; i++){
 			String registerName = "$f"+i;
 			floatRegisters.put(registerName, new Register(registerName, registerName, Register.Type.FLOAT));	
+		}
+	}
+	/**
+	 * Clears all registers in both files
+	 */
+	public void clearRegisters(){
+		for(Register reg : intRegisters.values()){
+			reg.removeVariable();
+		}
+		for(Register reg : floatRegisters.values()){
+			reg.removeVariable();
 		}
 	}
 	

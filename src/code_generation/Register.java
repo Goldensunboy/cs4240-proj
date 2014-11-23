@@ -4,7 +4,7 @@ import com.exception.RegisterInUseException;
 
 public class Register {
 
-	public enum Type {INT, FLOAT};
+	public enum Type {UNINITALIZED, INT, FLOAT};
 	
 	private String registerName;
 	private String registerNumber; // Yes, this is a string because float register "numbers" contain an f
@@ -25,7 +25,7 @@ public class Register {
 	 * @param variableName
 	 */
 	public void addVariable(String variableName){
-		if(inUse)
+		if(inUse && !variableName.equals(this.variableName))
 			throw new RegisterInUseException(registerName +" currently contains "+ this.variableName
 					+ " you must first call removeVariable before you can put "+variableName+" in "+
 					registerName);
@@ -48,22 +48,27 @@ public class Register {
 	
 	/**
 	 * Gets register name from complicated IR string. NOTE that this is static!
+	 * Returns null if the input cannot be parsed for a valid register name
 	 */
 	public static String getRegisterName(String register){
-		// TODO
-		return register;		
+		String[] name = register.split("#");	
+		if(name.length == 2 && (RegisterFile.getIntRegisters().containsKey(name[1]) || RegisterFile.getFloatRegisters().containsKey(name[1])))
+			return name[1];
+		return null;
 	}
 	
 	/**
 	 * Gets type from register from complicated IR string. NOTE that this is static!
+	 * Returns null if the input cannot be parsed for a valid register name
 	 */
 	public static Type getRegisterType(String register){
 		// TODO
-		return Type.INT;		
+		return Type.INT;
 	}
 	
 	/**
 	 * Gets variable name from register from complicated IR string. NOTE that this is static!
+	 * Returns null if the input cannot be parsed for a valid register name
 	 */
 	public static String getRegisterVariableName(String register){
 		// TODO

@@ -1,11 +1,13 @@
 package code_generation;
 
-import com.exception.BadIRInstructionException;
-import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Type;
 
 public class CodeGenerator {
 	
 	public static void main(String[] args){
-		
+		Instruction instruction = new Instruction();
+		instruction.decodeInstruction("assign, x$3%i#$t0, 5");
+		instruction.decodeInstruction("assign, y$3%i#$t2, x$3%i#$t0");
+		instruction.decodeInstruction("label:");
+		instruction.decodeInstruction("add, x$3%i#$t0, y$3%i#$t2, x$3%i#$t0");
 	}
 }
