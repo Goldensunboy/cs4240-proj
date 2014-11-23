@@ -142,8 +142,8 @@ public class TigerTest {
 				for(int i = 1; i < parts.length; ++i) {
 					if(parts[i].length() > 1 && "$t".equals(parts[i].substring(0, 2))) {
 						// Temp var
-						if(parts[i].contains("%")) {
-							System.err.println("Type on a temp: " + parts[i]);
+						if(!parts[i].contains("%")) {
+							System.err.println("No type on a temp: " + parts[i]);
 							System.exit(1);
 						}
 					} else if(parts[i].contains("$")) {
@@ -174,10 +174,10 @@ public class TigerTest {
 			break;
 			
 		case VINCENT:
-			if(irCodeOn) {				
+			if(irCodeOn) {
 				runIRCode(parser);
 			}
-			if(symbolTableOn) {				
+			if(symbolTableOn) {
 				printSymbolTable(parser);
 			}
 			break;
