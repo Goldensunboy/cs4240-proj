@@ -18,7 +18,8 @@ public class NaiveRegisterAllocator implements RegisterAllocator {
 	private Set<String> varSet;
 	private boolean liveMatrix[][];
 	private Map<String, Integer> varMap;
-	private Map<String, GraphNode> varGraph;
+	private Map<String, List<String>> funcVarMap;
+	private Map<String, GraphNode> varGraphInt, varGraphFloat;
 	
 	public List<String> getLabelList() {
 		return labelList;
@@ -40,8 +41,16 @@ public class NaiveRegisterAllocator implements RegisterAllocator {
 		return varMap;
 	}
 	
-	public Map<String, GraphNode> getVarGraph() {
-		return varGraph;
+	public Map<String, List<String>> getFuncVarMap() {
+		return funcVarMap;
+	}
+	
+	public Map<String, GraphNode> getVarGraphInt() {
+		return varGraphInt;
+	}
+	
+	public Map<String, GraphNode> getVarGraphFloat() {
+		return varGraphFloat;
 	}
 	
 	public NaiveRegisterAllocator(List<String> IRList) {
@@ -58,17 +67,27 @@ public class NaiveRegisterAllocator implements RegisterAllocator {
 		labelList = new ArrayList<String>();
 		varSet = new HashSet<String>();
 		annotatedIRCode = new ArrayList<String>();
+		funcVarMap = new HashMap<String, List<String>>();
+		String currFunc = "";
 		
 		// First pass: Enumerate the labels, and determine how many variables there are
 		for(String s : IRList) {
 			if(Pattern.matches(".*:", s)) {
 				// This line is a label, add it to the label list
 				labelList.add(s);
+				if("FUNC_".equals(s.substring(0, 5))) {
+					String funcName = s.substring(5, s.length() - 1);
+					currFunc = funcName;
+					funcVarMap.put(funcName, new ArrayList<String>());
+				}
 			} else {
 				// This line is IR code, add referenced variables to variable set
 				for(String p : s.split(", ")) {
 					if(p.contains("$")) {
 						varSet.add(p);
+						if(!funcVarMap.get(currFunc).contains(p)) {
+							funcVarMap.get(currFunc).add(p);
+						}
 					}
 				}
 			}
@@ -111,10 +130,16 @@ public class NaiveRegisterAllocator implements RegisterAllocator {
 			}
 		}
 		
-		// Third pass: Construct graph
-		varGraph = new HashMap<String, GraphNode>();
+		// Third pass: Construct graphs
+		varGraphInt = new HashMap<String, GraphNode>();
+		varGraphFloat = new HashMap<String, GraphNode>();
 		for(String s : varMap.keySet()) {
-			varGraph.put(s, new GraphNode(s));
+			System.out.println(s);
+			if("f".equals(s.split("%")[1])) {
+				varGraphFloat.put(s, new GraphNode(s));
+			} else {
+				varGraphInt.put(s, new GraphNode(s));
+			}
 		}
 		for(int i = 0; i < IRList.size(); ++i) {
 			// For each row of the live matrix, locate usage of variables
@@ -122,17 +147,38 @@ public class NaiveRegisterAllocator implements RegisterAllocator {
 				if(liveMatrix[i][varMap.get(s)]) {
 					// Locate concurrent usage of variables
 					for(String s2 : varMap.keySet()) {
-						if(liveMatrix[i][varMap.get(s2)] && !s.equals(s2)) {
-							// If two variables are alive concurrently, connect them
-							varGraph.get(s).connect(varGraph.get(s2));
+						// Only if the two types are compatible (float/float, int or arr/int or arr)
+						if("f".equals(s.split("%")[1]) == "f".equals(s2.split("%")[1])) {
+							// Two variables are alive concurrently
+							if(liveMatrix[i][varMap.get(s2)] && !s.equals(s2)) {
+								// If two variables are alive concurrently, connect them
+								if("f".equals(s2.split("%")[1])) {
+									varGraphFloat.get(s).connect(varGraphFloat.get(s2));
+								} else {
+									varGraphInt.get(s).connect(varGraphInt.get(s2));
+								}
+							}
 						}
 					}
 				}
 			}
 		}
 		
-		// Color the graph
-		for(GraphNode n : varGraph.values()) {
+		// Color the graphs
+		for(GraphNode n : varGraphInt.values()) {
+			int color = 0;
+			boolean collision;
+			do {
+				collision = false;
+				for(GraphNode g : n.getNeighbors()) {
+					if(color == g.getColor()) {
+						collision = true;
+					}
+				}
+				n.setColor(color++);
+			} while(collision);
+		}
+		for(GraphNode n : varGraphFloat.values()) {
 			int color = 0;
 			boolean collision;
 			do {
@@ -154,8 +200,29 @@ public class NaiveRegisterAllocator implements RegisterAllocator {
 			} else {
 				String line = parts[0];
 				for(int i = 1; i < parts.length; ++i) {
-					line += ", " + parts[i] +
-							(parts[i].contains("$") ? "#r" + varGraph.get(parts[i]).getColor() : "");
+					String varTail = "";
+					if(parts[i].contains("$")) {
+						if(parts[i].contains("%f")) {
+							int regnum = varGraphFloat.get(parts[i]).getColor();
+							if(regnum < 8) {
+								varTail = "#f" + (regnum + 4);
+							} else if(regnum < 24) {
+								varTail = "#f" + (regnum + 8);
+							} else {
+								varTail = "#xf" + (regnum - 24);
+							}
+						} else {
+							int regnum = varGraphInt.get(parts[i]).getColor();
+							if(regnum < 10) {
+								varTail = "#t" + regnum;
+							} else if(regnum < 17) {
+								varTail = "#s" + (regnum - 10);
+							} else {
+								varTail = "#xi" + (regnum - 18);
+							}
+						}
+					}
+					line += ", " + parts[i] + varTail;
 				}
 				annotatedIRCode.add(line);
 			}
@@ -181,36 +248,32 @@ public class NaiveRegisterAllocator implements RegisterAllocator {
 				} else if(!s0temp && s1temp) {
 					return -1;
 				} else if(s0temp && s1temp) {
-					int L = Integer.parseInt(s0.substring(2));
-					int R = Integer.parseInt(s1.substring(2));
+					String s0parts[] = s0.split("%");
+					String s1parts[] = s1.split("%");
+					int L = Integer.parseInt(s0parts[0].substring(2));
+					int R = Integer.parseInt(s1parts[0].substring(2));
 					return L - R;
 				} else {
-					String[] s0parts = s0.split("$");
-					String[] s1parts = s1.split("$");
-					int cmp = s0parts[0].compareTo(s1parts[0]);
+					String s0num = s0.split("\\$|%")[1];
+					String s1num = s1.split("\\$|%")[1];
+					int cmp = s0num.compareTo(s1num);
 					if(cmp != 0) {
 						return cmp;
 					} else {
-						return Integer.parseInt(s0parts[1]) - Integer.parseInt(s1parts[1]);
+						return Integer.parseInt(s0num) - Integer.parseInt(s1num);
 					}
 				}
 			}
 		});
-		System.out.println("Variables:");
-		for(String s : varSetSorted) {
-			System.out.println("\t" + s);
-		}
-		
-		// Print variable IDs
-		System.out.println("Variable IDs:");
-		for(Entry<String, Integer> e : varMap.entrySet()) {
-			System.out.println("\t" + e);
-		}
+//		System.out.println("Variables:");
+//		for(String s : varSetSorted) {
+//			System.out.println("\t" + s);
+//		}
 		
 		// Print live matrix
 		System.out.println("Live matrix:");
-		System.out.println("\tHeight: " + liveMatrix.length);
-		System.out.println("\tWidth:  " + liveMatrix[0].length);
+//		System.out.println("\tHeight: " + liveMatrix.length);
+//		System.out.println("\tWidth:  " + liveMatrix[0].length);
 		
 		// Print time alive for each variable
 		int lineLength = 0;
@@ -257,13 +320,26 @@ public class NaiveRegisterAllocator implements RegisterAllocator {
 		// Print graph nodes
 		System.out.println("Variable graph:");
 		for(String s : varSetSorted) {
-			System.out.println("\t" + varGraph.get(s));
+			if(s.contains("%f")) {
+				System.out.println("\t" + varGraphFloat.get(s));
+			} else {
+				System.out.println("\t" + varGraphInt.get(s));
+			}
 		}
 		
 		// Print annotated IR code
 		System.out.println("Annotated IR code:");
 		for(String s : annotatedIRCode) {
 			System.out.println("\t" + s);
+		}
+		
+		// Print out the variables per function
+		System.out.println("Variables per function:");
+		for(String f : funcVarMap.keySet()) {
+			System.out.println("\t" + f + ":");
+			for(String v : funcVarMap.get(f)) {
+				System.out.println("\t\t" + v);
+			}
 		}
 	}
 }

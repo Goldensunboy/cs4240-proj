@@ -574,12 +574,12 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
                               varToString($s3.exp, hasScopeId(s3varAttr) ? s3varAttr.getScopeId() : -1,
                                 typeAtribute3));
             } else {
-              String tempIdx1 = tvf.nextTemp();
+              String tempIdx1 = tvf.nextTemp(Type.INT);
               IRList.addFirst("mult, " +
                               parts[0] + ", " +
                               s1TypeAttribute.getDim2() + ", " +
                               tempIdx1);
-              String tempIdx2 = tvf.nextTemp();
+              String tempIdx2 = tvf.nextTemp(Type.INT);
               IRList.addFirst("add, " +
                               tempIdx1 + ", " +
                               parts[1] + ", " +
@@ -613,7 +613,7 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		          exceptionHandler.handleException(s1, customMessage, null, null, AttributeCastException.class);
 		        }
             s1TypeAttribute.dereference();
-            callr_assign_to = tvf.nextTemp();
+            callr_assign_to = tvf.nextTemp(s1TypeAttribute.getType());
 		      }
 
 		      if(!s1TypeAttribute.assignableBy2(rettype)) {
@@ -638,12 +638,12 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
                               parts[0] + ", " +
                               callr_assign_to);
             } else {
-              String tempIdx1 = tvf.nextTemp();
+              String tempIdx1 = tvf.nextTemp(Type.INT);
 			        IRList.addFirst("mult, " +
 			                        parts[0] + ", " +
 			                        s1TypeAttribute.getDim2() + ", " +
 			                        tempIdx1);
-			        String tempIdx2 = tvf.nextTemp();
+			        String tempIdx2 = tvf.nextTemp(Type.INT);
 			        IRList.addFirst("add, " +
 			                        tempIdx1 + ", " +
 			                        parts[1] + ", " +
@@ -806,7 +806,7 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		    String forTop = lf.nextLabel("FOR_START");
 		    String endSubLoopFor = lf.nextLabel("FOR_END");
 		    // Store upper bound
-		    String upperBoundTemp = tvf.nextTemp();
+		    String upperBoundTemp = tvf.nextTemp(Type.INT);
 		    TypeAttribute typeAtribute8 = symbolTableManager
             .getTypeAttributeInCurrentScope(s8varAttr, attributeMap);
 		    IRList.addFirst("assign, " +
@@ -828,7 +828,7 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
 		  KEY_DO statSeq[functionName, endSubLoopFor] KEY_ENDDO
 		  {
 		    // Increment index variable and return to top
-		    String incTemp = tvf.nextTemp();
+		    String incTemp = tvf.nextTemp(Type.INT);
 		    IRList.addFirst("add, " + $s6.exp +
 		      (scopeId == -1 ? "" : "$" + scopeId + "\%i") + ", 1, " + incTemp);
 		    IRList.addFirst("assign, " + $s6.exp +
@@ -1104,7 +1104,9 @@ binOp2[String startLabel, String endLabel] returns [String exp, TypeAttribute ty
       }
       $myIsBool = false;
       $myIsFunc = false;
-      String temp = tvf.nextTemp();
+      String temp = tvf.nextTemp(s1TypeAttribute.getType() == Type.FIXPT ||
+                                 $s3.typeAttribute.getType() == Type.FIXPT ?
+                                   Type.FIXPT : Type.INT);
       VariableAttribute s1varAttr = null,
                         s3varAttr = null;
       {
@@ -1188,7 +1190,9 @@ funcBinOp2[IdType idType] returns [String exp, TypeAttribute typeAttribute, bool
         }
       }
       $myIsBool = false;
-      String temp = tvf.nextTemp();
+      String temp = tvf.nextTemp(s1TypeAttribute.getType() == Type.FIXPT ||
+                                 $s3.typeAttribute.getType() == Type.FIXPT ?
+                                   Type.FIXPT : Type.INT);
       VariableAttribute s1varAttr = null,
                         s3varAttr = null;
       {
@@ -1280,7 +1284,9 @@ binOp3[String startLabel, String endLabel] returns [String exp, TypeAttribute ty
 	      }
 	      $myIsBool = false;
 	      $myIsFunc = false;
-	      String temp = tvf.nextTemp();
+	      String temp = tvf.nextTemp(s1TypeAttribute.getType() == Type.FIXPT ||
+                                   $s3.typeAttribute.getType() == Type.FIXPT ?
+                                     Type.FIXPT : Type.INT);
 	      VariableAttribute s1varAttr = null,
 	                        s3varAttr = null;
         {
@@ -1364,7 +1370,9 @@ funcBinOp3[IdType idType] returns [String exp, TypeAttribute typeAttribute, bool
         }
       }
       $myIsBool = false;
-      String temp = tvf.nextTemp();
+      String temp = tvf.nextTemp(s1TypeAttribute.getType() == Type.FIXPT ||
+                                 $s3.typeAttribute.getType() == Type.FIXPT ?
+                                   Type.FIXPT : Type.INT);
       VariableAttribute s1varAttr = null,
                         s3varAttr = null;
       {
@@ -1454,8 +1462,18 @@ binOp4[String startLabel, String endLabel] returns [String exp, TypeAttribute ty
         $typeAttribute = s3TypeAttribute;
         $exp = $s3.exp;
       } else {
+        // Gotta return a new typeattribute that is of the type dereferenced
+        try {
+          $typeAttribute = (TypeAttribute) s3TypeAttribute.clone();
+        } catch (CloneNotSupportedException e) {
+          e.printStackTrace();
+        } catch (ClassCastException e) {
+          String customMessage = $s3.text + " can't be used as a type";
+          exceptionHandler.handleException(s3, customMessage, null, null, AttributeCastException.class);
+        }
+        $typeAttribute.dereference();
         String[] parts = $s4.exp.substring(1, $s4.exp.length() - 1).split("\\]\\[");
-        String arrTempVar = tvf.nextTemp();
+        String arrTempVar = tvf.nextTemp($typeAttribute.getType());
         VariableAttribute s3varAttr = null;
         try {
 	        s3varAttr = (VariableAttribute)symbolTableManager
@@ -1473,12 +1491,12 @@ binOp4[String startLabel, String endLabel] returns [String exp, TypeAttribute ty
                             s3TypeAttribute_var) + ", " +
                           parts[0]);
         } else {
-          String tempIdx1 = tvf.nextTemp();
+          String tempIdx1 = tvf.nextTemp(Type.INT);
 	        IRList.addFirst("mult, " +
 	                        parts[0] + ", " +
 	                        s3TypeAttribute.getDim2() + ", " +
 	                        tempIdx1);
-	        String tempIdx2 = tvf.nextTemp();
+	        String tempIdx2 = tvf.nextTemp(Type.INT);
 	        IRList.addFirst("add, " +
 	                        tempIdx1 + ", " +
 	                        parts[1] + ", " +
@@ -1490,16 +1508,6 @@ binOp4[String startLabel, String endLabel] returns [String exp, TypeAttribute ty
 	                        tempIdx2);
         }
         $exp = arrTempVar;
-        // Gotta return a new typeattribute that is of the type dereferenced
-        try {
-          $typeAttribute = (TypeAttribute) s3TypeAttribute.clone();
-        } catch (CloneNotSupportedException e) {
-          e.printStackTrace();
-        } catch (ClassCastException e) {
-          String customMessage = $s3.text + " can't be used as a type";
-          exceptionHandler.handleException(s3, customMessage, null, null, AttributeCastException.class);
-        }
-        $typeAttribute.dereference();
       }
     }
     |
@@ -1585,8 +1593,9 @@ funcBinOp4[IdType idType] returns [String exp, TypeAttribute typeAttribute, bool
     if("".equals($s4.exp)) {
       $exp = $s3.exp;
     } else {
+      $typeAttribute.dereference();
       String[] parts = $s4.exp.substring(1, $s4.exp.length() - 1).split("\\]\\[");
-      String arrTempVar = tvf.nextTemp();
+      String arrTempVar = tvf.nextTemp($typeAttribute.getType());
       VariableAttribute s3varAttr = null;
       try {
         s3varAttr = (VariableAttribute)symbolTableManager
@@ -1604,12 +1613,12 @@ funcBinOp4[IdType idType] returns [String exp, TypeAttribute typeAttribute, bool
                           s3TypeAttribute_var) + ", " +
                         parts[0]);
       } else {
-        String tempIdx1 = tvf.nextTemp();
+        String tempIdx1 = tvf.nextTemp(Type.INT);
         IRList.addFirst("mult, " +
                         parts[0] + ", " +
                         s3TypeAttribute.getDim2() + ", " +
                         tempIdx1);
-        String tempIdx2 = tvf.nextTemp();
+        String tempIdx2 = tvf.nextTemp(Type.INT);
         IRList.addFirst("add, " +
                         tempIdx1 + ", " +
                         parts[1] + ", " +
@@ -1621,7 +1630,6 @@ funcBinOp4[IdType idType] returns [String exp, TypeAttribute typeAttribute, bool
                         tempIdx2);
       }
       $exp = arrTempVar;
-      $typeAttribute.dereference();
     }
   }
 ;
@@ -1713,7 +1721,7 @@ indexExpr returns [String exp]:
     if($s3.exp == null) {
       $exp = $s1.exp;
     } else {
-      String temp = tvf.nextTemp();
+      String temp = tvf.nextTemp(Type.INT);
       VariableAttribute s1varAttr = null,
                         s3varAttr = null;
       {
@@ -1762,7 +1770,7 @@ indexExpr2 returns [String exp]:
     if($s2.exp == null) {
       $exp = $s1.exp;
     } else {
-      String temp = tvf.nextTemp();
+      String temp = tvf.nextTemp(Type.INT);
       VariableAttribute s1varAttr = null,
 	                      s2varAttr = null;
       {
