@@ -11,7 +11,7 @@ end;
 void main() 
 begin
 	begin
-		var x : ArrayInt;
+		var x : ArrayInt := 0;
 		testFunc(x);
 	end;
 end;

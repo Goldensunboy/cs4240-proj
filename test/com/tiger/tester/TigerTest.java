@@ -2,17 +2,14 @@ package com.tiger.tester;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.List;
 
 import com.analyzer.NaiveRegisterAllocator;
 import com.analyzer.RegisterAllocator;
-import com.analyzer.cfg.CFGRegisterAllocator;
 import com.antlr.generated.TigerParser;
 import com.compiler.TigerCompiler;
 import com.compiler.TigerCompiler.CompilerErrorReport;
 import com.exception.ExceptionHandler;
-import com.exception.UnrecoverableException;
 
 public class TigerTest {
 
@@ -66,13 +63,6 @@ public class TigerTest {
 					}
 					
 					System.out.println(errorReport.getErrorReportMessage());
-//				} catch (IOException  e ) {
-//					exceptionHandler.handleException(-1,null, null, null, UnrecoverableException.class);
-//				}catch (NullPointerException e) {
-//					exceptionHandler.handleException(-1,null, null, null, UnrecoverableException.class);
-//				} catch (Exception e) {
-//					exceptionHandler.handleException(-1,null, null, null, UnrecoverableException.class);
-//				}
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -92,6 +82,20 @@ public class TigerTest {
 		RegisterAllocator regalloc;
 		switch (developerName) {
 		case MARISSA:
+			// Get IR code
+			IRList = parser.getIRCode();
+			System.out.println("IR Code:");
+			if(IRList == null) {
+				System.out.println(IRList);
+			} else {
+				for(String s : IRList) {
+					System.out.println("\t" + s);
+				}
+			}
+			
+			// Print details about the analyzed IR code
+			regalloc = new NaiveRegisterAllocator(IRList);
+			((NaiveRegisterAllocator)regalloc).printRegisterAllocatorData();
 			break;
 		
 		case SAMAN:
@@ -118,6 +122,38 @@ public class TigerTest {
 				}
 			}
 			
+			// Verify that the IR code has valid variable names
+			for(String s : IRList) {
+				String parts[] = s.split(", ");
+				// Skip the operation text (i = 1 instead of 0)
+				for(int i = 1; i < parts.length; ++i) {
+					if(parts[i].length() > 1 && "$t".equals(parts[i].substring(0, 2))) {
+						// Temp var
+						if(!parts[i].contains("%")) {
+							System.err.println("No type on a temp: " + parts[i]);
+							System.exit(1);
+						}
+					} else if(parts[i].contains("$")) {
+						// Variable
+						if(!parts[i].contains("%")) {
+							System.err.println("No type on variable: " + parts[i]);
+							System.exit(1);
+						}
+						String[] parts2 = parts[i].split("%");
+						if("-1".equals(parts2[1])) {
+							System.err.println("Invalid type on variable: " + parts[i]);
+							System.exit(1);
+						}
+					} else {
+						// Constant
+						if(parts[i].contains("%")) {
+							System.err.println("Type on a constant: " + parts[i]);
+							System.exit(1);
+						}
+					}
+				}
+			}
+			
 			// Print details about the analyzed IR code
 			regalloc = new NaiveRegisterAllocator(IRList);
 			((NaiveRegisterAllocator)regalloc).printRegisterAllocatorData();
@@ -125,10 +161,10 @@ public class TigerTest {
 			break;
 			
 		case VINCENT:
-			if(irCodeOn) {				
+			if(irCodeOn) {
 				runIRCode(parser);
 			}
-			if(symbolTableOn) {				
+			if(symbolTableOn) {
 				printSymbolTable(parser);
 			}
 			break;
@@ -175,6 +211,7 @@ public class TigerTest {
 		
 		public static DeveloperName[] lookup(String preferedName) {
 			if(preferedName.equals(MARISSA.getActualName())) {
+//				return new DeveloperName[]{INDIVIDUAL};
 				return new DeveloperName[]{MARISSA};
 			} else if (preferedName.equals(SAMAN.getPreferedName())) {
 				return new DeveloperName[]{SAMAN};
