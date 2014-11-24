@@ -5,6 +5,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.analyzer.InstructionDetail;
+
 /**
  * Each basic block should know about its predecessors and successors. 
  * Also it should know about the 'in, 'use' and 'def' to be able to construct
@@ -16,7 +18,7 @@ public class BasicBlock {
 
 	private List<BasicBlock> predecessors, successors;
 	private List<String> use, def; 
-	private Set<String> in, out; 
+	private Set<String> in, out;
 	
 	public BasicBlock() {
 		predecessors = new ArrayList<>();
@@ -27,6 +29,25 @@ public class BasicBlock {
 		out = new HashSet<>();
 	}
 
+	public void addToUseDef(InstructionDetail instructionDetail) {
+		if(instructionDetail.hasRHS()) {
+			addToUse(instructionDetail);
+		}
+		if(instructionDetail.hasLHS()) {			
+			addToDef(instructionDetail);
+		}
+	}
+	
+	private void addToUse(InstructionDetail instructionDetail) {
+		for (String var : instructionDetail.getRHS()) {
+			use.add(var);
+		}
+	}
+	
+	private void addToDef(InstructionDetail instructionDetail) {
+		def.add(instructionDetail.getLHS());
+	}
+	
 	public void calculateIn() {
 		//in[I] = (out[I] - def[i]) U use[I]
 		Set<String> tempOut = out;
@@ -98,7 +119,4 @@ public class BasicBlock {
 	public void setOut(Set<String> out) {
 		this.out = out;
 	}
-	
-	
-	
 }

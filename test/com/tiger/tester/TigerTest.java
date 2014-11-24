@@ -7,6 +7,7 @@ import java.util.List;
 
 import com.analyzer.NaiveRegisterAllocator;
 import com.analyzer.RegisterAllocator;
+import com.analyzer.cfg.CFGRegisterAllocator;
 import com.antlr.generated.TigerParser;
 import com.compiler.TigerCompiler;
 import com.compiler.TigerCompiler.CompilerErrorReport;
@@ -65,14 +66,17 @@ public class TigerTest {
 					}
 					
 					System.out.println(errorReport.getErrorReportMessage());
-				} catch (IOException  e ) {
-					exceptionHandler.handleException(-1,null, null, null, UnrecoverableException.class);
-				}catch (NullPointerException e) {
-					exceptionHandler.handleException(-1,null, null, null, UnrecoverableException.class);
+//				} catch (IOException  e ) {
+//					exceptionHandler.handleException(-1,null, null, null, UnrecoverableException.class);
+//				}catch (NullPointerException e) {
+//					exceptionHandler.handleException(-1,null, null, null, UnrecoverableException.class);
+//				} catch (Exception e) {
+//					exceptionHandler.handleException(-1,null, null, null, UnrecoverableException.class);
+//				}
 				} catch (Exception e) {
-					exceptionHandler.handleException(-1,null, null, null, UnrecoverableException.class);
+					e.printStackTrace();
 				}
-	
+
 				System.out.println("******************************");
 				System.out.println();
 			}
@@ -92,19 +96,13 @@ public class TigerTest {
 		
 		case SAMAN:
 			// Get IR code
-			IRList = parser.getIRCode();
-			System.out.println("IR Code:");
-			if(IRList == null) {
-				System.out.println(IRList);
-			} else {
-				for(String s : IRList) {
-					System.out.println("\t" + s);
-				}
-			}
-			
-			// Print details about the analyzed IR code
-			regalloc = new NaiveRegisterAllocator(IRList);
-			((NaiveRegisterAllocator)regalloc).printRegisterAllocatorData();
+//			IRList = parser.getIRCode();
+			runIRCode(parser);
+//			CFGRegisterAllocator cfgRegisterAllocator = new CFGRegisterAllocator(IRList);
+//			List<String> result = cfgRegisterAllocator.getAnnotatedIRCode();
+//			for (String res : result) {
+//				System.out.println(res);
+//			}
 			break;
 			
 		case ANDREW:

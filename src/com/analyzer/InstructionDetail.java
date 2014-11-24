@@ -1,16 +1,15 @@
 package com.analyzer;
 
-import java.util.Arrays;
-
 public class InstructionDetail {
 	
 	private String[] splitedInstruction;
 	private Instructions instruction;
 	
 	public InstructionDetail(String line) {
-		this.splitedInstruction = line.split(",");
+		this.splitedInstruction = line.split(", ");
 		String instructionName = splitedInstruction[0];
 		instructionName = instructionName.matches("^LABEL*") ? Instructions.LABEL.getName() : instructionName;
+		System.out.println("----------- " +instructionName + " -----------");
 		this.instruction = Instructions.valueOf(instructionName);		
 	}
 	
@@ -19,24 +18,26 @@ public class InstructionDetail {
 	}
 	
 	public String getLHS() {
-		// index 1 is the index of LHS if exists
-		return splitedInstruction[1];
+		return instruction.getLHS(splitedInstruction);
 	}
 	
 	public String[] getRHS() {
-		int startIndex;
-		
-		if(instruction.hasLHS()) {
-			startIndex = 2;
-		} else {
-			startIndex = 1;
-		}
-		
-		return Arrays.copyOfRange(splitedInstruction, startIndex, splitedInstruction.length);
+		return instruction.getRHS(splitedInstruction);
 	}
 
+	public boolean isControlFlow() {
+		return instruction.isControlFlow();
+	}
+	
+	public String getLabel() {
+		return instruction.getLabel(splitedInstruction);
+	}
+	
 	public boolean hasLHS() {
 		return instruction.hasLHS();
 	}
 	
+	public boolean hasRHS() {
+		return instruction.hasRHS();
+	}
 }
