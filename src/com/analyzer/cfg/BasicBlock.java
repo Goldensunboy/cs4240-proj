@@ -119,4 +119,17 @@ public class BasicBlock {
 	public void setOut(Set<String> out) {
 		this.out = out;
 	}
+	
+	//TODO
+	List<InstructionDetail> instructionDetails = new ArrayList<>();
+	public void temp(InstructionDetail instructionDetail) {
+		instructionDetails.add(instructionDetail);
+	}	
+
+	public String toString() {
+		String retVal = "Successors: " + successors.size();
+		retVal += " Predecessors: " + predecessors.size()+ "\n";
+		retVal += instructionDetails;
+		return retVal;
+	}
 }

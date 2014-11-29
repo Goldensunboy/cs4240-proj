@@ -22,35 +22,110 @@ public class CFGRegisterAllocator implements RegisterAllocator{
 	
 	@Override
 	public List<String> getAnnotatedIRCode() {
-		makeBasicBlocks();
-		return null;
+		draw(makeBasicBlocks());
+		
+		// TODO - Testing, not complete
+		List<String> myRetVal = new ArrayList<>();
+		for (InstructionDetail detail : IRDetails) {
+			myRetVal.add(detail.toString());
+		}
+		return myRetVal;
 	}
 	
-	private void makeBasicBlocks() {
-		/*
-		 * TODO
-		 * we want a map here to hold on to the BasicBlock references. Once the 
-		 * label is encountered, manipulate the predecessor/successor accordingly
-		 */
+	private void draw(BasicBlock block) {
+		System.out.println(block);
+		for (BasicBlock successor : block.getsuccessors()) {
+			draw(successor);
+		}
+	}
+	
+	private BasicBlock makeBasicBlocks() {
+		
+		//BasicBlock needs to hold the first IR as the leader
 		BasicBlock currentBasicBlock = new BasicBlock();
-		Map<String, List<BasicBlock>> cfgMap = new Hashtable<>();
-		for (InstructionDetail instructionDetail : IRDetails) {
-			
-			currentBasicBlock.addToUseDef(instructionDetail);
-			
-			if (instructionDetail.isControlFlow()) {
-				List<BasicBlock> predecessorList = cfgMap.get(instructionDetail.getLabel());
-				if(predecessorList == null) {
-					predecessorList = new ArrayList<>();
-				}
-				predecessorList.add(currentBasicBlock);
+		currentBasicBlock.temp(IRDetails.get(0)); 
+		BasicBlock root = currentBasicBlock;
+		
+		Map<String, BasicBlock> labeledBasicBlocks = new Hashtable<>();
+		boolean currentJustGotCreatedFromFallThrough= false;
+		
+		for (int i=1; i<IRDetails.size(); i++) {
+			InstructionDetail instructionDetail = IRDetails.get(i);
+
+			if(instructionDetail.isControlFlow()) {
+
+				//hitting a control flow changes the basic block
+				BasicBlock newBasicBlock;
+				String label = instructionDetail.getLabel();
 				
-				BasicBlock newBasicBlock = new BasicBlock();
-				currentBasicBlock.addToSuccessors(newBasicBlock);
-				newBasicBlock.addToPredecessors(currentBasicBlock);
+				//Labels are leaders
+				if(instructionDetail.isLabel()) {
+					newBasicBlock = labelAsLeader(labeledBasicBlocks, currentBasicBlock, label, currentJustGotCreatedFromFallThrough);
+					newBasicBlock.temp(instructionDetail);
+					currentJustGotCreatedFromFallThrough = false;
+					
+				} else { //branches are not leaders
+					currentBasicBlock.temp(instructionDetail);
+					newBasicBlock = afterGotoAsLabel(labeledBasicBlocks, currentBasicBlock, label, instructionDetail.letsFallThrough());
+					currentJustGotCreatedFromFallThrough = instructionDetail.letsFallThrough();
+				}
 				
 				currentBasicBlock = newBasicBlock;
+			} else { 
+				currentBasicBlock.temp(instructionDetail);
+				currentJustGotCreatedFromFallThrough = false;
 			}
 		}
+		
+		return root;
+	}
+	
+	private BasicBlock labelAsLeader(Map<String, BasicBlock> labeledBasicBlocks, BasicBlock currentBasicBlock, 
+			String label, boolean currentJustGotCreatedFromFallThrough) {
+		
+		BasicBlock newBasicBlock = labeledBasicBlocks.get(label);
+		
+		if(newBasicBlock == null) {
+			newBasicBlock = new BasicBlock();
+			labeledBasicBlocks.put(label, newBasicBlock);
+		}
+		
+		/*
+		 * Takes care of fall-through from a branch directly to Label block
+		 * 
+		 * Swapping the currentBasicBlock with newBasicBlock
+		 */
+		if(currentJustGotCreatedFromFallThrough) {
+			for (BasicBlock predecessor : currentBasicBlock.getPredecessors()) {							
+				newBasicBlock.addToPredecessors(predecessor);
+				predecessor.getsuccessors().remove(currentBasicBlock);
+				predecessor.addToSuccessors(newBasicBlock);
+			}
+		} else {
+			currentBasicBlock.addToSuccessors(newBasicBlock);
+			newBasicBlock.addToPredecessors(currentBasicBlock);
+		}
+		
+		return newBasicBlock;
+	}
+	
+	private BasicBlock afterGotoAsLabel(Map<String, BasicBlock> labeledBasicBlocks, BasicBlock currentBasicBlock, 
+			String label, boolean letsFallThrough) {
+		
+		//add currentBasicBlock to the predecessors of the block we jump to 
+		BasicBlock labeledBasicBlock = labeledBasicBlocks.get(label);
+		if(labeledBasicBlock == null) {
+			labeledBasicBlock = new BasicBlock();
+			labeledBasicBlocks.put(label, labeledBasicBlock);						
+		}
+		labeledBasicBlock.addToPredecessors(currentBasicBlock);
+		currentBasicBlock.addToSuccessors(labeledBasicBlock);
+
+		BasicBlock newBasicBlock = new BasicBlock();
+		if(letsFallThrough) {
+			newBasicBlock.addToPredecessors(currentBasicBlock);
+			currentBasicBlock.addToSuccessors(newBasicBlock);
+		}
+		return newBasicBlock;
 	}
 }

@@ -2,10 +2,9 @@ void main()
 begin
 	begin
 		var b : int := 10;
-		b :=3;
-		begin
-			var i : int:= 0;
-			i := b;
-		end;
+		if (b = 2) then
+			b := 3;
+		endif;
+		b := 4;
 	end;
 end;

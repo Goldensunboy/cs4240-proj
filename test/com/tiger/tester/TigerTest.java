@@ -6,19 +6,19 @@ import java.util.List;
 
 import com.analyzer.NaiveRegisterAllocator;
 import com.analyzer.RegisterAllocator;
+import com.analyzer.cfg.CFGRegisterAllocator;
 import com.antlr.generated.TigerParser;
 import com.compiler.TigerCompiler;
 import com.compiler.TigerCompiler.CompilerErrorReport;
-import com.exception.ExceptionHandler;
 
 public class TigerTest {
 
-	private ExceptionHandler exceptionHandler;
+//	private ExceptionHandler exceptionHandler;
 	private String mainDeveloperName;
 	private boolean irCodeOn, symbolTableOn;
 	
 	public TigerTest(String mainDeveloperName, boolean irCodeOn, boolean symbolTableOn) {
-		this.exceptionHandler = new ExceptionHandler();
+//		this.exceptionHandler = new ExceptionHandler();
 		this.mainDeveloperName = mainDeveloperName;
 		this.irCodeOn = irCodeOn;
 		this.symbolTableOn = symbolTableOn;
@@ -99,14 +99,20 @@ public class TigerTest {
 			break;
 		
 		case SAMAN:
-			// Get IR code
-//			IRList = parser.getIRCode();
-			runIRCode(parser);
-//			CFGRegisterAllocator cfgRegisterAllocator = new CFGRegisterAllocator(IRList);
-//			List<String> result = cfgRegisterAllocator.getAnnotatedIRCode();
-//			for (String res : result) {
-//				System.out.println(res);
-//			}
+			IRList = parser.getIRCode();
+			System.out.println("==== IR Code ====");
+			for (String ir : IRList) 
+				System.out.println(ir);
+			System.out.println("=================");
+			
+			CFGRegisterAllocator allocator = new CFGRegisterAllocator(IRList);
+			List<String> IRAndRegs = allocator.getAnnotatedIRCode();
+			System.out.println("==== IR Regs ====");
+			for (String ir : IRAndRegs) 
+				System.out.println(ir);
+			System.out.println("=================");
+			
+			
 			break;
 			
 		case ANDREW:
@@ -208,7 +214,6 @@ public class TigerTest {
 		public String getPreferedName() {
 			return preferedName;
 		}
-		
 		public static DeveloperName[] lookup(String preferedName) {
 			if(preferedName.equals(MARISSA.getActualName())) {
 //				return new DeveloperName[]{INDIVIDUAL};
