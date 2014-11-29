@@ -23,11 +23,12 @@ public class Register {
 	}
 	
 	public Register(String IRregister){
-		this.registerName = getRegisterName(IRregister);
+		this.registerName = IRParser.getRegisterName(IRregister);
 		this.registerNumber = "-1";
-		this.registerType = getRegisterType(IRregister);
-		this.inUse = false;
-		this.variableName = getVariableName(IRregister);
+		this.registerType = IRParser.getRegisterType(IRregister);
+		this.inUse = true;
+		this.variableName = 
+				IRParser.getVariableName(IRregister);
 	}
 	
 	/**
@@ -76,49 +77,14 @@ public class Register {
 	
 	public static boolean isValidIRRegister(String register){
 		try {
-			getRegisterName(register);
-			getRegisterType(register);
-			getVariableName(register);
+			IRParser.getRegisterName(register);
+			IRParser.getRegisterType(register);
+			IRParser.getVariableName(register);
 		} catch (BadIRInstructionException e){
 			return false;
 		}
 		return true;
 	}
 	
-	/**
-	 * Gets register name from complicated IR string. NOTE that this is static!
-	 * Returns null if the input cannot be parsed for a valid register name
-	 */
-	public static String getRegisterName(String register){
-		String[] name = register.split("#");	
-		if(name.length == 2 && (RegisterFile.getIntRegisters().containsKey(name[1]) || RegisterFile.getFloatRegisters().containsKey(name[1])))
-			return name[1];
-		throw new BadIRInstructionException("Not a valid register");
-	}
-	
-	/**
-	 * Gets type from register from complicated IR string. NOTE that this is static!
-	 * Returns null if the input cannot be parsed for a valid register name
-	 */
-	public static RegisterType getRegisterType(String register){
-		String[] names = register.split("\\%|\\#");
-		if(names.length != 3)
-			throw new BadIRInstructionException("Not a valid register");
-		if(names[1].equals("i")||names[1].equals("a"))
-			return RegisterType.INT;
-		else if(names[1].equals("f"))
-			return RegisterType.FLOAT;
-		return RegisterType.UNINITIALIZED;
-	}
-	
-	/**
-	 * Gets variable name from register from complicated IR string. NOTE that this is static!
-	 * Returns null if the input cannot be parsed for a valid register name
-	 */
-	public static String getVariableName(String register){
-		String[] names = register.split("\\%");
-		if(names.length == 2)
-			return names[0];	
-		throw new BadIRInstructionException("Not a valid register");
-	}
+
 }

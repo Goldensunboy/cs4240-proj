@@ -65,11 +65,11 @@ public class RegisterFile {
 	/**
 	 * Clears all registers in both files
 	 */
-	public void clearRegisters(){
-		for(Register reg : intRegisters.values()){
+	public static void clearRegisters(){
+		for(Register reg : registerFile.intRegisters.values()){
 			reg.removeVariable();
 		}
-		for(Register reg : floatRegisters.values()){
+		for(Register reg : registerFile.floatRegisters.values()){
 			reg.removeVariable();
 		}
 	}

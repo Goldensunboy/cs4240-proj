@@ -4,7 +4,7 @@ import code_generation.Register.RegisterType;
 
 public class StackArgument {
 	
-	public enum Category {UNINITIALIZED, CALLER_SAVED, CALLEE_SAVED, RETURN_ADDRESS, FRAME_POINTER, PARAMETERS}; 
+	public enum Category {UNINITIALIZED, CALLER_SAVED, CALLEE_SAVED, RETURN_ADDRESS, FRAME_POINTER, PARAMETERS, LOCAL_VARIABLES}; 
 	
 	private String variableName;
 	private RegisterType variableType;
@@ -28,5 +28,19 @@ public class StackArgument {
 	
 	public String getVariableName(){
 		return variableName;
+	}
+	
+	public String toString(){
+		return "Category: "+category+",\tName: "+variableName+",\tType "+variableType+",\t Contains Value: "+containsValue;
+	}
+	
+	public boolean equals(Object o){
+		try {
+			if(((StackArgument)o).variableName.equals(variableName))
+				return true;
+			return false;
+		} catch (ClassCastException e){
+			return false;
+		}
 	}
 }
