@@ -53,7 +53,7 @@ public class InstructionDetail {
 	}
 	
 	public boolean letsFallThrough() {
-		return Instructions.GOTO.equals(instruction);
+		return !Instructions.GOTO.equals(instruction);
 	}
 	
 	public String toString() {

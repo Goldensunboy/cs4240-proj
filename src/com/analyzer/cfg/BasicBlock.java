@@ -19,7 +19,8 @@ public class BasicBlock {
 	private List<BasicBlock> predecessors, successors;
 	private List<String> use, def; 
 	private Set<String> in, out;
-	
+	public static int overallBlockId = 0;
+	private int blockId;
 	public BasicBlock() {
 		predecessors = new ArrayList<>();
 		successors = new ArrayList<>();
@@ -27,6 +28,8 @@ public class BasicBlock {
 		def = new ArrayList<>();
 		in = new HashSet<>();
 		out = new HashSet<>();
+		overallBlockId++;
+		blockId = overallBlockId;
 	}
 
 	public void addToUseDef(InstructionDetail instructionDetail) {
@@ -127,9 +130,17 @@ public class BasicBlock {
 	}	
 
 	public String toString() {
-		String retVal = "Successors: " + successors.size();
-		retVal += " Predecessors: " + predecessors.size()+ "\n";
-		retVal += instructionDetails;
+		String successorList = "Successor ID's: ";
+		for (BasicBlock successor : successors) {
+			successorList += successor.blockId + ", ";
+		}
+		String predecessorList = "Predecessor ID's: ";
+		for (BasicBlock predecessor : predecessors) {
+			predecessorList += predecessor.blockId + ", ";
+		}
+		String retVal = blockId + " || " + successorList;
+		retVal += predecessorList+ "\n";
+		retVal += instructionDetails + "\n";
 		return retVal;
 	}
 }

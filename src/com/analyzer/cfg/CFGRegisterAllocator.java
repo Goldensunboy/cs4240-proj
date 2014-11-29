@@ -47,7 +47,7 @@ public class CFGRegisterAllocator implements RegisterAllocator{
 		BasicBlock root = currentBasicBlock;
 		
 		Map<String, BasicBlock> labeledBasicBlocks = new Hashtable<>();
-		boolean currentJustGotCreatedFromFallThrough= false;
+		boolean currentJustGotCreatedFromConditional= false;
 		
 		for (int i=1; i<IRDetails.size(); i++) {
 			InstructionDetail instructionDetail = IRDetails.get(i);
@@ -60,20 +60,20 @@ public class CFGRegisterAllocator implements RegisterAllocator{
 				
 				//Labels are leaders
 				if(instructionDetail.isLabel()) {
-					newBasicBlock = labelAsLeader(labeledBasicBlocks, currentBasicBlock, label, currentJustGotCreatedFromFallThrough);
+					newBasicBlock = labelAsLeader(labeledBasicBlocks, currentBasicBlock, label, currentJustGotCreatedFromConditional);
 					newBasicBlock.temp(instructionDetail);
-					currentJustGotCreatedFromFallThrough = false;
+					currentJustGotCreatedFromConditional = false;
 					
 				} else { //branches are not leaders
 					currentBasicBlock.temp(instructionDetail);
 					newBasicBlock = afterGotoAsLabel(labeledBasicBlocks, currentBasicBlock, label, instructionDetail.letsFallThrough());
-					currentJustGotCreatedFromFallThrough = instructionDetail.letsFallThrough();
+					currentJustGotCreatedFromConditional = true;
 				}
 				
 				currentBasicBlock = newBasicBlock;
 			} else { 
 				currentBasicBlock.temp(instructionDetail);
-				currentJustGotCreatedFromFallThrough = false;
+				currentJustGotCreatedFromConditional = false;
 			}
 		}
 		
@@ -81,7 +81,7 @@ public class CFGRegisterAllocator implements RegisterAllocator{
 	}
 	
 	private BasicBlock labelAsLeader(Map<String, BasicBlock> labeledBasicBlocks, BasicBlock currentBasicBlock, 
-			String label, boolean currentJustGotCreatedFromFallThrough) {
+			String label, boolean currentJustGotCreatedFromConditional) {
 		
 		BasicBlock newBasicBlock = labeledBasicBlocks.get(label);
 		
@@ -95,7 +95,7 @@ public class CFGRegisterAllocator implements RegisterAllocator{
 		 * 
 		 * Swapping the currentBasicBlock with newBasicBlock
 		 */
-		if(currentJustGotCreatedFromFallThrough) {
+		if(currentJustGotCreatedFromConditional) {
 			for (BasicBlock predecessor : currentBasicBlock.getPredecessors()) {							
 				newBasicBlock.addToPredecessors(predecessor);
 				predecessor.getsuccessors().remove(currentBasicBlock);
