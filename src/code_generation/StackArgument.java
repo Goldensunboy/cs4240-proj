@@ -1,17 +1,17 @@
 package code_generation;
 
-import code_generation.Register.Type;
+import code_generation.Register.RegisterType;
 
 public class StackArgument {
 	
 	public enum Category {UNINITIALIZED, CALLER_SAVED, CALLEE_SAVED, RETURN_ADDRESS, FRAME_POINTER, PARAMETERS}; 
 	
 	private String variableName;
-	private Type variableType;
+	private RegisterType variableType;
 	private boolean containsValue; // True if the stack location contains a valid value
 	private Category category;
 	
-	public StackArgument(String variableName, Type variableType, boolean containsValue, Category category){
+	public StackArgument(String variableName, RegisterType variableType, boolean containsValue, Category category){
 		this.variableName = variableName;
 		this.variableType = variableType;
 		this.containsValue = containsValue;
@@ -24,5 +24,9 @@ public class StackArgument {
 	
 	public void setContainsValue(boolean containsValue){
 		this.containsValue = containsValue;
+	}
+	
+	public String getVariableName(){
+		return variableName;
 	}
 }
