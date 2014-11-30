@@ -108,7 +108,7 @@ public class CFGRegisterAllocator implements RegisterAllocator{
 		if(currentJustGotCreatedFromConditional) {
 			for (BasicBlock predecessor : currentBasicBlock.getPredecessors()) {							
 				newBasicBlock.addToPredecessors(predecessor);
-				predecessor.getsuccessors().remove(currentBasicBlock);
+				predecessor.getSuccessors().remove(currentBasicBlock);
 				predecessor.addToSuccessors(newBasicBlock);
 				
 			}

@@ -123,7 +123,7 @@ public class BasicBlock {
 		this.predecessors = predecessors;
 	}
 
-	public List<BasicBlock> getsuccessors() {
+	public List<BasicBlock> getSuccessors() {
 		return successors;
 	}
 
