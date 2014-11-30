@@ -14,14 +14,13 @@ public class StackFrame {
 	
 	ArrayList<StackArgument> stack;
 	
-	public StackFrame(){
+	private StackFrame(){
 		stack = new ArrayList<StackArgument>();
 	}
 
 	int beginOfFrame = -1;
 	
 	public static void pushOnStack(StackArgument arg){
-		// TODO see if already on the stack
 		if(stackFrame == null){
 			stackFrame = new StackFrame();
 		}
@@ -32,30 +31,7 @@ public class StackFrame {
 		
 	}
 	
-	/**
-	 * Used temporarily during testing. TODO GET RID OF THIS.
-	 * @param funcName
-	 * @return
-	 */
-	public static ArrayList<String> getFuncVariables(String funcName){
-		ArrayList<String> funcVariables = new ArrayList<String>();
-		funcVariables.add("x$3%i");
-		funcVariables.add("y$3%i");
-		funcVariables.add("z$3%f");
-		return funcVariables;
-	}
-	/**
-	 * Used temporarily during testing. TODO GET RID OF THIS.
-	 * @param funcName
-	 * @return
-	 */	
-	public static ArrayList<String> getFuncParams(String funcName){
-		ArrayList<String> funcParams = new ArrayList<String>();
-		funcParams.add("a$3%i");
-		funcParams.add("b$3%i");
-		funcParams.add("c$3%f");
-		return funcParams;
-	}
+
 	
 	/**
 	 * Builds up the stack for the current function
@@ -66,10 +42,12 @@ public class StackFrame {
 		if(stackFrame == null){
 			stackFrame = new StackFrame();
 		}
+		
+		String MIPSInstruction = "";
 		/* parameters */
-		ArrayList<String> localParameters = getFuncParams(functionName);
+		ArrayList<String> localParameters = IRParser.getFuncParams(functionName);
 		for(String parameter : localParameters){
-			pushOnStack(new StackArgument(IRParser.getParameterName(parameter), IRParser.getParameterType(parameter), false, Category.LOCAL_VARIABLES));
+			pushOnStack(new StackArgument(IRParser.getParameterName(parameter), IRParser.getParameterType(parameter), true, Category.PARAMETERS)); //TODO passes everything on the stack. only works for naive.
 		}
 		
 		stackFrame.beginOfFrame = stackFrame.stack.size(); /* points to one after the last parameter */
@@ -81,12 +59,12 @@ public class StackFrame {
 		pushOnStack(new StackArgument("$fp", RegisterType.INT, false, Category.FRAME_POINTER));
 		
 		/* local variables */
-		ArrayList<String> localVariables = getFuncVariables(functionName);
+		ArrayList<String> localVariables = IRParser.getFuncVariables(functionName);
 		for(String var : localVariables){
 			pushOnStack(new StackArgument(IRParser.getParameterName(var), IRParser.getParameterType(var), false, Category.LOCAL_VARIABLES));
 		}
 		
-		/* callee saved registers */
+		/* callee saved registers */ //TODO do not need to save all registers every time
 		for(int i = 0; i < 7; i++){
 			pushOnStack(new StackArgument("$s"+i, RegisterType.INT, false, Category.CALLEE_SAVED));
 		}
@@ -94,23 +72,34 @@ public class StackFrame {
 			pushOnStack(new StackArgument("$f"+i, RegisterType.FLOAT, false, Category.CALLEE_SAVED));
 		}
 		
-		return "addi $sp, $sp, "+ (stackFrame.stack.size()-1 + stackFrame.beginOfFrame); /* generate the instruction to move the stack pointer at the being of function */
+		MIPSInstruction += "addi $sp, $sp, "+ (4*(stackFrame.stack.size() - stackFrame.beginOfFrame)); //TODO check indexing /* generate the instruction to move the stack pointer at the being of function */
+		return MIPSInstruction;
 	}
 	
 	/**
-	 * Tears down the current stack frame
+	 * Generates code to exit the current stack frame but does NOT tear down the current frame!
+	 * To be used when hitting a return statement. However, this function does not remove the current
+	 * frame from this data structure.
 	 */
 	public static String exitCurrentFrame(){	
 
 		if(stackFrame == null){
 			stackFrame = new StackFrame();
 		}
-		stackFrame.stack.clear();
-		String instruction = "addi $sp, $sp, "+ (stackFrame.stack.size()-1 - stackFrame.beginOfFrame);
-		stackFrame.beginOfFrame = -1;
+		if(isEmpty())
+			throw new BadDeveloperException("Cannot exit empty frame");
+		String instruction = "addi $sp, $sp, "+ -(4*(stackFrame.stack.size() - stackFrame.beginOfFrame)); //TODO check indexing
 		return instruction;
 	}
 	
+	/**
+	 * Clears the current frame
+	 */
+	public static void emptyFrame(){
+		stackFrame.stack.clear();
+		stackFrame.beginOfFrame = -1;
+		
+	}
 	
 	
 	public static boolean isEmpty(){
@@ -126,7 +115,7 @@ public class StackFrame {
 		if(stackFrame == null){
 			stackFrame = new StackFrame();
 		}
-		
+		System.out.println("Current Stack Frame:");
 		for(int i = 0; i < stackFrame.stack.size(); i++){
 			System.out.println(stackFrame.stack.get(i));
 		}
@@ -146,7 +135,7 @@ public class StackFrame {
 			stackFrame = new StackFrame();
 		}
 		if(findVariable(variableName).getContainsValue()){
-			String instruction = ((isInt)?"lw ":"lwc ")+registerName+", ";
+			String instruction = ((isInt)?"lw ":"lwc1 ")+registerName+", ";
 			instruction += findVariableLocation(variableName)+"($sp)";
 			return instruction;
 		}
@@ -162,7 +151,7 @@ public class StackFrame {
 			stackFrame = new StackFrame();
 		}
 		if(findVariable(register.getVariableName()).getContainsValue()){
-			String instruction = ((register.getRegisterType() == RegisterType.INT)?"lw ":"lwc ")+register.getRegisterName()+", ";
+			String instruction = ((register.getRegisterType() == RegisterType.INT)?"lw ":"lwc1 ")+register.getRegisterName()+", ";
 			instruction += findVariableLocation(register.getVariableName())+"($sp)";
 			return instruction;
 		}
@@ -179,7 +168,7 @@ public class StackFrame {
 		if(stackFrame == null){
 			stackFrame = new StackFrame();
 		}
-		String instruction = ((isInt)?"sw ":"swc ")+registerName+", ";
+		String instruction = ((isInt)?"sw ":"swc1 ")+registerName+", ";
 		instruction += findVariableLocation(variableName)+"($sp)";
 		findVariable(variableName).setContainsValue(true);
 		return instruction;
@@ -189,14 +178,14 @@ public class StackFrame {
 		if(stackFrame == null){
 			stackFrame = new StackFrame();
 		}
-		String instruction = ((register.getRegisterType() == RegisterType.INT)?"sw ":"swc ")+register.getRegisterName()+", ";
+		String instruction = ((register.getRegisterType() == RegisterType.INT)?"sw ":"swc1 ")+register.getRegisterName()+", ";
 		instruction += findVariableLocation(register.getVariableName())+"($sp)";
 		findVariable(register.getVariableName()).setContainsValue(true);
 		return instruction;
 	}
 	
 	/**
-	 * Will be relative to the stack pointer. Will return 1 if not found.
+	 * Will be relative to the stack pointer and in BYTES. Will return 1 if not found.
 	 * @param variableName
 	 * @return
 	 */
@@ -206,7 +195,7 @@ public class StackFrame {
 		}
 		for(int i = 0; i <stackFrame.stack.size(); i++){
 			if(stackFrame.stack.get(i).getVariableName().equals(variableName)){
-				return -(stackFrame.stack.size() - i) + 1;
+				return (-(stackFrame.stack.size() - i) + 1)*4;
 			}
 		}
 		throw new BadDeveloperException("Variable is not in the stack");

@@ -54,8 +54,8 @@ public class RegisterFile {
 		/* Puts float register values into the hashmap.
 		 * $f0 - $f2 contain the float return values.
 		 * $f12 first float argument. $f14 second float argument.
-		 * $f4 - $f11 Caller saved
-		 * $f16 - $f31 Callee saved
+		 * $f4 - $f11 Callee saved
+		 * $f16 - $f31 Caller saved
 		 */
 		for(int i = 0; i < 32; i++){
 			String registerName = "$f"+i;

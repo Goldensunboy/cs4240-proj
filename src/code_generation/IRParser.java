@@ -1,10 +1,71 @@
 package code_generation;
 
+import java.util.ArrayList;
+
 import code_generation.Register.RegisterType;
 
 import com.exception.BadIRInstructionException;
 
 public class IRParser {
+	
+	/*
+	 * Would like to be able to get the local variables, parameters, if its void return and callee registers used
+	 */
+	
+	/* 
+	 * add/beq with mixed literals and registers what about type conversions?
+	 * params are all passed on stack right now
+	 * transfering float to int MIXED
+	 * Function calls
+	 * Need to handle float literals, arrays, non naive
+	 * Write to file
+	 * 
+	 * Currently we are over saving registers
+	 */
+	/**
+	 * Used temporarily during testing. TODO GET RID OF THIS.
+	 * @param funcName
+	 * @return
+	 */
+	public static ArrayList<String> getFuncVariables(String funcName){
+		ArrayList<String> funcVariables = new ArrayList<String>();
+		funcVariables.add("q$3%i");
+		funcVariables.add("r$3%i");
+		funcVariables.add("s$3%i");
+		funcVariables.add("t$3%i");
+		funcVariables.add("u$3%f");
+		funcVariables.add("v$3%f");
+		funcVariables.add("w$3%f");
+		funcVariables.add("x$3%f");
+		return funcVariables;
+	}
+	/**
+	 * Used temporarily during testing. TODO GET RID OF THIS.
+	 * @param funcName
+	 * @return
+	 */	
+	public static ArrayList<String> getFuncParams(String funcName){
+		ArrayList<String> funcParams = new ArrayList<String>();
+		funcParams.add("a$3%i");
+		funcParams.add("b$3%i");
+		funcParams.add("c$3%f");
+		return funcParams;
+	}
+	
+	/**
+	 * Used temporarily during testing. TODO GET RID OF THIS.
+	 * @param funcName
+	 * @return
+	 */	
+	public static boolean hasVoidReturn(String funcName){
+		return true;
+	}
+	
+
+	
+	
+	
+	
 	/**
 	 * Gets register name from complicated IR string. NOTE that this is static!
 	 * Returns null if the input cannot be parsed for a valid register name

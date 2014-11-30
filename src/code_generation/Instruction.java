@@ -14,6 +14,11 @@ public class Instruction {
 	
 	public enum InstructionType {UNINITIALIZED, INT, FLOAT, MIXED};
 	
+	private String currentFunctionName;
+	
+	private static Instruction instruction;
+	
+	private Instruction(){}
 	
 	/**
 	 * Turns an IR instruction into a MIPS instruction(s).
@@ -21,11 +26,16 @@ public class Instruction {
 	 * @param instruction
 	 * @return
 	 */
-	public String decodeInstruction(String IRInstruction, boolean naive){
+	public static String decodeInstruction(String IRInstruction, boolean naive){
+		
+		if(Instruction.instruction==null){
+			instruction = new Instruction();
+		}
+		
 		if(IRInstruction == null)
 			return "";
 
-		System.out.println("IR Instruction: "+IRInstruction);
+//		System.out.println("IR Instruction: "+IRInstruction);
 		
 		String[] instructionParts = IRInstruction.replaceAll("\\s","").split("\\,");
 //		for(String s: instructionParts){
@@ -43,22 +53,24 @@ public class Instruction {
 		
 		String functionIRNotation = "FUNC_";
 		if(instructionParts[0].contains(functionIRNotation)){ 		/* The line is the beginning of a function */
-			
-			MIPSInstruction = instructionParts[0];
-			
-			String functionName = instructionParts[0].substring(functionIRNotation.length());
-			functionName = functionName.replace(":", "");
-			System.out.println(functionName);
+
+			String oldFunctionName = instruction.currentFunctionName;
+			instruction.currentFunctionName = instructionParts[0].substring(functionIRNotation.length());
+			instruction.currentFunctionName = instruction.currentFunctionName.replace(":", "");
+			System.out.println(instruction.currentFunctionName);
 			
 			if(!StackFrame.isEmpty()) {
-				MIPSInstruction += "\n"+exitFunction();
+				if(IRParser.hasVoidReturn(instruction.currentFunctionName))
+					MIPSInstruction += instruction.exitFunction(oldFunctionName)+"\n";
+				StackFrame.emptyFrame();
+
 			}
-			MIPSInstruction += "\n"+enterFunction(functionName);
-					
-			StackFrame.printStackFrame();
+			if(instruction.currentFunctionName.equals("main"))
+				instructionParts[0] = "main:";
+			MIPSInstruction += instructionParts[0];			
+			MIPSInstruction += "\n"+instruction.enterFunction(instruction.currentFunctionName);
 			
-			System.out.println(MIPSInstruction);
-			System.out.println();
+//			System.out.println("Final MIPS Instruction: \n" +MIPSInstruction + "\n");
 			return MIPSInstruction;
 		}
 		
@@ -74,7 +86,7 @@ public class Instruction {
 		Register registerOP1;
 		Register registerOP2;
 
-		ArrayList<Integer> literals = getLiteralIndexes(instructionParts, 1, 2, 1, -1);
+		ArrayList<Integer> literals; 
 		
 		
 		switch(instructionParts[0]){
@@ -86,7 +98,7 @@ public class Instruction {
 					String message = instructionParts[0] + " must take in exactly two registers";
 					throw new BadIRInstructionException(message);
 				}
-				
+				literals = instruction.getLiteralIndexes(instructionParts, 1, 2, 1, -1);
 				registerAssignedTo = new Register(instructionParts[1]);
 				
 				if(naive) { 	/* If we are doing naive we will need to load/store every time */
@@ -94,7 +106,7 @@ public class Instruction {
 
 						Register registerAssignedFrom = new Register(instructionParts[2]);
 						
-						type = validateRegisters(instructionParts, 1, 2, 1, -1,naive);
+						type = instruction.validateRegisters(instructionParts, 1, 2, 1, -1,naive);
 						
 						
 						if (type != InstructionType.MIXED) {	 /* if we are assigning one register to another we will need to load and then store. */				
@@ -102,15 +114,10 @@ public class Instruction {
 							MIPSInstruction += "\n"+StackFrame.generateStore(registerAssignedTo);
 							
 						} else {	/* mixed assignments require special instructions */
-							if(registerAssignedTo.getRegisterType() == RegisterType.INT && registerAssignedFrom.getRegisterType() == RegisterType.FLOAT) {
-								
+							if (registerAssignedTo.getRegisterType() == RegisterType.FLOAT && registerAssignedFrom.getRegisterType() == RegisterType.INT) {
 								MIPSInstruction = StackFrame.generateLoad(registerAssignedFrom);
-								MIPSInstruction += "\nmfcZ "+registerAssignedTo.getRegisterName()+", "+registerAssignedFrom.getRegisterName();
-								MIPSInstruction += "\n" + StackFrame.generateStore(registerAssignedTo);
-								
-							} else if (registerAssignedTo.getRegisterType() == RegisterType.FLOAT && registerAssignedFrom.getRegisterType() == RegisterType.INT) {
-								MIPSInstruction = StackFrame.generateLoad(registerAssignedFrom);
-								MIPSInstruction += "\nmtcZ "+registerAssignedTo.getRegisterName()+", "+registerAssignedFrom.getRegisterName();
+								MIPSInstruction += "\nmtc1 "+registerAssignedFrom.getRegisterName()+", "+registerAssignedTo.getRegisterName();
+								MIPSInstruction += "\ncvt.s.w "+registerAssignedTo.getRegisterName()+", "+registerAssignedTo.getRegisterName();
 								MIPSInstruction += "\n" + StackFrame.generateStore(registerAssignedTo);
 								
 							} else {
@@ -119,15 +126,14 @@ public class Instruction {
 						}
 					} else {
 
-						type = validateRegisters(instructionParts, 1, 2, 1, 2, naive);
+						type = instruction.validateRegisters(instructionParts, 1, 2, 1, 2, naive);
+
+						boolean isInteger = !instructionParts[2].contains(".");
 						
-						MIPSInstruction = "addi "+registerAssignedTo.getRegisterName()+", $0, "+instructionParts[2]; /* Load immediate value into register 
-						 																					TODO only allows 16 bit offsets*/
+						MIPSInstruction = "li"+((isInteger)?"":".s")+" "+registerAssignedTo.getRegisterName()+", "+instructionParts[2]; 
 						MIPSInstruction += "\n"+StackFrame.generateStore(registerAssignedTo.getVariableName(), registerAssignedTo.getRegisterName(), type == InstructionType.INT);
 					}
-				} else {
-					//TODO
-				}
+				} 
 				break;
 			case "add":
 			case "sub":
@@ -141,28 +147,88 @@ public class Instruction {
 				}
 				if(naive){
 					registerAssignedTo = new Register(instructionParts[3]);
-					registerOP1 = new Register(instructionParts[1]);
-					registerOP2 = new Register(instructionParts[2]);
 					
-					type = validateRegisters(instructionParts, 1, 3, 3, -1, naive);
+					literals = instruction.getLiteralIndexes(instructionParts, 1, 3, 3, -1); 
+
 					
-					MIPSInstruction = StackFrame.generateLoad(registerOP1);
-					MIPSInstruction += "\n"+StackFrame.generateLoad(registerOP2);
-					
-					if(type == InstructionType.MIXED)
-						throw new BadIRInstructionException("Cannot call "+instructionParts[0]+" with mixed types.");
-					else if(type == InstructionType.FLOAT) {
-							if(instructionParts[0].equals("and") || instructionParts[0].equals("or"))
-								throw new InvalidTypeException("Cannot preform 'and' or 'or' on floats");
-							else {
-								instructionParts[0]=instructionParts[0]+".s";
+					if(literals.size() == 2){	/* operating on two literals */
+						
+						type = instruction.validateRegisters(instructionParts, 1, 3, 3, -1, naive);
+						
+						if(type == InstructionType.INT){
+							MIPSInstruction = "li "+instructionParts[3]+", "+(Integer.parseInt(instructionParts[1])+Integer.parseInt(instructionParts[2]));
+						} else {
+							MIPSInstruction = "li.s "+instructionParts[3]+", "+(Float.parseFloat(instructionParts[1])+Float.parseFloat(instructionParts[2]));
+						}
+						MIPSInstruction += "\n" + StackFrame.generateStore(registerAssignedTo);
+						
+					} else if (literals.size() == 1){ /* operating on a register and a literal */
+						
+						int literalIndex = literals.get(0);
+						int registerIndex = (literalIndex == 1)? 2:1;
+
+						registerOP1 = new Register(instructionParts[registerIndex]);								
+						
+						type = instruction.validateRegisters(instructionParts, 1, 3, 3, -1, naive);
+						
+						/* load literal into register */
+						if(!instructionParts[literalIndex].contains(".") && type == InstructionType.INT)
+							MIPSInstruction += "li "+"$t9, "+instructionParts[literalIndex];
+						else
+							MIPSInstruction += "li.s "+"$f31, "+Float.parseFloat(instructionParts[literalIndex]);
+
+						/* load variable into register */
+						MIPSInstruction += "\n"+StackFrame.generateLoad(registerOP1);
+						
+						/* perform operation */
+						if(type == InstructionType.INT){
+							MIPSInstruction += "\n"+instructionParts[0]+" "+registerAssignedTo.getRegisterName()+", $t9, "+registerOP1.getRegisterName();
+						} else {
+							String finalOP1Register = registerOP1.getRegisterName();
+							if(registerOP1.getRegisterType() == RegisterType.INT) { /* if int must be promoted to float, shift registers */
+								finalOP1Register = "$f30";
+								MIPSInstruction += "\nmtc1 "+ registerOP1.getRegisterName()+", "+finalOP1Register;
+								MIPSInstruction += "\ncvt.s.w "+finalOP1Register+", "+finalOP1Register;
 							}
-					} 
-					MIPSInstruction += "\n"+instructionParts[0] + " ";
-					MIPSInstruction += instructionParts[1] + ", ";
-					MIPSInstruction += instructionParts[2] + ", ";
-					MIPSInstruction += instructionParts[3];
-					MIPSInstruction += "\n" + StackFrame.generateStore(registerAssignedTo);
+							MIPSInstruction += "\n"+instructionParts[0]+".s "+ registerAssignedTo.getRegisterName() +", $f31, "+finalOP1Register;
+						}
+						MIPSInstruction += "\n" + StackFrame.generateStore(registerAssignedTo);
+
+					} else { /* operating on two registers */
+						
+						registerOP1 = new Register(instructionParts[1]);
+						registerOP2 = new Register(instructionParts[2]);
+						
+						type = instruction.validateRegisters(instructionParts, 1, 3, 3, -1, naive);
+						
+						MIPSInstruction = StackFrame.generateLoad(registerOP1);
+						MIPSInstruction += "\n"+StackFrame.generateLoad(registerOP2);
+						
+						if(type == InstructionType.MIXED) { /* mixed operands */
+							
+							String finalOP1Register = registerOP1.getRegisterName();
+							String finalOP2Register = registerOP2.getRegisterName();
+							
+							if(registerOP1.getRegisterType() == RegisterType.INT){
+								finalOP1Register = "$f30";
+								MIPSInstruction += "\nmtc1 "+ registerOP1.getRegisterName()+", "+finalOP1Register;	
+								MIPSInstruction += "\ncvt.s.w "+finalOP1Register+", "+finalOP1Register;							
+							}
+							if(registerOP2.getRegisterType() == RegisterType.INT){
+								finalOP2Register = "$f31";
+								MIPSInstruction += "\nmtc1 "+ registerOP2.getRegisterName()+", "+finalOP2Register;
+								MIPSInstruction += "\ncvt.s.w "+finalOP2Register+", "+finalOP2Register;								
+							}
+							MIPSInstruction += "\n"+instructionParts[0] + ".s "+registerAssignedTo.getRegisterName() + ", "+finalOP1Register + ", "+finalOP2Register;
+							
+						} else { /* All float or all int operands */
+							if(type == InstructionType.FLOAT)
+									instructionParts[0]=instructionParts[0]+".s";
+							
+							MIPSInstruction += "\n"+instructionParts[0] + " "+registerAssignedTo.getRegisterName() + ", "+registerOP1.getRegisterName() + ", "+registerOP2.getRegisterName();
+						} 
+						MIPSInstruction += "\n" + StackFrame.generateStore(registerAssignedTo);
+					}	
 				}
 				break;
 				
@@ -185,68 +251,89 @@ public class Instruction {
 				}
 				if (naive) {
 
-					registerOP1 = new Register(instructionParts[1]);
-					registerOP2 = new Register(instructionParts[2]);
-					
-					type = validateRegisters(instructionParts, 1, 2 , -1, -1,naive);
-
-					MIPSInstruction = StackFrame.generateLoad(registerOP1);
-					MIPSInstruction += "\n"+StackFrame.generateLoad(registerOP2);
-					
-					if(type == InstructionType.MIXED)
-						throw new BadIRInstructionException("Cannot call "+instructionParts[0]+" with mixed types.");
-					
-					MIPSInstruction += "\n";
-					if(type == InstructionType.INT){
-						switch(instructionParts[0]) {
-						case "breq":
-							MIPSInstruction += "beq ";
-							break;
-						case "brneq":
-							MIPSInstruction += "bne ";						
-							break;
-						case "brgeq":
-							MIPSInstruction += "bge ";
-							break;
-						case "brleq":
-							MIPSInstruction += "ble ";
-							break;
-						default:
-							MIPSInstruction += instructionParts[0];
+					if(literals.size() == 2){
+						
+					} else if (literals.size() == 1){
+						
+					} else {
+						registerOP1 = new Register(instructionParts[1]);
+						registerOP2 = new Register(instructionParts[2]);
+						
+						type = instruction.validateRegisters(instructionParts, 1, 2 , -1, -1,naive);
+	
+						MIPSInstruction = StackFrame.generateLoad(registerOP1);
+						MIPSInstruction += "\n"+StackFrame.generateLoad(registerOP2);
+						
+						if(type == InstructionType.MIXED)
+							throw new BadIRInstructionException("Cannot call "+instructionParts[0]+" with mixed types.");
+						
+						MIPSInstruction += "\n";
+						if(type == InstructionType.INT){
+							switch(instructionParts[0]) {
+							case "breq":
+								MIPSInstruction += "beq ";
+								break;
+							case "brneq":
+								MIPSInstruction += "bne ";						
+								break;
+							case "brgeq":
+								MIPSInstruction += "bge ";
+								break;
+							case "brleq":
+								MIPSInstruction += "ble ";
+								break;
+							default:
+								MIPSInstruction += instructionParts[0];
+							}
+							MIPSInstruction += registerOP1.getRegisterName() + ", "+ registerOP2.getRegisterName() + ", "+ instructionParts[3];
+						} 
+						else {
+							switch(instructionParts[0]) {
+							case "breq":
+								MIPSInstruction += "c.eq.s ";
+								break;
+							case "brneq":
+								MIPSInstruction += "c.ne.s ";
+								break;
+							case "brlt":
+								MIPSInstruction += "c.lt.s ";
+								break;
+							case "brgt":
+								MIPSInstruction += "c.negt.s ";
+								break;
+							case "brgeq":
+								MIPSInstruction += "c.ge.s ";
+								break;
+							case "brleq":
+								MIPSInstruction += "c.le.s ";
+								break;
+							}
+							MIPSInstruction += registerOP1.getRegisterName() + ", "+ registerOP2.getRegisterName();
+							MIPSInstruction += "\nbc1t "+ instructionParts[3];
 						}
-						MIPSInstruction += instructionParts[1] + ", ";
-						MIPSInstruction += instructionParts[2] + ", ";
-						MIPSInstruction += instructionParts[3];
-					} 
-					else {
-						switch(instructionParts[0]) {
-						case "breq":
-							MIPSInstruction += "c.eq.s ";
-							break;
-						case "brneq":
-							MIPSInstruction += "c.ne.s ";
-							break;
-						case "brlt":
-							MIPSInstruction += "c.lt.s ";
-							break;
-						case "brgt":
-							MIPSInstruction += "c.negt.s ";
-							break;
-						case "brgeq":
-							MIPSInstruction += "c.ge.s ";
-							break;
-						case "brleq":
-							MIPSInstruction += "c.le.s ";
-							break;
-						}
-						MIPSInstruction += instructionParts[1] + ", ";
-						MIPSInstruction += instructionParts[2] + "\n";
-						MIPSInstruction += "bc1t "+ instructionParts[3];
 					}
 				}
 				break;
 				
 			case "return":
+				if(instructionParts.length != 2) {
+					String message = instructionParts[0] + " must take in exactly one register";
+					throw new BadIRInstructionException(message);
+				}
+				literals = instruction.getLiteralIndexes(instructionParts, 1, 1, -1, -1);
+				if(naive){
+					if(literals.isEmpty()){
+						boolean isInteger = IRParser.getRegisterType(instructionParts[1])==RegisterType.INT;
+						MIPSInstruction += StackFrame.generateLoad(IRParser.getVariableName(instructionParts[1]), (isInteger)?"$v0":"$f12", isInteger);
+
+					} else {
+						boolean isInteger = !instructionParts[1].contains(".");
+						MIPSInstruction += "li"+((isInteger)?" $v0":".s $f12")+", "+instructionParts[1];
+					}						
+					
+					MIPSInstruction += "\n"+instruction.exitFunction(instruction.currentFunctionName); /* Exits function with proper MIPS code but does not empty the stack structure in Stack Frame */
+					
+				}
 				break;
 				
 			case "call":
@@ -272,9 +359,30 @@ public class Instruction {
 			RegisterFile.clearRegisters();
 		}
 		
-		System.out.println("Final MIPS Instruction: \n" +MIPSInstruction + "\n");
+//		System.out.println("Final MIPS Instruction: \n" +MIPSInstruction + "\n");
 		return MIPSInstruction;
 	}
+	
+	/**
+	 * Converts the operand (either a int register or an int literal) to be in an int register.
+	 * Returns the instructions necessary to convert it.
+	 * When a literal must be placed in a register, it places it in the literal Register
+	 * @param operand
+	 * @param literalRegister
+	 * @return
+	 */
+	private String convertOPToIntRegister(String operand, String literalRegister){
+		if(Register.isValidIRRegister(operand)){
+			Register register = new Register(operand);
+			if(register.getRegisterType() != RegisterType.INT)
+				throw new BadDeveloperException("Cannot convert float to int");
+			return "";
+		} else {
+			return "li "+literalRegister+", "+operand;
+		}
+	}
+	
+	
 	
 	/**
 	 * Generates code for entering a function
@@ -300,7 +408,7 @@ public class Instruction {
 	 * Generates code for exiting a function
 	 * @return
 	 */
-	private String exitFunction(){
+	private String exitFunction(String functionName){
 		String MIPSInstruction = "";
 		MIPSInstruction += StackFrame.generateLoad("$fp","$fp", true);
 		MIPSInstruction += "\n"+StackFrame.generateLoad("$ra","$ra", true);
@@ -312,13 +420,24 @@ public class Instruction {
 			MIPSInstruction += "\n"+StackFrame.generateLoad("$f"+i,"$f"+i, false);
 		}
 		MIPSInstruction += "\n"+StackFrame.exitCurrentFrame();
+		MIPSInstruction += "\njr $ra";
+		
+		if(functionName.equals("main"))
+			MIPSInstruction += "\n.end "+functionName+"\n";
+		else
+			MIPSInstruction += "\n.end FUNC_"+functionName+"\n";
 		return MIPSInstruction;
 	}
 	
+	public static String closeFile(){
 
-//	private String naiveAssign(String[] instructionParts){
-//		
-//	}
+		if(Instruction.instruction==null){
+			instruction = new Instruction();
+		}
+		String MIPSInstruction = instruction.exitFunction(instruction.currentFunctionName);
+		return MIPSInstruction;
+	}
+
 	
 	/**
 	 * Figures out the register Types (int or float)
