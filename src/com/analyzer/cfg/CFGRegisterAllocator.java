@@ -10,21 +10,28 @@ import com.analyzer.InstructionDetail;
 import com.analyzer.RegisterAllocator;
 
 public class CFGRegisterAllocator implements RegisterAllocator{
-	private List<String> IRList;
-	private BasicBlock root;
 	private List<InstructionDetail> IRDetails;
 	
 	public CFGRegisterAllocator (List<String> IRList) {
-		this.IRList = IRList;
 		this.IRDetails = IRAnalyzer.analyze(IRList); 
-		root = new BasicBlock();
 	}
 	
 	@Override
 	public List<String> getAnnotatedIRCode() {
-		draw(makeBasicBlocks());
+		BasicBlock root = makeBasicBlocks();
+
+		List<String> annotateIR = new ArrayList<>();
+		while(root != null) {
+			annotateIR.addAll(root.getAnnotatedIR());
+			root = root.getNextBasicBlock();
+		}
 		
-		// TODO - Testing, not complete
+		return annotateIR;
+	}
+
+	@SuppressWarnings("unused")
+	private List<String> getIRDetailsToDraw() {
+		// TODO - for testing
 		List<String> myRetVal = new ArrayList<>();
 		for (InstructionDetail detail : IRDetails) {
 			myRetVal.add(detail.toString());
@@ -32,10 +39,12 @@ public class CFGRegisterAllocator implements RegisterAllocator{
 		return myRetVal;
 	}
 	
-	private void draw(BasicBlock block) {
-		System.out.println(block);
-		for (BasicBlock successor : block.getsuccessors()) {
-			draw(successor);
+	@SuppressWarnings("unused")
+	private void drawBlocks(BasicBlock block) {
+		//TODO - for testing
+		while(block != null) {
+			System.out.println(block);
+			block = block.getNextBasicBlock();
 		}
 	}
 	
@@ -43,7 +52,7 @@ public class CFGRegisterAllocator implements RegisterAllocator{
 		
 		//BasicBlock needs to hold the first IR as the leader
 		BasicBlock currentBasicBlock = new BasicBlock();
-		currentBasicBlock.temp(IRDetails.get(0)); 
+		currentBasicBlock.addInstructionDetail(IRDetails.get(0)); 
 		BasicBlock root = currentBasicBlock;
 		
 		Map<String, BasicBlock> labeledBasicBlocks = new Hashtable<>();
@@ -61,18 +70,19 @@ public class CFGRegisterAllocator implements RegisterAllocator{
 				//Labels are leaders
 				if(instructionDetail.isLabel()) {
 					newBasicBlock = labelAsLeader(labeledBasicBlocks, currentBasicBlock, label, currentJustGotCreatedFromConditional);
-					newBasicBlock.temp(instructionDetail);
+					newBasicBlock.addInstructionDetail(instructionDetail);
 					currentJustGotCreatedFromConditional = false;
 					
 				} else { //branches are not leaders
-					currentBasicBlock.temp(instructionDetail);
+					currentBasicBlock.addInstructionDetail(instructionDetail);
 					newBasicBlock = afterGotoAsLabel(labeledBasicBlocks, currentBasicBlock, label, instructionDetail.letsFallThrough());
 					currentJustGotCreatedFromConditional = true;
 				}
-				
+				currentBasicBlock.setNextBasicBlock(newBasicBlock);
+				newBasicBlock.setPreviousBasicBlock(currentBasicBlock);
 				currentBasicBlock = newBasicBlock;
 			} else { 
-				currentBasicBlock.temp(instructionDetail);
+				currentBasicBlock.addInstructionDetail(instructionDetail);
 				currentJustGotCreatedFromConditional = false;
 			}
 		}
@@ -100,7 +110,10 @@ public class CFGRegisterAllocator implements RegisterAllocator{
 				newBasicBlock.addToPredecessors(predecessor);
 				predecessor.getsuccessors().remove(currentBasicBlock);
 				predecessor.addToSuccessors(newBasicBlock);
+				
 			}
+			currentBasicBlock.getPreviousBasicBlock().setNextBasicBlock(newBasicBlock);
+			newBasicBlock.setPreviousBasicBlock(currentBasicBlock.getPreviousBasicBlock());
 		} else {
 			currentBasicBlock.addToSuccessors(newBasicBlock);
 			newBasicBlock.addToPredecessors(currentBasicBlock);

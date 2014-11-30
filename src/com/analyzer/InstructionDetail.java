@@ -6,8 +6,10 @@ public class InstructionDetail {
 	
 	private String[] splitedInstruction;
 	private Instructions instruction;
+	private String originalInstruction;
 	
 	public InstructionDetail(String line) {
+		this.originalInstruction = line;
 		this.splitedInstruction = line.split(", ");
 		String instructionName = splitedInstruction[0];
 		if(instructionName.matches("^LABEL.*")) {
@@ -18,6 +20,14 @@ public class InstructionDetail {
 			instructionName = Instructions.FUNC.getName();
 		}
 		this.instruction = Instructions.valueOf(instructionName.toUpperCase());
+	}
+	
+	public boolean isReturn() {
+		return Instructions.RETURN.equals(instruction);
+	}
+	
+	public String getOriginalInstruction() {
+		return originalInstruction;
 	}
 	
 	public String getInstructionName() {
