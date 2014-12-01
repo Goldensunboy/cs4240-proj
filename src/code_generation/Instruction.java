@@ -70,7 +70,9 @@ public class Instruction {
 			}
 			if(instruction.currentFunctionName.equals("main"))
 				instructionParts[0] = "main:";
-			MIPSInstruction += instruction.currentFunctionName +":";			
+			MIPSInstruction += ".ent "+instruction.currentFunctionName;
+			MIPSInstruction += "\n.globl "+instruction.currentFunctionName;
+			MIPSInstruction += "\n"+instruction.currentFunctionName +":";			
 			MIPSInstruction += "\n"+instruction.enterFunction(instruction.currentFunctionName);
 			
 //			System.out.println("Final MIPS Instruction: \n" +MIPSInstruction + "\n");
@@ -230,7 +232,7 @@ public class Instruction {
 //						MIPSInstruction += "\n" + StackFrame.generateStore(registerAssignedTo);
 //					}	
 //				}
-//				break;
+				break;
 				
 			case "goto":
 				MIPSInstruction += goTo(instructionParts);
@@ -347,7 +349,10 @@ public class Instruction {
 				break;
 			case "array_load":
 				break;
-
+			case "mtc":
+			case "cvt.s.w":
+				MIPSInstruction = IRInstruction;
+				break;
 
 		}
 		
@@ -380,7 +385,7 @@ public class Instruction {
 	private static String goTo(String[] instructionParts){
 		if(instructionParts.length != 2)
 			throw new BadIRInstructionException();
-		return "j"+instructionParts[1];			// TODO cannot jump the full span of memory.
+		return "j "+instructionParts[1];			// TODO cannot jump the full span of memory.
 	}
 	
 	private static String branch(String[] instructionParts){
@@ -440,8 +445,8 @@ public class Instruction {
 	}
 	
 	private static String returnStatement(String[] instructionParts){
-		if(instructionParts.length != 2) {
-			String message = instructionParts[0] + " must take in exactly one register";
+		if(instructionParts.length > 2) {
+			String message = instructionParts[0] + " cannot take in more than one register";
 			throw new BadIRInstructionException(message);
 		}
 		return instruction.exitFunction(instruction.currentFunctionName);
@@ -520,16 +525,16 @@ public class Instruction {
 		return MIPSInstruction;
 	}
 	
-	public static String closeFile(){
-
-		if(Instruction.instruction==null){
-			instruction = new Instruction();
-		}
-		String MIPSInstruction = instruction.exitFunction(instruction.currentFunctionName);
-		return MIPSInstruction;
-	}
-	
-	
+//	public static String closeFile(){
+//
+//		if(Instruction.instruction==null){
+//			instruction = new Instruction();
+//		}
+//		String MIPSInstruction = instruction.exitFunction(instruction.currentFunctionName);
+//		return MIPSInstruction;
+//	}
+//	
+//	
 	
 
 //	

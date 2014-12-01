@@ -30,6 +30,7 @@ public class IRParser {
 	public static ArrayList<String> getFuncVariables(String funcName){
 		ArrayList<String> funcVariables = new ArrayList<String>();
 		funcVariables.add("int_var1%i");
+		funcVariables.add("int_var2%i");
 //		funcVariables.add("q$3%i");
 //		funcVariables.add("r$3%i");
 //		funcVariables.add("s$3%i");
