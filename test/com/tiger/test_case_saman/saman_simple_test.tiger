@@ -3,10 +3,7 @@ begin
 	begin
 		var b : int := 10;
 		var myF : fixedpt := 2.0;
-		if (b = 2) then
-			b := 3;
-		endif;
-		myF := 1.0;
-		b := 4;
+		myF := b + 5.0;
+		b := b + b;
 	end;
 end;

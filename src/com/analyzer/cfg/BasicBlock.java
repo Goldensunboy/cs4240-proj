@@ -61,8 +61,11 @@ public class BasicBlock {
 			boolean isTemporaryLoad = true;
 			annotatedIR.addAll(getTemporaryLoadStoreRegisters(variablesNeedLoad, temporaryVariablesRegisterMap, isTemporaryLoad));
 			
-			annotatedIR.addAll(registerFactory.generateConversionIntToFloat(variablesNeedStore, variablesNeedLoad, temporaryVariablesRegisterMap));
-			annotatedIR.add(manageRegisters(instructionDetail, variablesRegisterMap, temporaryVariablesRegisterMap));
+			Map<String, String> registersToPromote = registerFactory.getRegistersToPromotion(variablesNeedLoad, variablesNeedStore, temporaryVariablesRegisterMap);
+			Map<String, String> promotedRegisters = registerFactory.getPromotedRegisters(registersToPromote);
+			
+			annotatedIR.addAll(registerFactory.getPromotions(registersToPromote, promotedRegisters));
+			annotatedIR.add(manageRegisters(instructionDetail, variablesRegisterMap, temporaryVariablesRegisterMap, promotedRegisters));
 			annotatedIR.addAll(getTemporaryLoadStoreRegisters(variablesNeedStore, temporaryVariablesRegisterMap, !isTemporaryLoad));
 			registerFactory.resetAvailableTemporaryRegisterIndex();
 		}
@@ -89,12 +92,17 @@ public class BasicBlock {
 		return loadsOrStores;
 	}
 	
-	private String manageRegisters(InstructionDetail instructionDetail, Map<String, String> variablesRegisterMap, Map<String, String> temporaryVariablesRegisterMap) {
+	private String manageRegisters(InstructionDetail instructionDetail, Map<String, String> variablesRegisterMap, 
+			Map<String, String> temporaryVariablesRegisterMap, Map<String, String> promotedRegisters) {
 		String[] splitedInstruction = instructionDetail.getOriginalInstruction().split(", ");
 		for(int i=0; i<splitedInstruction.length; i++) {
-			String replacement = variablesRegisterMap.get(splitedInstruction[i]);
+			String variableName = splitedInstruction[i];
+			String replacement = promotedRegisters.get(variableName);
+			if(replacement == null) {				
+				replacement = temporaryVariablesRegisterMap.get(variableName);
+			}
 			if(replacement == null) {
-				replacement = temporaryVariablesRegisterMap.get(splitedInstruction[i]);
+				replacement = variablesRegisterMap.get(variableName);
 			}
 			if(replacement != null) {
 				splitedInstruction[i] = replacement;

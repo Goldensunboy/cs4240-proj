@@ -92,16 +92,12 @@ public class RegisterFactory {
 		return registerName != null ? registerName : temporaryVariablesRegisterMap.get(variableName);
 	}
 	
-	public List<String> generateConversionIntToFloat(String[] lhsVariables, String[] rhsVariables, Map<String, String> temporaryVariablesRegisterMap) {
-		List<String> registersToPromote = getRegistersToPromote(lhsVariables, rhsVariables, temporaryVariablesRegisterMap);
-		return getPromotions(registersToPromote);
-	}
-	
-	private List<String> getRegistersToPromote(String[] lhsVariables, String[] rhsVariables, Map<String, String> temporaryVariablesRegisterMap) {
-		List<String> registersToPromote = new ArrayList<>();
+	public Map<String, String> getRegistersToPromotion(String[] rhsVariables, String[] lhsVariables, 
+			Map<String, String> temporaryVariablesRegisterMap){
+		Map<String, String> registersToPromote = new Hashtable<>();
 		
 		if(rhsVariables == null) {
-			return registersToPromote;
+			return new Hashtable<>();
 		}
 		
 		for(String variableName : rhsVariables) {
@@ -111,7 +107,7 @@ public class RegisterFactory {
 			}
 			
 			if(isIntIsh(variableName)) {				
-				registersToPromote.add(registerName);
+				registersToPromote.put(variableName, registerName);
 			}
 		}			
 		
@@ -119,24 +115,43 @@ public class RegisterFactory {
 			return registersToPromote; 
 		} else {
 			if(lhsVariables == null) {
-				return new ArrayList<>();
+				return new Hashtable<>();
 			}
 			if(isFloatIsh(lhsVariables[0])) {
 				return registersToPromote;
 			}
 		}
 		
-		return registersToPromote;
+		return new Hashtable<>();
 	}
+
+	public Map<String, String> getPromotedRegisters(Map<String, String> registersToPromote) {
+		Map<String, String> promotedRegisterMap;
+		if (registersToPromote == null || registersToPromote.size() == 0) {
+			return new Hashtable<>(); 
+		}
 		
-	private List<String> getPromotions(List<String> registersToPromote) {
+		promotedRegisterMap = new Hashtable<>();
+		for (Entry<String, String> intRegister : registersToPromote.entrySet()) {
+			promotedRegisterMap.put(intRegister.getKey(), getAvailableTemporaryRegister(IS_FLOAT));
+		}
+		
+		return promotedRegisterMap;
+
+	}
+	
+	public List<String> getPromotions(Map<String, String> registersToPromote, Map<String, String> promotedRegisters) {
 		List<String> conversionsToBeInserted = new ArrayList<>();
 		if (registersToPromote == null || registersToPromote.size() == 0) {
 			return conversionsToBeInserted; 
 		}
+
+		if(registersToPromote.size() != promotedRegisters.size()) {
+			throw new ShouldNotHappenException("Registers to promote don't match to the promoted registers");
+		}
 		
-		for (String intRegisterName : registersToPromote) {
-			conversionsToBeInserted.addAll(getConversion(intRegisterName, getAvailableTemporaryRegister(IS_FLOAT)));
+		for (String intVariableName : registersToPromote.keySet()) {
+			conversionsToBeInserted.addAll(getConversion(registersToPromote.get(intVariableName), promotedRegisters.get(intVariableName)));
 		}
 		
 		return conversionsToBeInserted;
