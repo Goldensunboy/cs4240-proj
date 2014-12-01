@@ -1,9 +1,10 @@
 void main()
 begin
 	begin
-		var b : int := 10;
-		var myF : fixedpt := 2.0;
-		myF := b + 5.0;
-		b := b + b;
+		var b : fixedpt := 10.0;
+		if (b = 2) then
+			b := 3.0;
+		endif;
+		
 	end;
 end;

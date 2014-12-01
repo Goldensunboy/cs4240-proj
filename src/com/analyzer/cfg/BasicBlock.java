@@ -26,6 +26,11 @@ public class BasicBlock {
 	public static int overallBlockId = 0;
 	private int blockId;
 	
+	private enum LOAD_STORE{
+		LOAD,
+		STORE
+	}
+	
 	public BasicBlock() {
 		instructionDetails = new ArrayList<>();
 		predecessors = new ArrayList<>();
@@ -58,15 +63,14 @@ public class BasicBlock {
 
 			Map<String, String> temporaryVariablesRegisterMap = registerFactory.createTemporaryRegisterMap(variablesNeedLoad, variablesNeedStore);  
 
-			boolean isTemporaryLoad = true;
-			annotatedIR.addAll(getTemporaryLoadStoreRegisters(variablesNeedLoad, temporaryVariablesRegisterMap, isTemporaryLoad));
+			annotatedIR.addAll(getTemporaryLoadStoreRegisters(variablesNeedLoad, temporaryVariablesRegisterMap, LOAD_STORE.LOAD));
 			
 			Map<String, String> registersToPromote = registerFactory.getRegistersToPromotion(variablesNeedLoad, variablesNeedStore, temporaryVariablesRegisterMap);
 			Map<String, String> promotedRegisters = registerFactory.getPromotedRegisters(registersToPromote);
 			
 			annotatedIR.addAll(registerFactory.getPromotions(registersToPromote, promotedRegisters));
 			annotatedIR.add(manageRegisters(instructionDetail, variablesRegisterMap, temporaryVariablesRegisterMap, promotedRegisters));
-			annotatedIR.addAll(getTemporaryLoadStoreRegisters(variablesNeedStore, temporaryVariablesRegisterMap, !isTemporaryLoad));
+			annotatedIR.addAll(getTemporaryLoadStoreRegisters(variablesNeedStore, temporaryVariablesRegisterMap, LOAD_STORE.STORE));
 			registerFactory.resetAvailableTemporaryRegisterIndex();
 		}
 		
@@ -76,12 +80,12 @@ public class BasicBlock {
 		return annotatedIR;
 	}
 	
-	private List<String> getTemporaryLoadStoreRegisters(String[] variablesNeedLoadStore, Map<String, String> temporaryVariablesRegisterMap, boolean isLoad) {
+	private List<String> getTemporaryLoadStoreRegisters(String[] variablesNeedLoadStore, Map<String, String> temporaryVariablesRegisterMap, LOAD_STORE isLoad) {
 		List<String> loadsOrStores = new ArrayList<>();
 		if(variablesNeedLoadStore != null) { 
 			for(String variableName : variablesNeedLoadStore) {
 				if(temporaryVariablesRegisterMap.containsKey(variableName)) {
-					if(isLoad) {
+					if(isLoad == LOAD_STORE.LOAD) {
 						loadsOrStores.add(generateLoad(variableName, temporaryVariablesRegisterMap.get(variableName)));					
 					} else {
 						loadsOrStores.add(generateStore(variableName, temporaryVariablesRegisterMap.get(variableName)));

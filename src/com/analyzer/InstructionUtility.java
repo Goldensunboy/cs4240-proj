@@ -26,7 +26,7 @@ public class InstructionUtility {
 	}
 	
 	public static boolean isLiteral(String variableName) {
-		return !variableName.matches(".*%");
+		return !variableName.matches(".*%.*");
 	}
 	
 	public static boolean isFloat(String variableName) {

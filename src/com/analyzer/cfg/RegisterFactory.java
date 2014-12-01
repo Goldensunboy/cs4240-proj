@@ -111,15 +111,17 @@ public class RegisterFactory {
 			}
 		}			
 		
-		if(registersToPromote.size() != rhsVariables.length) {
-			return registersToPromote; 
-		} else {
-			if(lhsVariables == null) {
-				return new Hashtable<>();
-			}
-			if(isFloatIsh(lhsVariables[0])) {
+		for(String rhsVariable : rhsVariables) {
+			if(!registersToPromote.containsKey(rhsVariable)) {				
 				return registersToPromote;
 			}
+		}
+
+		if(lhsVariables == null) {
+			return new Hashtable<>();
+		}
+		if(isFloatIsh(lhsVariables[0])) {
+			return registersToPromote;
 		}
 		
 		return new Hashtable<>();
