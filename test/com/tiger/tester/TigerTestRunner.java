@@ -14,6 +14,7 @@ public class TigerTestRunner {
 		
 		/******** Instructor Specific ***********/
 		//mainDeveloperName = "vincent"; //TODO, added for Vincent to test our code
+//		mainDeveloperName = "andrew";
 		boolean irCodeOn = false;
 		boolean symbolTableOn = false;
 		/****************************************/

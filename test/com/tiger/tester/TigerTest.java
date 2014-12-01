@@ -2,25 +2,23 @@ package com.tiger.tester;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.List;
 
 import com.analyzer.NaiveRegisterAllocator;
 import com.analyzer.RegisterAllocator;
+import com.analyzer.cfg.CFGRegisterAllocator;
 import com.antlr.generated.TigerParser;
 import com.compiler.TigerCompiler;
 import com.compiler.TigerCompiler.CompilerErrorReport;
-import com.exception.ExceptionHandler;
-import com.exception.UnrecoverableException;
 
 public class TigerTest {
 
-	private ExceptionHandler exceptionHandler;
+//	private ExceptionHandler exceptionHandler;
 	private String mainDeveloperName;
 	private boolean irCodeOn, symbolTableOn;
 	
 	public TigerTest(String mainDeveloperName, boolean irCodeOn, boolean symbolTableOn) {
-		this.exceptionHandler = new ExceptionHandler();
+//		this.exceptionHandler = new ExceptionHandler();
 		this.mainDeveloperName = mainDeveloperName;
 		this.irCodeOn = irCodeOn;
 		this.symbolTableOn = symbolTableOn;
@@ -65,15 +63,10 @@ public class TigerTest {
 					}
 					
 					System.out.println(errorReport.getErrorReportMessage());
-//				} catch (IOException  e ) {
-//					exceptionHandler.handleException(-1,null, null, null, UnrecoverableException.class);
-//				} catch (NullPointerException e) {
-//					exceptionHandler.handleException(-1,null, null, null, UnrecoverableException.class);
 				} catch (Exception e) {
-//					exceptionHandler.handleException(-1,null, null, null, UnrecoverableException.class);
 					e.printStackTrace();
 				}
-	
+
 				System.out.println("******************************");
 				System.out.println();
 			}
@@ -108,20 +101,20 @@ public class TigerTest {
 			break;
 		
 		case SAMAN:
-			// Get IR code
 			IRList = parser.getIRCode();
-			System.out.println("IR Code:");
-			if(IRList == null) {
-				System.out.println(IRList);
-			} else {
-				for(String s : IRList) {
-					System.out.println("\t" + s);
-				}
-			}
+			System.out.println("==== IR Code ====");
+			for (String ir : IRList) 
+				System.out.println(ir);
+			System.out.println("=================");
 			
-			// Print details about the analyzed IR code
-			regalloc = new NaiveRegisterAllocator(IRList);
-			((NaiveRegisterAllocator)regalloc).printRegisterAllocatorData();
+			CFGRegisterAllocator allocator = new CFGRegisterAllocator(IRList);
+			List<String> IRAndRegs = allocator.getAnnotatedIRCode();
+			System.out.println("==== IR Regs ====");
+			for (String ir : IRAndRegs) 
+				System.out.println(ir);
+			System.out.println("=================");
+			
+			
 			break;
 			
 		case ANDREW:
@@ -223,7 +216,6 @@ public class TigerTest {
 		public String getPreferedName() {
 			return preferedName;
 		}
-		
 		public static DeveloperName[] lookup(String preferedName) {
 			if(preferedName.equals(MARISSA.getActualName())) {
 //				return new DeveloperName[]{INDIVIDUAL};
