@@ -22,15 +22,15 @@ public class Register {
 		this.inUse = false;
 	}
 	
-	public Register(String IRregister){
-		this.registerName = IRParser.getRegisterName(IRregister);
-		this.registerNumber = "-1";
-		this.registerType = IRParser.getRegisterType(IRregister);
-		this.inUse = true;
-		this.variableName = 
-				IRParser.getVariableName(IRregister);
-	}
-	
+//	public Register(String IRregister){
+//		this.registerName = IRParser.getRegisterName(IRregister);
+//		this.registerNumber = "-1";
+//		this.registerType = IRParser.getRegisterType(IRregister);
+//		this.inUse = true;
+//		this.variableName = 
+//				IRParser.getVariableName(IRregister);
+//	}
+//	
 	/**
 	 * Adds variable to register. If the register already contains a variable, an exception is thrown.
 	 * @param variableName
@@ -75,16 +75,24 @@ public class Register {
 		return inUse;
 	}
 	
-	public static boolean isValidIRRegister(String register){
-		try {
-			IRParser.getRegisterName(register);
-			IRParser.getRegisterType(register);
-			IRParser.getVariableName(register);
-		} catch (BadIRInstructionException e){
-			return false;
-		}
-		return true;
+	public static RegisterType getRegisterType(String register){
+		if(RegisterFile.getIntRegisters().containsKey(register))
+			return RegisterType.INT;
+		else if(RegisterFile.getFloatRegisters().containsKey(register))
+			return RegisterType.FLOAT;
+		throw new BadDeveloperException("This isn't a register");
 	}
+	
+//	public static boolean isValidIRRegister(String register){
+//		try {
+//			IRParser.getRegisterName(register);
+//			IRParser.getRegisterType(register);
+//			IRParser.getVariableName(register);
+//		} catch (BadIRInstructionException e){
+//			return false;
+//		}
+//		return true;
+//	}
 	
 
 }

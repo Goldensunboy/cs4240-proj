@@ -89,7 +89,7 @@ public class CodeGenerator {
 	}
 	
 	private String translateInstruction(String instruction){
-		return Instruction.decodeInstruction(instruction, naive);
+		return Instruction.decodeInstruction(instruction);
 	}
 	
 	/**

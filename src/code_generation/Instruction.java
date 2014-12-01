@@ -26,7 +26,7 @@ public class Instruction {
 	 * @param instruction
 	 * @return
 	 */
-	public static String decodeInstruction(String IRInstruction, boolean naive){
+	public static String decodeInstruction(String IRInstruction){
 		
 		if(Instruction.instruction==null){
 			instruction = new Instruction();
@@ -57,17 +57,20 @@ public class Instruction {
 			String oldFunctionName = instruction.currentFunctionName;
 			instruction.currentFunctionName = instructionParts[0].substring(functionIRNotation.length());
 			instruction.currentFunctionName = instruction.currentFunctionName.replace(":", "");
-			System.out.println(instruction.currentFunctionName);
 			
 			if(!StackFrame.isEmpty()) {
-				if(IRParser.hasVoidReturn(instruction.currentFunctionName))
-					MIPSInstruction += instruction.exitFunction(oldFunctionName)+"\n";
+				if(oldFunctionName.equals("main"))
+					MIPSInstruction += "\n.end "+oldFunctionName+"\n";
+				else
+					MIPSInstruction += "\n.end FUNC_"+oldFunctionName+"\n";
+//				if(IRParser.hasVoidReturn(instruction.currentFunctionName))
+//					MIPSInstruction += instruction.exitFunction(oldFunctionName)+"\n";
 				StackFrame.emptyFrame();
 
 			}
 			if(instruction.currentFunctionName.equals("main"))
 				instructionParts[0] = "main:";
-			MIPSInstruction += instructionParts[0];			
+			MIPSInstruction += instruction.currentFunctionName +":";			
 			MIPSInstruction += "\n"+instruction.enterFunction(instruction.currentFunctionName);
 			
 //			System.out.println("Final MIPS Instruction: \n" +MIPSInstruction + "\n");
@@ -78,15 +81,15 @@ public class Instruction {
 			return IRInstruction;		/* The line is a label */
 		}
 
-		
-
-		InstructionType type;								/* Type of instruction, either int or float */
-
-		Register registerAssignedTo;			/* Java scoping is weird in switch statements */
-		Register registerOP1;
-		Register registerOP2;
-
-		ArrayList<Integer> literals; 
+//		
+//
+//		InstructionType type;								/* Type of instruction, either int or float */
+//
+//		Register registerAssignedTo;			/* Java scoping is weird in switch statements */
+//		Register registerOP1;
+//		Register registerOP2;
+//
+//		ArrayList<Integer> literals; 
 		
 		
 		switch(instructionParts[0]){
@@ -141,11 +144,7 @@ public class Instruction {
 			case "div":
 			case "and":
 			case "or":
-				if(instructionParts.length != 4) {
-					String message = instructionParts[0] + " must take in exactly three registers";
-					throw new BadIRInstructionException(message);
-				}
-				binaryOperands(instructionParts);
+				MIPSInstruction += binaryOperands(instructionParts);
 //				if(naive){
 //					registerAssignedTo = new Register(instructionParts[3]);
 //					
@@ -234,20 +233,17 @@ public class Instruction {
 //				break;
 				
 			case "goto":
-				if(instructionParts.length != 2)
-					throw new BadIRInstructionException();
-				MIPSInstruction += "j";			// TODO cannot jump the full span of memory.
-				MIPSInstruction += instructionParts[1];
+				MIPSInstruction += goTo(instructionParts);
 				break;
 			case "load":
-				// TODO
+				MIPSInstruction += load(instructionParts);
 				break;
 			case "store": 
-				// TODO
+				MIPSInstruction += store(instructionParts);
 				break;
 			case "li":
 			case "li.s":
-				//TODO
+				MIPSInstruction += loadImmediate(instructionParts);
 				break;
 			case "breq":
 			case "brneq":
@@ -255,10 +251,7 @@ public class Instruction {
 			case "brgt":
 			case "brgeq":
 			case "brleq":
-				if(instructionParts.length != 4) {
-					String message = instructionParts[0] + " must take in exactly two registers and a label";
-					throw new BadIRInstructionException(message);
-				}
+				MIPSInstruction += branch(instructionParts);
 //				if (naive) {
 //					
 //					literals = instruction.getLiteralIndexes(instructionParts, 1, 2, -1, -1); 
@@ -328,24 +321,21 @@ public class Instruction {
 				break;
 				
 			case "return":
-				if(instructionParts.length != 2) {
-					String message = instructionParts[0] + " must take in exactly one register";
-					throw new BadIRInstructionException(message);
-				}
-				literals = instruction.getLiteralIndexes(instructionParts, 1, 1, -1, -1);
-				if(naive){
-					if(literals.isEmpty()){
-						boolean isInteger = IRParser.getRegisterType(instructionParts[1])==RegisterType.INT;
-						MIPSInstruction += StackFrame.generateLoad(IRParser.getVariableName(instructionParts[1]), (isInteger)?"$v0":"$f12", isInteger);
-
-					} else {
-						boolean isInteger = !instructionParts[1].contains(".");
-						MIPSInstruction += "li"+((isInteger)?" $v0":".s $f12")+", "+instructionParts[1];
-					}						
-					
-					MIPSInstruction += "\n"+instruction.exitFunction(instruction.currentFunctionName); /* Exits function with proper MIPS code but does not empty the stack structure in Stack Frame */
-					
-				}
+				MIPSInstruction += returnStatement(instructionParts);
+//				literals = instruction.getLiteralIndexes(instructionParts, 1, 1, -1, -1);
+//				if(naive){
+//					if(literals.isEmpty()){
+//						boolean isInteger = Register.getRegisterType(instructionParts[1])==RegisterType.INT;
+//						MIPSInstruction += StackFrame.generateLoad(IRParser.getVariableName(instructionParts[1]), (isInteger)?"$v0":"$f12", isInteger);
+//
+//					} else {
+//						boolean isInteger = !instructionParts[1].contains(".");
+//						MIPSInstruction += "li"+((isInteger)?" $v0":".s $f12")+", "+instructionParts[1];
+//					}						
+//					
+//					MIPSInstruction += "\n"+instruction.exitFunction(instruction.currentFunctionName); /* Exits function with proper MIPS code but does not empty the stack structure in Stack Frame */
+//					
+//				}
 				break;
 				
 			case "call":
@@ -367,65 +357,128 @@ public class Instruction {
 		 * int vs float vs arrayint vs arrayfloat
 		 * 
 		 */
-		if(naive){
-			RegisterFile.clearRegisters();
-		}
+
 		
 //		System.out.println("Final MIPS Instruction: \n" +MIPSInstruction + "\n");
 		return MIPSInstruction;
 	}
 	
 	
-//	private String binaryOperands(String[] binaryOperands){
-//		
-//	}
-//	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	/**
-	 * Converts the operand (either a int register or an int literal) to be in an int register.
-	 * Returns the instructions necessary to convert it.
-	 * When a literal must be placed in a register, it places it in the literal Register
-	 * @param operand
-	 * @param literalRegister
-	 * @return
-	 */
-	private String convertOPToIntRegister(String operand, String literalRegister){
-		if(Register.isValidIRRegister(operand)){
-			Register register = new Register(operand);
-			if(register.getRegisterType() != RegisterType.INT)
-				throw new BadDeveloperException("Cannot convert float to int");
-			return "";
-		} else {
-			return "li "+literalRegister+", "+operand;
+	private static String binaryOperands(String[] instructionParts){
+		if(instructionParts.length != 4) {
+			String message = instructionParts[0] + " must take in exactly three registers";
+			throw new BadIRInstructionException(message);
 		}
+		String[] registers = {instructionParts[1],instructionParts[2],instructionParts[3]};
+		String operation = instructionParts[0];
+		InstructionType type = determineInstructionType(registers);
+		if(type == InstructionType.FLOAT)
+			operation +=".s";
+		return operation+" "+instructionParts[3]+", "+instructionParts[1]+", "+instructionParts[2];
 	}
 	
-	private String convertOPToFloatRegister(String operand, String literalRegister){
-		String MIPSInstruction = "";
-		if(Register.isValidIRRegister(operand)){
-			Register register = new Register(operand);
-			if(register.getRegisterType() == RegisterType.INT){
-				MIPSInstruction += "\nmtc1 "+ register.getRegisterName()+", "+literalRegister;
-				MIPSInstruction += "\ncvt.s.w "+literalRegister+", "+literalRegister;	
-				return MIPSInstruction;
-			} else {
-				return "";
-			}	
-		} else {
-			return "li.s "+literalRegister+", "+Float.parseFloat(operand);
-		}
+	private static String goTo(String[] instructionParts){
+		if(instructionParts.length != 2)
+			throw new BadIRInstructionException();
+		return "j"+instructionParts[1];			// TODO cannot jump the full span of memory.
 	}
+	
+	private static String branch(String[] instructionParts){
+		if(instructionParts.length != 4) {
+			String message = instructionParts[0] + " must take in exactly two registers and a label";
+			throw new BadIRInstructionException(message);
+		}
+		String[] registers = {instructionParts[1],instructionParts[2]};
+		String operation = instructionParts[0];
+		String MIPSInstruction ="";
+		InstructionType type = determineInstructionType(registers);
+		if(type == InstructionType.INT){
+			switch(operation) {
+			case "breq":
+				MIPSInstruction += "beq ";
+				break;
+			case "brneq":
+				MIPSInstruction += "bne ";						
+				break;
+			case "brgeq":
+				MIPSInstruction += "bge ";
+				break;
+			case "brleq":
+				MIPSInstruction += "ble ";
+				break;
+			default:
+				MIPSInstruction += operation;
+			}
+			MIPSInstruction += instructionParts[1]+ ", "+ instructionParts[2] + ", "+ instructionParts[3];
+			return MIPSInstruction;
+		} else if (type == InstructionType.FLOAT){
+			switch(operation) {
+			case "breq":
+				MIPSInstruction += "c.eq.s ";
+				break;
+			case "brneq":
+				MIPSInstruction += "c.ne.s ";
+				break;
+			case "brlt":
+				MIPSInstruction += "c.lt.s ";
+				break;
+			case "brgt":
+				MIPSInstruction += "c.negt.s ";
+				break;
+			case "brgeq":
+				MIPSInstruction += "c.ge.s ";
+				break;
+			case "brleq":
+				MIPSInstruction += "c.le.s ";
+				break;
+			}
+			MIPSInstruction +=  instructionParts[1]+ ", "+ instructionParts[2];
+			MIPSInstruction += "\nbc1t "+ instructionParts[3];
+			return MIPSInstruction;
+		}
+		throw new BadDeveloperException("Can only preform operation on all int registers or all float registers");
+	}
+	
+	private static String returnStatement(String[] instructionParts){
+		if(instructionParts.length != 2) {
+			String message = instructionParts[0] + " must take in exactly one register";
+			throw new BadIRInstructionException(message);
+		}
+		return instruction.exitFunction(instruction.currentFunctionName);
+	}
+	
+	private static String load(String[] instructionParts){
+		if(instructionParts.length != 3)
+			throw new BadIRInstructionException("load must take in one variable and one register");
+		return StackFrame.generateLoad(IRParser.getVariableName(instructionParts[1]), instructionParts[2], RegisterType.INT == Register.getRegisterType(instructionParts[2]));
+	}
+	
+	private static String store(String[] instructionParts){
+		if(instructionParts.length != 3)
+			throw new BadIRInstructionException("store must take in one variable and one register");
+		
+		return StackFrame.generateStore(IRParser.getVariableName(instructionParts[1]), instructionParts[2], RegisterType.INT == Register.getRegisterType(instructionParts[2]));
+	}
+	
+	private static String loadImmediate(String[] instructionParts){
+		if(instructionParts.length != 3)
+			throw new BadIRInstructionException(instructionParts[0]+" must take in one register and one literal");
+		return instructionParts[0]+" "+instructionParts[1]+", "+instructionParts[2];
+	}
+	
+	private static InstructionType determineInstructionType(String[] registers){
+		RegisterType registerType = Register.getRegisterType(registers[0]);
+		for(String register: registers){
+			if(registerType != Register.getRegisterType(register))
+				return InstructionType.MIXED;
+		}
+		if(registerType == RegisterType.INT)
+			return InstructionType.INT;
+		else if(registerType == RegisterType.FLOAT)
+			return InstructionType.FLOAT;
+		throw new BadDeveloperException("Type should be mixed, int or float");
+	}
+	
 	/**
 	 * Generates code for entering a function
 	 * @param functionName
@@ -464,10 +517,6 @@ public class Instruction {
 		MIPSInstruction += "\n"+StackFrame.exitCurrentFrame();
 		MIPSInstruction += "\njr $ra";
 		
-		if(functionName.equals("main"))
-			MIPSInstruction += "\n.end "+functionName+"\n";
-		else
-			MIPSInstruction += "\n.end FUNC_"+functionName+"\n";
 		return MIPSInstruction;
 	}
 	
@@ -479,8 +528,45 @@ public class Instruction {
 		String MIPSInstruction = instruction.exitFunction(instruction.currentFunctionName);
 		return MIPSInstruction;
 	}
-
 	
+	
+	
+
+//	
+//	/**
+//	 * Converts the operand (either a int register or an int literal) to be in an int register.
+//	 * Returns the instructions necessary to convert it.
+//	 * When a literal must be placed in a register, it places it in the literal Register
+//	 * @param operand
+//	 * @param literalRegister
+//	 * @return
+//	 */
+//	private String convertOPToIntRegister(String operand, String literalRegister){
+//		if(Register.isValidIRRegister(operand)){
+//			Register register = new Register(operand);
+//			if(register.getRegisterType() != RegisterType.INT)
+//				throw new BadDeveloperException("Cannot convert float to int");
+//			return "";
+//		} else {
+//			return "li "+literalRegister+", "+operand;
+//		}
+//	}
+//	
+//	private String convertOPToFloatRegister(String operand, String literalRegister){
+//		String MIPSInstruction = "";
+//		if(Register.isValidIRRegister(operand)){
+//			Register register = new Register(operand);
+//			if(register.getRegisterType() == RegisterType.INT){
+//				MIPSInstruction += "\nmtc1 "+ register.getRegisterName()+", "+literalRegister;
+//				MIPSInstruction += "\ncvt.s.w "+literalRegister+", "+literalRegister;	
+//				return MIPSInstruction;
+//			} else {
+//				return "";
+//			}	
+//		} else {
+//			return "li.s "+literalRegister+", "+Float.parseFloat(operand);
+//		}
+//	}
 //	/**
 //	 * Figures out the register Types (int or float)
 //	 * 
@@ -566,62 +652,62 @@ public class Instruction {
 //		return type;
 //	}
 //	
-	/**
-	 * Determines the type of registers in an instruction. If all int or all float, it returns appropriately, otherwise it throws an exception.
-	 * @param instructionParts
-	 * @param startIndex
-	 * @param endIndex - is inclusive
-	 * @param skipIndex - ignores this index. If no index should be ignored, pass in a -1
-	 * @return
-	 */
-	private InstructionType determineInstructionType(String[] instructionParts, int startIndex, int endIndex, int skipIndex, ArrayList<Integer> literalList){
-		if(startIndex > endIndex || instructionParts == null || instructionParts.length <= endIndex){
-			throw new BadDeveloperException("Don't call determineInstructionRegisterType with bad parameters");
-		} 
-
-		RegisterType type = RegisterType.UNINITIALIZED;
-		for(int i = startIndex; i <= endIndex; i++){
-			if(i == skipIndex || literalList.contains(i))
-				continue;
-			if(type == RegisterType.UNINITIALIZED)
-				type = IRParser.getRegisterType(instructionParts[i]);
-			if(IRParser.getRegisterType(instructionParts[i]) != type)
-				return InstructionType.MIXED;
-		}
-		if(type == RegisterType.INT){
-			return InstructionType.INT;
-		} else if (type == RegisterType.FLOAT) {
-			return InstructionType.FLOAT;
-		}
-		throw new BadDeveloperException("Only valid types for an instruction are INT, FLOAT and MIXED");
-	}
-	/**
-	 * Returns the indexes of all the float/int literals in the instruction
-	 * 
-	 * @param instructionParts - Should contain only IR register names
-	 * @param startIndex
-	 * @param endIndex - is inclusive
-	 * @param returnValue - does not check this register to see if it has been initialized. It instead adds the variable
-	 * 			to the register. If there is no return value, pass in a -1;
-	 * @param skipIndex - ignores this index. If no index should be ignored, pass in a -1
-	 */
-	private ArrayList<Integer> getLiteralIndexes(String[] instructionParts, int startIndex, int endIndex, int returnValue, int skipIndex){
-		ArrayList<Integer> literalList = new ArrayList<Integer>();
-		for(int i = startIndex; i <= endIndex; i++){
-			if(i == skipIndex)
-				continue;
-			if(!Register.isValidIRRegister(instructionParts[i])) {
-				if(i == returnValue)
-					throw new InvalidTypeException("Cannot assign values to a literal");
-				if(instructionParts[i].matches("\\d+(\\.\\d+)?")){
-					literalList.add(i);		//The value is not a register, it is an immediate offset
-				}
-				else {
-					throw new BadIRInstructionException("Value is neither a literal nor a register name");
-				}
-			}
-		}
-		return literalList;
-	}
-	
+//	/**
+//	 * Determines the type of registers in an instruction. If all int or all float, it returns appropriately, otherwise it throws an exception.
+//	 * @param instructionParts
+//	 * @param startIndex
+//	 * @param endIndex - is inclusive
+//	 * @param skipIndex - ignores this index. If no index should be ignored, pass in a -1
+//	 * @return
+//	 */
+//	private InstructionType determineInstructionType(String[] instructionParts, int startIndex, int endIndex, int skipIndex, ArrayList<Integer> literalList){
+//		if(startIndex > endIndex || instructionParts == null || instructionParts.length <= endIndex){
+//			throw new BadDeveloperException("Don't call determineInstructionRegisterType with bad parameters");
+//		} 
+//
+//		RegisterType type = RegisterType.UNINITIALIZED;
+//		for(int i = startIndex; i <= endIndex; i++){
+//			if(i == skipIndex || literalList.contains(i))
+//				continue;
+//			if(type == RegisterType.UNINITIALIZED)
+//				type = IRParser.getRegisterType(instructionParts[i]);
+//			if(IRParser.getRegisterType(instructionParts[i]) != type)
+//				return InstructionType.MIXED;
+//		}
+//		if(type == RegisterType.INT){
+//			return InstructionType.INT;
+//		} else if (type == RegisterType.FLOAT) {
+//			return InstructionType.FLOAT;
+//		}
+//		throw new BadDeveloperException("Only valid types for an instruction are INT, FLOAT and MIXED");
+//	}
+//	/**
+//	 * Returns the indexes of all the float/int literals in the instruction
+//	 * 
+//	 * @param instructionParts - Should contain only IR register names
+//	 * @param startIndex
+//	 * @param endIndex - is inclusive
+//	 * @param returnValue - does not check this register to see if it has been initialized. It instead adds the variable
+//	 * 			to the register. If there is no return value, pass in a -1;
+//	 * @param skipIndex - ignores this index. If no index should be ignored, pass in a -1
+//	 */
+//	private ArrayList<Integer> getLiteralIndexes(String[] instructionParts, int startIndex, int endIndex, int returnValue, int skipIndex){
+//		ArrayList<Integer> literalList = new ArrayList<Integer>();
+//		for(int i = startIndex; i <= endIndex; i++){
+//			if(i == skipIndex)
+//				continue;
+//			if(!Register.isValidIRRegister(instructionParts[i])) {
+//				if(i == returnValue)
+//					throw new InvalidTypeException("Cannot assign values to a literal");
+//				if(instructionParts[i].matches("\\d+(\\.\\d+)?")){
+//					literalList.add(i);		//The value is not a register, it is an immediate offset
+//				}
+//				else {
+//					throw new BadIRInstructionException("Value is neither a literal nor a register name");
+//				}
+//			}
+//		}
+//		return literalList;
+//	}
+//	
 }

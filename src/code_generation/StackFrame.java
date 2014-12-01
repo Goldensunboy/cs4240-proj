@@ -47,7 +47,7 @@ public class StackFrame {
 		/* parameters */
 		ArrayList<String> localParameters = IRParser.getFuncParams(functionName);
 		for(String parameter : localParameters){
-			pushOnStack(new StackArgument(IRParser.getParameterName(parameter), IRParser.getParameterType(parameter), true, Category.PARAMETERS)); //TODO passes everything on the stack. only works for naive.
+			pushOnStack(new StackArgument(IRParser.getVariableName(parameter), IRParser.getVariableType(parameter), true, Category.PARAMETERS)); //TODO passes everything on the stack. only works for naive.
 		}
 		
 		stackFrame.beginOfFrame = stackFrame.stack.size(); /* points to one after the last parameter */
@@ -61,7 +61,7 @@ public class StackFrame {
 		/* local variables */
 		ArrayList<String> localVariables = IRParser.getFuncVariables(functionName);
 		for(String var : localVariables){
-			pushOnStack(new StackArgument(IRParser.getParameterName(var), IRParser.getParameterType(var), false, Category.LOCAL_VARIABLES));
+			pushOnStack(new StackArgument(IRParser.getVariableName(var), IRParser.getVariableType(var), false, Category.LOCAL_VARIABLES));
 		}
 		
 		/* callee saved registers */ //TODO do not need to save all registers every time
@@ -142,21 +142,21 @@ public class StackFrame {
 		throw new BadDeveloperException("Variable on stack does not contain a value.");
 	}
 	
-	/**
-	 * Given a variable name and register name, this function will generate the instruction to load the value from the stack and into the register
-	 * @return
-	 */
-	public static String generateLoad(Register register){ /* NOTE: this is not an instance of a register from the register file */
-		if(stackFrame == null){
-			stackFrame = new StackFrame();
-		}
-		if(findVariable(register.getVariableName()).getContainsValue()){
-			String instruction = ((register.getRegisterType() == RegisterType.INT)?"lw ":"lwc1 ")+register.getRegisterName()+", ";
-			instruction += findVariableLocation(register.getVariableName())+"($sp)";
-			return instruction;
-		}
-		throw new BadDeveloperException("Variable on stack does not contain a value.");
-	}
+//	/**
+//	 * Given a variable name and register name, this function will generate the instruction to load the value from the stack and into the register
+//	 * @return
+//	 */
+//	public static String generateLoad(Register register){ /* NOTE: this is not an instance of a register from the register file */
+//		if(stackFrame == null){
+//			stackFrame = new StackFrame();
+//		}
+//		if(findVariable(register.getVariableName()).getContainsValue()){
+//			String instruction = ((register.getRegisterType() == RegisterType.INT)?"lw ":"lwc1 ")+register.getRegisterName()+", ";
+//			instruction += findVariableLocation(register.getVariableName())+"($sp)";
+//			return instruction;
+//		}
+//		throw new BadDeveloperException("Variable on stack does not contain a value.");
+//	}
 	
 	/**
 	 * Given a variable name and a register name, this function will generate the instruction to store the value in the register to the stack
@@ -174,15 +174,15 @@ public class StackFrame {
 		return instruction;
 	}
 	
-	public static String generateStore(Register register){ /* NOTE: this is not an instance of a register from the register file */
-		if(stackFrame == null){
-			stackFrame = new StackFrame();
-		}
-		String instruction = ((register.getRegisterType() == RegisterType.INT)?"sw ":"swc1 ")+register.getRegisterName()+", ";
-		instruction += findVariableLocation(register.getVariableName())+"($sp)";
-		findVariable(register.getVariableName()).setContainsValue(true);
-		return instruction;
-	}
+//	public static String generateStore(Register register){ /* NOTE: this is not an instance of a register from the register file */
+//		if(stackFrame == null){
+//			stackFrame = new StackFrame();
+//		}
+//		String instruction = ((register.getRegisterType() == RegisterType.INT)?"sw ":"swc1 ")+register.getRegisterName()+", ";
+//		instruction += findVariableLocation(register.getVariableName())+"($sp)";
+//		findVariable(register.getVariableName()).setContainsValue(true);
+//		return instruction;
+//	}
 	
 	/**
 	 * Will be relative to the stack pointer and in BYTES. Will return 1 if not found.
