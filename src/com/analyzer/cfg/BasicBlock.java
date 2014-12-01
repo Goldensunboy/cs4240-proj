@@ -37,7 +37,7 @@ public class BasicBlock {
 	
 	public List<String> getAnnotatedIR() {
 		RegisterFactory registerFactory = new RegisterFactory(intVariableOccurances, floatVariableOccurances);
-		Map<String, String> annotatedVariablesWithRegister = registerFactory.allocateRegister();
+		Map<String, String> annotatedVariablesWithRegister = registerFactory.getRegisterMap();
 		
 		boolean isLoad = true;
 		List<String> annotedIR = getLoadStoreRegisters(annotatedVariablesWithRegister, isLoad);
