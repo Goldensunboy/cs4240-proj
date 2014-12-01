@@ -3,29 +3,10 @@
 int function funcTest1(x:int) 
 begin
      begin
-          var a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x: int :=0;
-          a := 1;
-          b := 2;
-          c := 3;
-          a := b + c;
-          d := 4;
-          e := 5;
-          f := 6;
-          g := 7;
-          h := 8;
-          i := 9;
-          j := 10;
-          k := 11;
-          l := 12;
-          m := 13;
-          n := 14;
-          o := 15;
-          p := 16;
-          q := 17;
-          r := 18;
-          s := 19;
-          
+          var a: int :=0;
+          a := 1;          
           a := a + a;
+          funcTest1(a);
           return a;
      end;
 end;

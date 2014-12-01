@@ -95,7 +95,9 @@ public class TigerTest {
 			
 			// Print details about the analyzed IR code
 			regalloc = new NaiveRegisterAllocator(IRList);
+			System.out.println("before");
 			((NaiveRegisterAllocator)regalloc).printRegisterAllocatorData();
+			System.out.println("after");
 			break;
 		
 		case SAMAN:
