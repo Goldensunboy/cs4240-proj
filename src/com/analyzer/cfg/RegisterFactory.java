@@ -8,19 +8,20 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.PriorityQueue;
 
+import code_generation.RegisterFile;
+
 import com.exception.ShouldNotHappenException;
 
 public class RegisterFactory {
 
 	private Map<String, Integer> intVariableOccurances, floatVariableOccurances;
-	private final int MAX_INTS = 18;
-	private final int MAX_FLOATS = 24;
+	private final int MAX_INT_REGISTERS = RegisterFile.AVAILABLE_INT_REGISTERS.length;
+	private final int MAX_FLOAT_REGISTERS = RegisterFile.AVAILABLE_FLOAT_REGISTERS.length;
 	private static final String FLOAT_IMMEDIATE_LOAD_FIRST_POSITION = "li.s, $f30, ";
 	private static final String FLOAT_IMMEDIATE_LOAD_SECOND_POSITION = "li.s, $f31, ";
 	private static final String INT_IMMEDIATE_LOAD_FIRST_POSITION = "li, $t8, ";
 	private static final String INT_IMMEDIATE_LOAD_SECOND_POSITION = "li, $t9, ";
-	private static final int FIRST_POSITION = 1; // TODO
-
+	
 	private Map<String, String> registerMap;
 	
 	private final static Comparator<Entry<String, Integer>> ValueComparator = new Comparator<Entry<String, Integer>>() {
@@ -35,7 +36,6 @@ public class RegisterFactory {
 		this.intVariableOccurances = intVariableOccurances;
 		this.floatVariableOccurances = floatVariableOccurances;
 		
-		fillOutAvailableRegisters();
 		createRegisterMap();
 	}
 	
@@ -43,8 +43,8 @@ public class RegisterFactory {
 		if(intVariableOccurances == null || floatVariableOccurances==null) {
 			this.registerMap = null;
 		}
-		Map<String, String> registerMap = allocateRegister(intVariableOccurances, MAX_INTS);
-		registerMap.putAll(allocateRegister(floatVariableOccurances, MAX_FLOATS));
+		Map<String, String> registerMap = allocateRegister(intVariableOccurances, MAX_INT_REGISTERS);
+		registerMap.putAll(allocateRegister(floatVariableOccurances, MAX_FLOAT_REGISTERS));
 		this.registerMap = registerMap;
 	}
 	
@@ -83,9 +83,9 @@ public class RegisterFactory {
 		return getNextAvailableRegister(variableName);
 	}
 
-	public static String getLoadImmediate(String number, int position) {
+	public static String getLoadImmediate(String number, boolean isFirstPosition) {
 		boolean isFloat = number.matches(".*\\..*");
-		if(position == FIRST_POSITION) {
+		if(isFirstPosition) {
 			if(isFloat) {
 				return FLOAT_IMMEDIATE_LOAD_FIRST_POSITION + number;
 			} else {
@@ -157,26 +157,14 @@ public class RegisterFactory {
 		return conversion;
 	}
 	
-	/*
-	 * TODO Below this line are temporary methods that need to be soon replaced
-	 */
-	List<String> availableInts = new ArrayList<>();
-	List<String> availableFloats = new ArrayList<>();
-	private void fillOutAvailableRegisters() {
-		for(int i=0; i<18; i++) {
-			availableInts.add("iTemp"+i);
-			availableFloats.add("fTemp"+i);
-		}
-		for(int i=18; i<24; i++) {
-			availableFloats.add("fTemp"+i);
-		}
-	}
+	private int availableIntRegisterIndex = 0;
+	private int availableFloatRegisterIndex = 0;
 	
 	private String getNextAvailableRegister(String variableName) {
 		boolean isInt = variableName.split("%")[1].equals("i");
 		if(isInt) {
-			return availableInts.remove(0);
+			return RegisterFile.AVAILABLE_INT_REGISTERS[availableIntRegisterIndex++];
 		}
-		return availableFloats.remove(0);
+		return RegisterFile.AVAILABLE_FLOAT_REGISTERS[availableFloatRegisterIndex++];
 	}
 }
