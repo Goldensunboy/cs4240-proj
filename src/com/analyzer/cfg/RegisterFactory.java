@@ -8,19 +8,27 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.PriorityQueue;
 
-import code_generation.RegisterFile;
+import static code_generation.RegisterFile.AVAILABLE_FLOAT_REGISTERS;
+import static code_generation.RegisterFile.AVAILABLE_TEMPORARY_FLOAT_REGISTERS;
+import static code_generation.RegisterFile.AVAILABLE_INT_REGISTERS;
+import static code_generation.RegisterFile.AVAILABLE_TEMPORARY_INT_REGISTERS;
+import static com.analyzer.InstructionUtility.isIntLiteral;
+import static com.analyzer.InstructionUtility.isIntRegister;
+import static com.analyzer.InstructionUtility.getConversion;
+import static com.analyzer.InstructionUtility.isIntIsh;
+import static com.analyzer.InstructionUtility.isFloatIsh;
 
 import com.exception.ShouldNotHappenException;
 
 public class RegisterFactory {
 
 	private Map<String, Integer> intVariableOccurances, floatVariableOccurances;
-	private final int MAX_INT_REGISTERS = RegisterFile.AVAILABLE_INT_REGISTERS.length;
-	private final int MAX_FLOAT_REGISTERS = RegisterFile.AVAILABLE_FLOAT_REGISTERS.length;
-	private static final String FLOAT_IMMEDIATE_LOAD_FIRST_POSITION = "li.s, $f30, ";
-	private static final String FLOAT_IMMEDIATE_LOAD_SECOND_POSITION = "li.s, $f31, ";
-	private static final String INT_IMMEDIATE_LOAD_FIRST_POSITION = "li, $t8, ";
-	private static final String INT_IMMEDIATE_LOAD_SECOND_POSITION = "li, $t9, ";
+	private final int MAX_INT_REGISTERS = AVAILABLE_INT_REGISTERS.length;
+	private final int MAX_FLOAT_REGISTERS = AVAILABLE_FLOAT_REGISTERS.length;
+	private int availableIntRegisterIndex = 0, availableFloatRegisterIndex = 0;
+	private int availableTemporaryIntRegisterIndex = 0, availableTemporaryFloatRegisterIndex = 0;
+	private static final boolean IS_FLOAT = true; 
+	private static final boolean IS_INT = !IS_FLOAT;
 	
 	private Map<String, String> registerMap;
 	
@@ -58,7 +66,7 @@ public class RegisterFactory {
 		if(variableOccurances.size() <= MAX) {
 			for(Entry<String, Integer> entry : variableOccurances.entrySet()) {
 				String variableName = entry.getKey();
-				String variableNameRegisterAnnotated = annotateWithRegister(variableName);
+				String variableNameRegisterAnnotated = getNextAvailableRegister(variableName);
 				registerMap.put(variableName, variableNameRegisterAnnotated);
 			}
 			
@@ -72,99 +80,117 @@ public class RegisterFactory {
 		
 		for(int i=0; i<MAX; i++) {
 			String variableName = entryPQ.poll().getKey();
-			String variableNameRegisterAnnotated = annotateWithRegister(variableName);
+			String variableNameRegisterAnnotated = getNextAvailableRegister(variableName);
 			registerMap.put(variableName, variableNameRegisterAnnotated);
 		}
 		
 		return registerMap;	
 	}
 	
-	private String annotateWithRegister(String variableName){
-		return getNextAvailableRegister(variableName);
+	private String getRegisterFromMaps(String variableName, Map<String, String> temporaryVariablesRegisterMap) {
+		String registerName = registerMap.get(variableName);
+		return registerName != null ? registerName : temporaryVariablesRegisterMap.get(variableName);
 	}
-
-	public static String getLoadImmediate(String number, boolean isFirstPosition) {
-		boolean isFloat = number.matches(".*\\..*");
-		if(isFirstPosition) {
-			if(isFloat) {
-				return FLOAT_IMMEDIATE_LOAD_FIRST_POSITION + number;
-			} else {
-				return INT_IMMEDIATE_LOAD_FIRST_POSITION + number;
+	
+	public List<String> generateConversionIntToFloat(String[] lhsVariables, String[] rhsVariables, Map<String, String> temporaryVariablesRegisterMap) {
+		List<String> registersToPromote = getRegistersToPromote(lhsVariables, rhsVariables, temporaryVariablesRegisterMap);
+		return getPromotions(registersToPromote);
+	}
+	
+	private List<String> getRegistersToPromote(String[] lhsVariables, String[] rhsVariables, Map<String, String> temporaryVariablesRegisterMap) {
+		List<String> registersToPromote = new ArrayList<>();
+		
+		if(rhsVariables == null) {
+			return registersToPromote;
+		}
+		
+		for(String variableName : rhsVariables) {
+			String registerName = getRegisterFromMaps(variableName, temporaryVariablesRegisterMap);
+			if(registerName == null) {
+				throw new ShouldNotHappenException("Couldn't find the corresponding register for: " + variableName);
 			}
+			
+			if(isIntIsh(variableName)) {				
+				registersToPromote.add(registerName);
+			}
+		}			
+		
+		if(registersToPromote.size() != rhsVariables.length) {
+			return registersToPromote; 
 		} else {
-			if (isFloat) {
-				return FLOAT_IMMEDIATE_LOAD_SECOND_POSITION + number;
-			} else {
-				return INT_IMMEDIATE_LOAD_SECOND_POSITION + number;
+			if(lhsVariables == null) {
+				return new ArrayList<>();
+			}
+			if(isFloatIsh(lhsVariables[0])) {
+				return registersToPromote;
 			}
 		}
+		
+		return registersToPromote;
 	}
-
-	public List<String> generateConversionIntToFloat(String[] variables) {
-		if(variables.length>2) {
-			throw new ShouldNotHappenException("Only two vairbales are expected");
+		
+	private List<String> getPromotions(List<String> registersToPromote) {
+		List<String> conversionsToBeInserted = new ArrayList<>();
+		if (registersToPromote == null || registersToPromote.size() == 0) {
+			return conversionsToBeInserted; 
 		}
 		
-		List<String> conversionsToBeInserted = new ArrayList<>();
-		boolean isFirstPosition = true;
-		
-		// this for loop is only gone through 2 times at most
-		for (int i=0; i<variables.length; i++) {
-			String variableName = variables[i];
-			String allocatedRegister = getAllocatedRegister(variableName);
-			if(allocatedRegister == null) {
-				conversionsToBeInserted.addAll(generateConversionWithLoad(variableName, isFirstPosition));
-			} else {
-				conversionsToBeInserted.addAll(generateConversionWithoutLoad(variableName, isFirstPosition));
-			}
-			isFirstPosition = false;
+		for (String intRegisterName : registersToPromote) {
+			conversionsToBeInserted.addAll(getConversion(intRegisterName, getAvailableTemporaryRegister(IS_FLOAT)));
 		}
 		
 		return conversionsToBeInserted;
 	}
 	
-	private String getAllocatedRegister(String variableName) {
-		if (registerMap == null) {
-			return null;
+	private String getAvailableTemporaryRegister(boolean isFloat) {
+		if(isFloat) {
+			return AVAILABLE_TEMPORARY_FLOAT_REGISTERS[availableTemporaryFloatRegisterIndex++];	
 		}
-		return registerMap.get(variableName);
+		return AVAILABLE_TEMPORARY_INT_REGISTERS[availableTemporaryIntRegisterIndex++];
 	}
 
-	private List<String> generateConversionWithoutLoad(String intRegisterName, boolean isFirstPosition) {
-		String floatRegisterName = "$f" + (30 + (isFirstPosition ? 0 : 1));
-		return getConversion(intRegisterName, floatRegisterName);
-	}	
-	
-	private List<String> generateConversionWithLoad(String variableName, boolean isFirstPosition) {
-		List<String> conversion = new ArrayList<>();
-		
-		String intRegisterName = "$t" + (8 + (isFirstPosition ? 0 : 1));
-		String floatRegisterName = "$f" + (30 + (isFirstPosition ? 0 : 1));
-		String load = "load, " + variableName + ", " + intRegisterName;
-		
-		conversion.add(load);
-		conversion.addAll(getConversion(intRegisterName, floatRegisterName));
-		
-		return conversion;
-	}
-	
-	private List<String> getConversion(String intRegisterName, String floatRegisterName) {
-		List<String> conversion = new ArrayList<>();
-		String mtc = "mtc, " + intRegisterName + ", " + floatRegisterName;
-		String cvt = "cvt.s.w, " + floatRegisterName + ", " + floatRegisterName;
-		conversion.add(mtc);
-		conversion.add(cvt);
-		return conversion;
-	}
-	
-	private int availableIntRegisterIndex = 0;
-	private int availableFloatRegisterIndex = 0;
-	
 	private String getNextAvailableRegister(String variableName) {
 		boolean isInt = variableName.split("%")[1].equals("i");
 		if(isInt) {
-			return RegisterFile.AVAILABLE_INT_REGISTERS[availableIntRegisterIndex++];
+			return AVAILABLE_INT_REGISTERS[availableIntRegisterIndex++];
 		}
-		return RegisterFile.AVAILABLE_FLOAT_REGISTERS[availableFloatRegisterIndex++];
+		return AVAILABLE_FLOAT_REGISTERS[availableFloatRegisterIndex++];
+	}
+	
+	public void resetAvailableTemporaryRegisterIndex() {
+		availableTemporaryIntRegisterIndex = 0;
+		availableTemporaryFloatRegisterIndex = 0;
+	}
+	
+	public Map<String, String> createTemporaryRegisterMap(String[] variablesNeedLoad, String[] variablesNeedStore) {
+		Map<String, String> temporaryRegisterMap = new Hashtable<>();
+
+		if(variablesNeedLoad != null) {
+			for(String variableName : variablesNeedLoad) {
+				if(registerMap.containsKey(variableName)) {
+					continue;
+				}
+				if(isIntLiteral(variableName) || isIntRegister(variableName)) {
+					temporaryRegisterMap.put(variableName, getAvailableTemporaryRegister(IS_INT));
+				} else {
+					temporaryRegisterMap.put(variableName, getAvailableTemporaryRegister(IS_FLOAT));
+				}
+			}
+		}
+		
+		if(variablesNeedStore != null) {	
+			for(String variableName : variablesNeedStore) {
+				if(registerMap.containsKey(variableName)) {
+					continue;
+				}
+				if(isIntLiteral(variableName) || isIntRegister(variableName)) {
+					temporaryRegisterMap.put(variableName, getAvailableTemporaryRegister(IS_INT));
+				} else {
+					temporaryRegisterMap.put(variableName, getAvailableTemporaryRegister(IS_FLOAT));
+				}
+			}
+		}
+		
+		return temporaryRegisterMap;
 	}
 }

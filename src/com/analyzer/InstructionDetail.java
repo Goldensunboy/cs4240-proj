@@ -21,7 +21,7 @@ public class InstructionDetail {
 		}
 		this.instruction = Instructions.valueOf(instructionName.toUpperCase());
 	}
-	
+
 	public boolean isReturn() {
 		return Instructions.RETURN.equals(instruction);
 	}
@@ -35,11 +35,17 @@ public class InstructionDetail {
 	}
 	
 	public String getLHS() {
-		return instruction.getLHS(splitedInstruction);
+		if(hasLHS()) {			
+			return instruction.getLHS(splitedInstruction);
+		}
+		return null;
 	}
 	
 	public String[] getRHS() {
-		return instruction.getRHS(splitedInstruction);
+		if(hasRHS()) {
+			return instruction.getRHS(splitedInstruction);
+		}
+		return null;
 	}
 
 	public boolean isControlFlow() {
