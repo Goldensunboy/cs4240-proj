@@ -50,31 +50,31 @@ public class Instruction {
 		if(instructionParts[0].contains(functionIRNotation)){ 		/* The line is the beginning of a function */
 
 			String oldFunctionName = instruction.currentFunctionName;
-			instruction.currentFunctionName = instructionParts[0].substring(functionIRNotation.length());
+			instruction.currentFunctionName = instructionParts[0];//.substring(functionIRNotation.length());
 			instruction.currentFunctionName = instruction.currentFunctionName.replace(":", "");
 			
 			if(!StackFrame.isEmpty()) {
-				if(oldFunctionName.equals("main"))
+//				if(oldFunctionName.equals("main"))
+//					MIPSInstruction += "\n.end "+oldFunctionName+"\n";
+//				else
 					MIPSInstruction += "\n.end "+oldFunctionName+"\n";
-				else
-					MIPSInstruction += "\n.end FUNC_"+oldFunctionName+"\n";
 				StackFrame.emptyFrame();
 
 			}
-			if(instruction.currentFunctionName.equals("main"))
-				instructionParts[0] = "main:";
+			if(instruction.currentFunctionName.equals("FUNC_main")){
+				instruction.currentFunctionName = "main";
+			}
 			MIPSInstruction += ".ent "+instruction.currentFunctionName;
 			MIPSInstruction += "\n.globl "+instruction.currentFunctionName;
 			MIPSInstruction += "\n"+instruction.currentFunctionName +":";			
 			MIPSInstruction += "\n"+instruction.enterFunction(instruction.currentFunctionName);
-			
 			return MIPSInstruction;
 		}
 		
 		if(instructionParts[0].contains(":")){
 			return IRInstruction;		/* The line is a label */
 		}	
-		
+		ArrayList<String> parameters;
 		switch(instructionParts[0]){
 			case "add":
 			case "sub":
@@ -111,15 +111,30 @@ public class Instruction {
 				break;
 				
 			case "call":
+				if(instructionParts.length < 2)
+					throw new BadDeveloperException("Call needs at least a function name");
+				parameters = new ArrayList<String>();
+				for(int i = 2; i < instructionParts.length; i++){
+					parameters.add(instructionParts[i]);
+				}
+				MIPSInstruction += instruction.callFunction(instructionParts[1],parameters);
 				break;
 			case "callr":
+				if(instructionParts.length < 3)
+					throw new BadDeveloperException("Callr needs at least a function name and a return type");
+				parameters = new ArrayList<String>();
+				for(int i = 3; i < instructionParts.length; i++){
+					parameters.add(instructionParts[i]);
+				}
+				MIPSInstruction += instruction.callFunction(instructionParts[2],parameters);
+				MIPSInstruction += "\n"+instruction.getReturnValue(instructionParts[2],instructionParts[1]);
 				break;
 				
 			case "array_store":
 				break;
 			case "array_load":
 				break;
-			case "mtc":
+			case "mtc1":
 			case "cvt.s.w":
 				MIPSInstruction = IRInstruction;
 				break;
@@ -207,7 +222,19 @@ public class Instruction {
 			String message = instructionParts[0] + " cannot take in more than one register";
 			throw new BadIRInstructionException(message);
 		}
-		return instruction.exitFunction(instruction.currentFunctionName);
+		String MIPSInstruction = "";
+		if(instructionParts.length == 2){
+			if(instructionParts[1].matches("[0-9]+")){
+				MIPSInstruction += "li $v0, "+instructionParts[1]+"\n";
+			} else if (instructionParts[1].matches("[0-9]+\\.[0-9]+")){
+				MIPSInstruction += "li.s $f0, "+instructionParts[1]+"\n";
+			} else {
+				boolean isInt =  IRParser.getVariableType(instructionParts[1]) == RegisterType.INT;
+				MIPSInstruction += StackFrame.generateLoad(IRParser.getVariableName(instructionParts[1]), (isInt)?"$v0":"$f0", isInt)+"\n";
+			}
+		}
+		MIPSInstruction += instruction.exitFunction(instruction.currentFunctionName);
+		return MIPSInstruction;
 	}
 	
 	private static String load(String[] instructionParts){
@@ -226,7 +253,7 @@ public class Instruction {
 	private static String loadImmediate(String[] instructionParts){
 		if(instructionParts.length != 3)
 			throw new BadIRInstructionException(instructionParts[0]+" must take in one register and one literal");
-		return instructionParts[0]+" "+instructionParts[1]+", "+instructionParts[2];
+		return instructionParts[0]+" "+instructionParts[2]+", "+instructionParts[1];
 	}
 	
 	private static InstructionType determineInstructionType(String[] registers){
@@ -283,29 +310,93 @@ public class Instruction {
 		return MIPSInstruction;
 	}
 	
-	private String callFunction(String functionName){
-		String MIPSInstruction = callFunction(functionName);
-		for(int i = 0; i < 9; i++){
+	private String callFunction(String functionName, ArrayList<String> localParameters){
+//		functionName = (functionName.equals("FUNC_main"))? "main":functionName;
+		
+		String MIPSInstruction = StackFrame.callingFunctionBegin(functionName);
+		for(int i = 0; i < 8; i++){
 			MIPSInstruction += "\n"+StackFrame.generateStore("$t"+i,"$t"+i, true);
 		}
-		ArrayList<String> localParameters = IRParser.getFuncParams(functionName);
-		for(String parameter : localParameters){
-			if(IRParser.getVariableType(parameter)==RegisterType.INT){
-				if(StackFrame.getVariableType(IRParser.getVariableName(parameter))==RegisterType.INT){
-					MIPSInstruction += "\n"+StackFrame.generateLoad(IRParser.getVariableName(parameter),"$a0", true);
-					MIPSInstruction += "\n"+StackFrame.generateStore(IRParser.getVariableName(parameter),"$a0", true);
+		for(int i = 4; i < 12; i++){
+			MIPSInstruction += "\n"+StackFrame.generateStore("$f"+i,"$f"+i, false);
+		}
+		ArrayList<String> actualParameters = IRParser.getFuncParams(functionName);
+		if(actualParameters.size()!=localParameters.size())
+			throw new BadDeveloperException("Calling function incorrectly");
+		for(int i = 0; i<actualParameters.size(); i++){
+			if(IRParser.getVariableType(actualParameters.get(i))==RegisterType.INT){
+				if(localParameters.get(i).matches("[0-9]+")){
+					MIPSInstruction += "\nli $a0, "+localParameters.get(i);
+					MIPSInstruction += "\n"+StackFrame.generateStore(IRParser.getVariableName(actualParameters.get(i))+"_param","$a0", true);
 					
+				} else if(StackFrame.getVariableType(IRParser.getVariableName(localParameters.get(i)))==RegisterType.INT){
+					MIPSInstruction += "\n"+StackFrame.generateLoad(IRParser.getVariableName(localParameters.get(i)),"$a0", true);
+					MIPSInstruction += "\n"+StackFrame.generateStore(IRParser.getVariableName(actualParameters.get(i))+"_param","$a0", true);
 				} else{
 					throw new InvalidTypeException("Can only pass ints for int parameters");
 				}
 				//get from stack, check if need to convert
-			} else if (IRParser.getVariableType(parameter)==RegisterType.FLOAT){
-				
+			} else if (IRParser.getVariableType(actualParameters.get(i))==RegisterType.FLOAT){
+				if(localParameters.get(i).matches("[0-9]+")){
+					MIPSInstruction += "\nli $a0, "+localParameters.get(i);
+					MIPSInstruction += "\nmtc1 $a0, $f12\ncvt.s.w $f12, $f12";
+					MIPSInstruction += "\n"+StackFrame.generateStore(IRParser.getVariableName(actualParameters.get(i))+"_param","$f12", false);
+					
+				} else if (localParameters.get(i).matches("[0-9]+\\.[0-9]+")){
+					MIPSInstruction += "\nli.s $f0, "+localParameters.get(i);
+					MIPSInstruction += "\n"+StackFrame.generateStore(IRParser.getVariableName(actualParameters.get(i))+"_param","$f12", false);
+					
+				} else if(StackFrame.getVariableType(IRParser.getVariableName(localParameters.get(i)))==RegisterType.INT){
+					MIPSInstruction += "\n"+StackFrame.generateLoad(IRParser.getVariableName(localParameters.get(i)),"$a0", true);
+					MIPSInstruction += "\nmtc1 $a0, $f12\ncvt.s.w $f12, $f12";
+					MIPSInstruction += "\n"+StackFrame.generateStore(IRParser.getVariableName(actualParameters.get(i))+"_param","$f12", false);
+					
+				} else if (StackFrame.getVariableType(IRParser.getVariableName(localParameters.get(i)))==RegisterType.FLOAT){
+					MIPSInstruction += "\n"+StackFrame.generateLoad(IRParser.getVariableName(localParameters.get(i)),"$f12", false);
+					MIPSInstruction += "\n"+StackFrame.generateStore(IRParser.getVariableName(actualParameters.get(i))+"_param","$f12", false);
+				} else {
+					throw new InvalidTypeException("Can only pass ints and floats for float parameters");
+				}
 			} else {
 				throw new InvalidTypeException("Types can only be int or float. Arrays have not been implmented yet");
 			}
-			// TODO check types, the load appropriately into correct register, then store
 		}
+		MIPSInstruction += "\njal "+functionName;
+		for(int i = 0; i < 8; i++){
+			MIPSInstruction += "\n"+StackFrame.generateLoad("$t"+i,"$t"+i, true);
+		}
+		for(int i = 4; i < 12; i++){
+			MIPSInstruction += "\n"+StackFrame.generateLoad("$f"+i,"$f"+i, false);
+		}
+		MIPSInstruction += "\n"+StackFrame.callingFunctionEnd(functionName);
 		return MIPSInstruction;
 	}
+	
+	private String getReturnValue(String functionName, String returnVariable){
+		String MIPSInstruction = "";
+		RegisterType type = IRParser.returnType(functionName);
+		if(type == RegisterType.INT){
+			
+			if(IRParser.getVariableType(returnVariable) == RegisterType.INT){
+				MIPSInstruction += StackFrame.generateStore(IRParser.getVariableName(returnVariable),"$v0", true);
+				
+			} else if (IRParser.getVariableType(returnVariable) == RegisterType.FLOAT){
+				MIPSInstruction += "mtc1 $v0, $f0\ncvt.s.w $f0, $f0";
+				MIPSInstruction += "\n"+StackFrame.generateStore(IRParser.getVariableName(returnVariable),"$f0", false);
+				
+			} else
+				throw new InvalidTypeException("Int return types can only be stored to ints and floats");
+			
+		} else if (type == RegisterType.FLOAT){
+			if (IRParser.getVariableType(returnVariable) == RegisterType.FLOAT){
+				MIPSInstruction += StackFrame.generateStore(IRParser.getVariableName(returnVariable),"$f0", false);
+				
+			} else
+				throw new InvalidTypeException("Float return types can only be stored to and floats");
+			
+		} else 
+			throw new InvalidTypeException("Retrieving return value can only be done for ints and floats");
+		return MIPSInstruction;
+	}
+	
 }

@@ -13,13 +13,17 @@ public class IRParser {
 	 */
 	
 	/* 
+	 * SAMAN: store for call, callr, return
+	 * 
+	 * MARISSA: reduce register saves, hook up our code, library code, arrays
+	 * 
 	 * add/beq with mixed literals and registers what about type conversions?
 	 * params are all passed on stack right now
 	 * transfering float to int MIXED
 	 * Function calls
 	 * Need to handle float literals, arrays, non naive
 	 * Write to file
-	 * 
+	 * library calls
 	 * Currently we are over saving registers
 	 */
 	/**
@@ -29,8 +33,9 @@ public class IRParser {
 	 */
 	public static ArrayList<String> getFuncVariables(String funcName){
 		ArrayList<String> funcVariables = new ArrayList<String>();
-		funcVariables.add("int_var1%i");
+//		funcVariables.add("int_var1%i");
 		funcVariables.add("int_var2%i");
+		funcVariables.add("fp_var2%f");
 //		funcVariables.add("q$3%i");
 //		funcVariables.add("r$3%i");
 //		funcVariables.add("s$3%i");
@@ -49,9 +54,9 @@ public class IRParser {
 	 */	
 	public static ArrayList<String> getFuncParams(String funcName){
 		ArrayList<String> funcParams = new ArrayList<String>();
-		funcParams.add("a$3%i");
-		funcParams.add("b$3%i");
-		funcParams.add("c$3%f");
+		funcParams.add("int_var1%i");
+//		funcParams.add("b$3%i");
+//		funcParams.add("c$3%f");
 		return funcParams;
 	}
 	
@@ -60,8 +65,8 @@ public class IRParser {
 	 * @param funcName
 	 * @return
 	 */	
-	public static boolean hasVoidReturn(String funcName){
-		return true;
+	public static RegisterType returnType(String funcName){
+		return RegisterType.INT;
 	}
 	
 

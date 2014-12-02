@@ -1,8 +1,8 @@
 .data
 .text
-.ent temp
-.globl temp
-temp:
+.ent FUNC_temp
+.globl FUNC_temp
+FUNC_temp:
 addi $sp, $sp, 104
 sw $s0, -84($sp)
 sw $s1, -80($sp)
@@ -29,7 +29,10 @@ swc1 $f30, 0($sp)
 sw $fp, -96($sp)
 sw $ra, -100($sp)
 li $s0, 6
-sw $s0, -92($sp)
+lw $t1, -104($sp)
+add $t1, $t1, $t1
+sw $t1, -104($sp)
+li $v0, 20
 lw $fp, -96($sp)
 lw $ra, -100($sp)
 lw $s0, -84($sp)
@@ -86,15 +89,49 @@ swc1 $f29, -4($sp)
 swc1 $f30, 0($sp)
 sw $fp, -96($sp)
 sw $ra, -100($sp)
-li.s $f16, 5.0
-swc1 $f16, -92($sp)
-add.s $f17, $f16, $f16
-lwc1 $f18, -92($sp)
-swc1 $f18, -88($sp)
-c.eq.s $f16, $f18
-bc1t label
-li.s $f16, 0.0
-label:
+li $s0, 7
+sw $s0, -92($sp)
+addi $sp, $sp, 68
+sw $t0, -64($sp)
+sw $t1, -60($sp)
+sw $t2, -56($sp)
+sw $t3, -52($sp)
+sw $t4, -48($sp)
+sw $t5, -44($sp)
+sw $t6, -40($sp)
+sw $t7, -36($sp)
+swc1 $f4, -32($sp)
+swc1 $f5, -28($sp)
+swc1 $f6, -24($sp)
+swc1 $f7, -20($sp)
+swc1 $f8, -16($sp)
+swc1 $f9, -12($sp)
+swc1 $f10, -8($sp)
+swc1 $f11, -4($sp)
+li $a0, 5
+sw $a0, 0($sp)
+jal FUNC_temp
+lw $t0, -64($sp)
+lw $t1, -60($sp)
+lw $t2, -56($sp)
+lw $t3, -52($sp)
+lw $t4, -48($sp)
+lw $t5, -44($sp)
+lw $t6, -40($sp)
+lw $t7, -36($sp)
+lwc1 $f4, -32($sp)
+lwc1 $f5, -28($sp)
+lwc1 $f6, -24($sp)
+lwc1 $f7, -20($sp)
+lwc1 $f8, -16($sp)
+lwc1 $f9, -12($sp)
+lwc1 $f10, -8($sp)
+lwc1 $f11, -4($sp)
+addi $sp, $sp, -68
+mtc1 $v0, $f0
+cvt.s.w $f0, $f0
+swc1 $f0, -88($sp)
+lwc1 $f5, -88($sp)
 lw $fp, -96($sp)
 lw $ra, -100($sp)
 lw $s0, -84($sp)
@@ -121,3 +158,4 @@ lwc1 $f29, -4($sp)
 lwc1 $f30, 0($sp)
 addi $sp, $sp, -104
 jr $ra
+

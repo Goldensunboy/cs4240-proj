@@ -19,6 +19,7 @@ public class StackFrame {
 	}
 
 	int beginOfFrame = -1;
+	int beforeFuncCall = -1;
 	
 	public static void pushOnStack(StackArgument arg){
 		if(stackFrame == null){
@@ -30,7 +31,12 @@ public class StackFrame {
 			throw new CorruptedStackException("Variable begin added, "+arg.getVariableName()+", is already on the stack");
 		
 	}
-	
+	public static void popOffStack(){
+		if(stackFrame == null){
+			stackFrame = new StackFrame();
+		}
+		stackFrame.stack.remove(stackFrame.stack.size()-1);
+	}
 
 	
 	/**
@@ -92,31 +98,49 @@ public class StackFrame {
 		return instruction;
 	}
 	
-	public static String callFunction(String functionName){
+	/**
+	 * Sets up stack before a function is called
+	 * @param functionName
+	 * @return
+	 */
+	public static String callingFunctionBegin(String functionName){
 		if(stackFrame == null){
 			stackFrame = new StackFrame();
 		}
 		
 		String MIPSInstruction = "";
 		
-		int oldSPLocation = stackFrame.stack.size();
+		stackFrame.beforeFuncCall = stackFrame.stack.size();
 		/* caller saved registers */
-		for(int i = 0; i < 7; i++){
+		for(int i = 0; i < 8; i++){
 			pushOnStack(new StackArgument("$t"+i, RegisterType.INT, false, Category.CALLER_SAVED));
 		}
-		for(int i = 4; i < 11; i++){
+		for(int i = 4; i < 12; i++){
 			pushOnStack(new StackArgument("$f"+i, RegisterType.FLOAT, false, Category.CALLER_SAVED));
 		}	
 		/* parameters for the next function */
 		ArrayList<String> localParameters = IRParser.getFuncParams(functionName);
 		for(String parameter : localParameters){
-			pushOnStack(new StackArgument(IRParser.getVariableName(parameter), IRParser.getVariableType(parameter), true, Category.PARAMETERS)); 
+			pushOnStack(new StackArgument(IRParser.getVariableName(parameter)+"_param", IRParser.getVariableType(parameter), true, Category.PARAMETERS)); 
 		}
-		MIPSInstruction += "addi $sp, $sp, "+ (4*(stackFrame.stack.size() - oldSPLocation)); //TODO check indexing /* generate the instruction to move the stack pointer at the being of function */
+		MIPSInstruction += "addi $sp, $sp, "+ (4*(stackFrame.stack.size() - stackFrame.beforeFuncCall)); //TODO check indexing /* generate the instruction to move the stack pointer at the being of function */
 		
 		return MIPSInstruction;
 	}
-	
+	/**
+	 * Tears down stack after the function that was called returns
+	 */
+	public static String callingFunctionEnd(String functionName){
+		if(stackFrame == null){
+			stackFrame = new StackFrame();
+		}
+		int amountToPop = stackFrame.stack.size() - stackFrame.beforeFuncCall;
+		for(int i = 0; i < amountToPop; i++){
+			popOffStack();
+		}
+		String instruction = "addi $sp, $sp, "+ -(4*(amountToPop)); 
+		return instruction;
+	}
 	
 	/**
 	 * Clears the current frame

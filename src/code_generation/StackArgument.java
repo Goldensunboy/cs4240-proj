@@ -14,7 +14,7 @@ public class StackArgument {
 	public StackArgument(String variableName, RegisterType variableType, boolean containsValue, Category category){
 		this.variableName = variableName;
 		this.variableType = variableType;
-		this.containsValue = containsValue;
+		this.containsValue = true;//containsValue;
 		this.category = category;
 	}
 	
