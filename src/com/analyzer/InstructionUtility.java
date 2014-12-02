@@ -65,5 +65,4 @@ public class InstructionUtility {
 		conversion.add(cvt);
 		return conversion;
 	}
-	
 }

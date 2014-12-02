@@ -11,8 +11,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import com.analyzer.IRGeneratorForMIPS;
 import com.analyzer.InstructionDetail;
 import com.analyzer.Instructions;
+import com.analyzer.LOAD_STORE;
 /**
  * @author saman
  * 
@@ -25,11 +27,7 @@ public class BasicBlock {
 	private Set<String> returnVariableSet;
 	public static int overallBlockId = 0;
 	private int blockId;
-	
-	private enum LOAD_STORE{
-		LOAD,
-		STORE
-	}
+	private boolean hasBranch = false;
 	
 	public BasicBlock() {
 		instructionDetails = new ArrayList<>();
@@ -42,12 +40,21 @@ public class BasicBlock {
 		blockId = overallBlockId;
 	}
 	
+	public Map<String, Integer> getIntVariableOccurances() {
+		return intVariableOccurances;
+	}
+	
+	public Map<String, Integer> getFloatVariableOccurances() {
+		return floatVariableOccurances;
+	}
+
 	public List<String> getAnnotatedIR() {
+//		IRGeneratorForMIPS testing = new IRGeneratorForMIPS();
+//		return testing.getAnnotatedIR(intVariableOccurances, floatVariableOccurances, instructionDetails);
 		RegisterFactory registerFactory = new RegisterFactory(intVariableOccurances, floatVariableOccurances);
 		Map<String, String> variablesRegisterMap = registerFactory.getRegisterMap();
 		
-		boolean isLoad = true;
-		List<String> annotatedIR = getLoadStoreRegisters(variablesRegisterMap, isLoad);
+		List<String> annotatedIR = getLoadStoreRegisters(variablesRegisterMap, LOAD_STORE.LOAD);
 		for(InstructionDetail instructionDetail : instructionDetails) {
 			
 			if(instructionDetail.getInstructionName().equals(Instructions.RETURN.getName())) {
@@ -74,10 +81,19 @@ public class BasicBlock {
 			registerFactory.resetAvailableTemporaryRegisterIndex();
 		}
 		
-		isLoad = false;
-		annotatedIR.addAll(getLoadStoreRegisters(variablesRegisterMap, isLoad));
+		if(hasBranch()) {
+			String lastInstruction = annotatedIR.remove(annotatedIR.size()-1);
+			annotatedIR.addAll(getLoadStoreRegisters(variablesRegisterMap, LOAD_STORE.STORE));
+			annotatedIR.add(lastInstruction);
+		} else {
+			annotatedIR.addAll(getLoadStoreRegisters(variablesRegisterMap, LOAD_STORE.STORE));
+		}
 		
 		return annotatedIR;
+	}
+	
+	private boolean hasBranch() {
+		return hasBranch;
 	}
 	
 	private List<String> getTemporaryLoadStoreRegisters(String[] variablesNeedLoadStore, Map<String, String> temporaryVariablesRegisterMap, LOAD_STORE isLoad) {
@@ -121,7 +137,8 @@ public class BasicBlock {
 		return newInstruction;
 	}
 	
-	private List<String> getLoadStoreRegisters(Map<String, String> annotatedVariablesWithRegister, boolean isLoad) {
+	private List<String> getLoadStoreRegisters(Map<String, String> annotatedVariablesWithRegister,
+			LOAD_STORE isLoad) {
 		List<String> loadInstructions = new ArrayList<>();
 		for(Entry<String, String> annotatedVariable : annotatedVariablesWithRegister.entrySet()) {
 			String variableName = annotatedVariable.getKey();
@@ -132,8 +149,8 @@ public class BasicBlock {
 		return loadInstructions;
 	}
 	
-	private String generateLoadInstruction(String variableName, String registerName, boolean isLoad) {
-		return (isLoad ? "load, " : "store, ") + variableName + ", " + registerName;
+	private String generateLoadInstruction(String variableName, String registerName, LOAD_STORE isLoad) {
+		return (isLoad == LOAD_STORE.LOAD ? "load, " : "store, ") + variableName + ", " + registerName;
 	}
 	
 	public void setNextBasicBlock(BasicBlock nextBasicBlock) {
@@ -193,7 +210,11 @@ public class BasicBlock {
 			} else {
 				returnVariableSet.add(instructionDetail.getLHS());				
 			}
-		} else {			
+		} else {
+			if(instructionDetail.isBranch()) {
+				hasBranch = true;
+				// TODO - do this when making the instructions
+			}
 			if(instructionDetail.hasLHS()) {
 				countLhsVariablesOccurances(instructionDetail);
 			}

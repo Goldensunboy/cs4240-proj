@@ -7,14 +7,16 @@ public class FunctionAttribute implements Attribute{
 	// Attributes for function name
 	private String functionName;
 	private String returnTypeName;
-	private List<TypeAttribute> params;
+	private List<TypeAttribute> parameterTypes;
+	private List<String> actualParameterNames;
 	private final int scopeId;
 	
-	public FunctionAttribute(String functionName, String returnTypeName, List<TypeAttribute> params,
-			int scopeId) {
+	public FunctionAttribute(String functionName, String returnTypeName, List<TypeAttribute> parameterTypes, 
+			List<String> actualParameterNames, int scopeId) {
 		this.functionName = functionName;
-		this.params = params;
+		this.parameterTypes = parameterTypes;
 		this.returnTypeName = returnTypeName;
+		this.actualParameterNames = actualParameterNames;
 		this.scopeId = scopeId;
 	}
 	
@@ -25,13 +27,15 @@ public class FunctionAttribute implements Attribute{
 	public void setFunctionName(String functionName) {
 		this.functionName = functionName;
 	}
-	public List<TypeAttribute> getParams() {
-		return params;
+	public List<TypeAttribute> getParameterTypes() {
+		return parameterTypes;
 	}
-	public void setParams(List<TypeAttribute> params) {
-		this.params = params;
+	public void setParameterTypes(List<TypeAttribute> parameterTypes) {
+		this.parameterTypes = parameterTypes;
 	}
-	
+	public List<String> getAcrualtParameters() {
+		return actualParameterNames;
+	}
 	
 	public String toString() {
 		StringBuffer buffer = new StringBuffer();
@@ -42,18 +46,21 @@ public class FunctionAttribute implements Attribute{
 		buffer.append(", Return type name: ");
 		buffer.append(returnTypeName);
 		buffer.append(", Parameters: ");
-		for(TypeAttribute paramType : params)
+		for(TypeAttribute paramType : parameterTypes)
 			buffer.append(paramType).append(", ");
+		buffer.append(" ActualParameterNames: ");
+		for(String actualName : actualParameterNames)
+			buffer.append(actualName).append(", ");
 		return buffer.toString();
 	}
 	
-	public static String getParamListStringRepresentationFactoryInTigerCodeForPhase2ErrorReporting(List<TypeAttribute> params) {
-		if(params.size() == 0) {
+	public static String getParamListStringRepresentationFactoryInTigerCodeForPhase2ErrorReporting(List<TypeAttribute> parameterTypes) {
+		if(parameterTypes.size() == 0) {
 			return "[void]";
 		} else {
 			String ret = "[";
 			boolean b = true;
-			for(TypeAttribute t : params) {
+			for(TypeAttribute t : parameterTypes) {
 				if(b) {
 					b = false;
 				} else {
@@ -83,9 +90,4 @@ public class FunctionAttribute implements Attribute{
 	public int getScopeId() {
 		return scopeId;
 	}
-
-//	@Override
-//	public Attribute getAttributeClone() {
-//		return new FunctionAttribute(functionName, returnTypeName, params, scopeId);
-//	}
 }

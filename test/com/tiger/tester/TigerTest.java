@@ -113,8 +113,6 @@ public class TigerTest {
 			for (String ir : IRAndRegs) 
 				System.out.println(ir);
 			System.out.println("=================");
-			
-			
 			break;
 			
 		case ANDREW:

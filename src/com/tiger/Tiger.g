@@ -91,12 +91,12 @@ import com.exception.NameSpaceConflictException;
     }
   }
   
-  private void putFunctionAttributeMap(String functionName,  TypeAttribute returnTypeAttribute, List<TypeAttribute> parameters) {
+  private void putFunctionAttributeMap(String functionName,  TypeAttribute returnTypeAttribute, List<TypeAttribute> parameters, List<String> actualParameterNames) {
     Scope currScope = symbolTableManager.getCurrentScope();
     int scopeId = currScope == null ? -1 : currScope.getScopeId();
     String typeName = returnTypeAttribute.getAliasName();
     FunctionAttribute functionAttribute = new FunctionAttribute(functionName, typeName, 
-        parameters, scopeId);
+        parameters, actualParameterNames, scopeId);
     attributeMap.put(functionName, functionAttribute);
   }
 
@@ -235,11 +235,13 @@ funcDeclaration[String typeName, TypeAttribute returnTypeAttribute]
 scope
 {
   List<TypeAttribute> parameterTypeList;
+  List<String> actualParameterNames;
   List<VariableAttribute> parameterValueList;
 }
 @init
 {
   $funcDeclaration::parameterTypeList = new ArrayList<TypeAttribute>();
+  $funcDeclaration::actualParameterNames = new ArrayList<String>();
   $funcDeclaration::parameterValueList = new ArrayList<VariableAttribute>();
 }
 :
@@ -255,7 +257,8 @@ afterBegin[String myFunctionName, String typeName, TypeAttribute returnTypeAttri
 {
   putFunctionAttributeMap(myFunctionName,
                               returnTypeAttribute,
-                              $funcDeclaration::parameterTypeList);
+                              $funcDeclaration::parameterTypeList,
+                              $funcDeclaration::actualParameterNames);
   enclosingFunctionName = myFunctionName;
 }
 :
@@ -291,7 +294,8 @@ mainFunction [TypeAttribute returnTypeAttribute]:
   {
 	  putFunctionAttributeMap($KEY_MAIN.text,
 	                              returnTypeAttribute,
-	                              new ArrayList<TypeAttribute>());
+	                              new ArrayList<TypeAttribute>(),
+	                              new ArrayList<String>());
 	  enclosingFunctionName = $KEY_MAIN.text;
 	  IRList.addFirst("FUNC_main:");
   }
@@ -324,6 +328,7 @@ param[String declaringFunctionName] :
 	id[IdType.FUNCTION_PARAMETER] OP_COLON typeId[IdType.VARIABLE_TYPE]
 	{
     $funcDeclaration::parameterTypeList.add($typeId.typeAttribute);
+    $funcDeclaration::actualParameterNames.add($id.text);
     Scope currScope = symbolTableManager.getCurrentScope();
     int scopeId = currScope == null ? -1 : currScope.getScopeId();
 	  VariableAttribute variableAttribute = new VariableAttribute($id.text, $typeId.text,

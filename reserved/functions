@@ -1,4 +1,4 @@
-printi:void:int
-flush:void
-not:int:int
-exit:void:int
+Print_int:void:int:k
+Read_int:int:void:temp
+Print_float:void:fixedpt:k
+Read_float:fixedpt:void:temp

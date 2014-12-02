@@ -61,6 +61,10 @@ public enum Instructions {
 		return isLabel() || labelIndex != -1;
 	}
 	
+	public boolean isBranch() {
+		return getName() != FUNC.getName() && !isLabel() && labelIndex != -1;
+	}
+	
 	public String getLHS(String[] splitedInstruction) {
 		return splitedInstruction[lhsIndex];
 	}

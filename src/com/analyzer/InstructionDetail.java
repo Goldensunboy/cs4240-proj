@@ -22,6 +22,10 @@ public class InstructionDetail {
 		this.instruction = Instructions.valueOf(instructionName.toUpperCase());
 	}
 
+	public boolean isBranch() {
+		return instruction.isBranch();
+	}
+	
 	public boolean isReturn() {
 		return Instructions.RETURN.equals(instruction);
 	}

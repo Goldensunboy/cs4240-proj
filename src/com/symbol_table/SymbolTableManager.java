@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.LinkedList;
@@ -226,7 +225,7 @@ public class SymbolTableManager {
 	 */
 	public List<TypeAttribute> getFunctionParameters(String functionName) { 
 		FunctionAttribute functionNameAttribute = getFunctionAttribute(functionName);
-		return functionNameAttribute.getParams();
+		return functionNameAttribute.getParameterTypes();
 	}
 
 	/**
@@ -361,24 +360,33 @@ public class SymbolTableManager {
 	 * is left off.
 	 */
 	private void populateReservedFunctions() {
+		
+		
 		String path = "reserved/functions";
 		Map<String, Attribute> attributeMap = new Hashtable<>();
+		
+		List<TypeAttribute> paramsInt = new ArrayList<>();
+		paramsInt.add(new TypeAttribute(Type.INT.getName(), Type.INT, -1));
+		List<TypeAttribute> paramsFixedpt = new ArrayList<>();
+		paramsFixedpt.add(new TypeAttribute(Type.FIXPT.getName(), Type.FIXPT, -1));
+		List<String> actualParameterName = new ArrayList<>();
+		actualParameterName.add("k");
+
 		for(String funcName : readReservedFile(path)) {	
 			String[] func = funcName.split(":");
 			Attribute funcAttribute;
-			if(func.length > 2) {
-				TypeAttribute[] params = new TypeAttribute[func.length - 2];
-				for(int i = 0; i < func.length - 2; ++i) {
-					params[i] = new TypeAttribute(Type.INT.getName(), Type.INT, -1);
-				}
-				//System.arraycopy(func, 2, params, 0,  func.length - 2);
-				funcAttribute = new FunctionAttribute(func[0], func[1], new ArrayList<TypeAttribute>(Arrays.asList(params)), -1);
+
+			if(func.length == 4) {
+				boolean isFixedpt = func[2].equals("fixedpt");
+				boolean isVoid = func[2].equals("void");
+				
+				List<TypeAttribute> params = isVoid ? new ArrayList<TypeAttribute>() : (isFixedpt ? paramsFixedpt : paramsInt);
+				List<String> actualParameterNames = isVoid ? new ArrayList<String>() : actualParameterName;
+				funcAttribute = new FunctionAttribute(func[0], func[1], params, actualParameterNames, -1); 
 			}
-			else if(func.length == 2){
-				funcAttribute = new FunctionAttribute(func[0], func[1], new ArrayList<TypeAttribute>(), -1);
+			else {				
+				throw new ShouldNotHappenException("functions file includes invalid lines");
 			}
-			else
-				continue;
 			attributeMap.put(func[0], funcAttribute);
 			expiredFunctionName.add(func[0]);
 			globalTypeFunctionNameSpace.add(func[0]);
@@ -448,4 +456,13 @@ public class SymbolTableManager {
 	public boolean isValidType(String typeName, Map<String, Attribute> attributeMap) {
 		return getTypeAttributeInCurrentScope(typeName, attributeMap) != null;
 	}
+	
+	/*
+	 * TODO
+	 * 1) parameters of a function
+	 * 2) all local vars of a function
+	 * 3) return type of a function
+	 */
+	
+	
 }
