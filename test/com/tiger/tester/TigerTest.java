@@ -4,9 +4,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.List;
 
-import com.analyzer.NaiveRegisterAllocator;
 import com.analyzer.RegisterAllocator;
-import com.analyzer.cfg.CFGRegisterAllocator;
+import com.analyzer.basic_block_approach.ebb.EBBRegisterAllocator;
+import com.analyzer.naive_approach.NaiveRegisterAllocator;
 import com.antlr.generated.TigerParser;
 import com.compiler.TigerCompiler;
 import com.compiler.TigerCompiler.CompilerErrorReport;
@@ -107,7 +107,8 @@ public class TigerTest {
 				System.out.println(ir);
 			System.out.println("=================");
 			
-			CFGRegisterAllocator allocator = new CFGRegisterAllocator(IRList);
+//			CFGRegisterAllocator allocator = new CFGRegisterAllocator(IRList);
+			EBBRegisterAllocator allocator = new EBBRegisterAllocator(IRList);
 			List<String> IRAndRegs = allocator.getAnnotatedIRCode();
 			System.out.println("==== IR Regs ====");
 			for (String ir : IRAndRegs) 

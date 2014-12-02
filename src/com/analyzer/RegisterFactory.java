@@ -1,4 +1,4 @@
-package com.analyzer.cfg;
+package com.analyzer;
 
 import java.util.ArrayList;
 import java.util.Comparator;

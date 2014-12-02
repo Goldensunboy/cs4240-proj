@@ -1,4 +1,4 @@
-package com.analyzer;
+package com.analyzer.naive_approach;
 
 import java.util.HashSet;
 import java.util.Set;

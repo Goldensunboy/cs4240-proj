@@ -1,54 +1,16 @@
-package com.analyzer.cfg;
+package com.analyzer.basic_block_approach;
 
-import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
 import com.analyzer.IRAnalyzer;
 import com.analyzer.InstructionDetail;
-import com.analyzer.RegisterAllocator;
 
-public class CFGRegisterAllocator implements RegisterAllocator{
-	private List<InstructionDetail> IRDetails;
+public class BasicBlockFactory {
 	
-	public CFGRegisterAllocator (List<String> IRList) {
-		this.IRDetails = IRAnalyzer.analyze(IRList); 
-	}
-	
-	@Override
-	public List<String> getAnnotatedIRCode() {
-		BasicBlock root = makeBasicBlocks();
-
-		List<String> annotateIR = new ArrayList<>();
-		while(root != null) {
-			annotateIR.addAll(root.getAnnotatedIR());
-			root = root.getNextBasicBlock();
-		}
-		
-		return annotateIR;
-	}
-
-	@SuppressWarnings("unused")
-	private List<String> getIRDetailsToDraw() {
-		// TODO - for testing
-		List<String> myRetVal = new ArrayList<>();
-		for (InstructionDetail detail : IRDetails) {
-			myRetVal.add(detail.toString());
-		}
-		return myRetVal;
-	}
-	
-	@SuppressWarnings("unused")
-	private void drawBlocks(BasicBlock block) {
-		//TODO - for testing
-		while(block != null) {
-			System.out.println(block);
-			block = block.getNextBasicBlock();
-		}
-	}
-	
-	private BasicBlock makeBasicBlocks() {
+	public static BasicBlock makeBasicBlocks(List<String> IRList) {	
+		List<InstructionDetail> IRDetails = IRAnalyzer.analyze(IRList);
 		
 		//BasicBlock needs to hold the first IR as the leader
 		BasicBlock currentBasicBlock = new BasicBlock();
@@ -90,7 +52,7 @@ public class CFGRegisterAllocator implements RegisterAllocator{
 		return root;
 	}
 	
-	private BasicBlock labelAsLeader(Map<String, BasicBlock> labeledBasicBlocks, BasicBlock currentBasicBlock, 
+	private static BasicBlock labelAsLeader(Map<String, BasicBlock> labeledBasicBlocks, BasicBlock currentBasicBlock, 
 			String label, boolean currentJustGotCreatedFromConditional) {
 		
 		BasicBlock newBasicBlock = labeledBasicBlocks.get(label);
@@ -122,7 +84,7 @@ public class CFGRegisterAllocator implements RegisterAllocator{
 		return newBasicBlock;
 	}
 	
-	private BasicBlock afterGotoAsLabel(Map<String, BasicBlock> labeledBasicBlocks, BasicBlock currentBasicBlock, 
+	private static BasicBlock afterGotoAsLabel(Map<String, BasicBlock> labeledBasicBlocks, BasicBlock currentBasicBlock, 
 			String label, boolean letsFallThrough) {
 		
 		//add currentBasicBlock to the predecessors of the block we jump to 

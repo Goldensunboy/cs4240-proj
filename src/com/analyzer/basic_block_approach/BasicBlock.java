@@ -1,4 +1,4 @@
-package com.analyzer.cfg;
+package com.analyzer.basic_block_approach;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -32,6 +32,10 @@ public class BasicBlock {
 		returnVariableSet = new HashSet<>();
 		overallBlockId++;
 		blockId = overallBlockId;
+	}
+	
+	public List<InstructionDetail> getInstructionDetails() {
+		return instructionDetails;
 	}
 	
 	public Map<String, Integer> getIntVariableOccurances() {

@@ -1,15 +1,17 @@
-package com.analyzer.cfg;
+package com.analyzer.basic_block_approach.ebb;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import com.analyzer.RegisterAllocator;
+import com.analyzer.basic_block_approach.BasicBlock;
+import com.analyzer.basic_block_approach.BasicBlockFactory;
 
 public class EBBRegisterAllocator implements RegisterAllocator{
 	private BasicBlock root;
 	
-	public EBBRegisterAllocator(BasicBlock root) {
-		this.root = root;
+	public EBBRegisterAllocator(List<String> IRList) {
+		this.root = BasicBlockFactory.makeBasicBlocks(IRList);
 	}
 
 	@Override
