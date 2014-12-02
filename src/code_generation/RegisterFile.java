@@ -1,14 +1,18 @@
 package code_generation;
 
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 
 /*
  * This is a singleton design class
  */
 public class RegisterFile {
-	
+	public static final String[] AVAILABLE_INT_REGISTERS= {"$t0", "$t1", "$t2", "$t3", "$t4", "$t5",
+		"$t6", "$s0", "$s1", "$s2", "$s3", "$s4", "$s5", "$s6", "$s7"};
+	public static final String[] AVAILABLE_FLOAT_REGISTERS = {"$f4", "$f5", "$f6", "$f7", "$f8", "$f9", "$f10", 
+		"$f11", "$f16", "$f17", "$f18", "$f19", "$f20", "$f21", "$f22", "$f23", "$f24", "$f25", "$f26", "$f27", "$f28"};
+	public static final String[] AVAILABLE_TEMPORARY_INT_REGISTERS= {"$t7", "$t8", "$t9"};
+	public static final String[] AVAILABLE_TEMPORARY_FLOAT_REGISTERS = {"$f29", "$f30", "$f31"};
+
 	private static RegisterFile registerFile; 	//This is a singleton design class. Yes, register file should be private.
 
 	private HashMap<String,Register> intRegisters = new HashMap<String, Register>();	//The 32 int registers that MIPS contains

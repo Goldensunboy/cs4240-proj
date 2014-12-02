@@ -16,7 +16,7 @@ public enum Instructions {
 	OR ("or", 3, 1, 3, -1),
 	GOTO ("goto", -1, -1, -1, 1),
 	BREQ ("breq", -1, 1, 3, 3),
-	BRNEQ ("brneq", -1, 2, 3, 3),
+	BRNEQ ("brneq", -1, 1, 3, 3),
 	BRLT ("brlt", -1, 1, 3, 3),
 	BRGT ("brgt", -1, 1, 3, 3),
 	BRGEQ ("brgeq", -1, 1, 3, 3),

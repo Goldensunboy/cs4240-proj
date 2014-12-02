@@ -1,5 +1,8 @@
 package com.analyzer.cfg;
 
+import static com.analyzer.InstructionUtility.generateLoad;
+import static com.analyzer.InstructionUtility.generateStore;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -10,7 +13,6 @@ import java.util.Set;
 
 import com.analyzer.InstructionDetail;
 import com.analyzer.Instructions;
-
 /**
  * @author saman
  * 
@@ -23,6 +25,11 @@ public class BasicBlock {
 	private Set<String> returnVariableSet;
 	public static int overallBlockId = 0;
 	private int blockId;
+	
+	private enum LOAD_STORE{
+		LOAD,
+		STORE
+	}
 	
 	public BasicBlock() {
 		instructionDetails = new ArrayList<>();
@@ -37,24 +44,70 @@ public class BasicBlock {
 	
 	public List<String> getAnnotatedIR() {
 		RegisterFactory registerFactory = new RegisterFactory(intVariableOccurances, floatVariableOccurances);
-		Map<String, String> annotatedVariablesWithRegister = registerFactory.allocateRegister();
+		Map<String, String> variablesRegisterMap = registerFactory.getRegisterMap();
 		
 		boolean isLoad = true;
-		List<String> annotedIR = getLoadStoreRegisters(annotatedVariablesWithRegister, isLoad);
+		List<String> annotatedIR = getLoadStoreRegisters(variablesRegisterMap, isLoad);
 		for(InstructionDetail instructionDetail : instructionDetails) {
-			annotedIR.add(manageRegisters(instructionDetail, annotatedVariablesWithRegister));
+			
+			if(instructionDetail.getInstructionName().equals(Instructions.RETURN.getName())) {
+				continue; // TODO deal with this later
+			}
+			
+			String[] variablesNeedLoad = instructionDetail.getRHS();
+			String lhs = instructionDetail.getLHS();
+			String[] variablesNeedStore = {lhs}; // TODO this need refactoring
+			if(lhs == null) {
+				variablesNeedStore = null;
+			}
+
+			Map<String, String> temporaryVariablesRegisterMap = registerFactory.createTemporaryRegisterMap(variablesNeedLoad, variablesNeedStore);  
+
+			annotatedIR.addAll(getTemporaryLoadStoreRegisters(variablesNeedLoad, temporaryVariablesRegisterMap, LOAD_STORE.LOAD));
+			
+			Map<String, String> registersToPromote = registerFactory.getRegistersToPromotion(variablesNeedLoad, variablesNeedStore, temporaryVariablesRegisterMap);
+			Map<String, String> promotedRegisters = registerFactory.getPromotedRegisters(registersToPromote);
+			
+			annotatedIR.addAll(registerFactory.getPromotions(registersToPromote, promotedRegisters));
+			annotatedIR.add(manageRegisters(instructionDetail, variablesRegisterMap, temporaryVariablesRegisterMap, promotedRegisters));
+			annotatedIR.addAll(getTemporaryLoadStoreRegisters(variablesNeedStore, temporaryVariablesRegisterMap, LOAD_STORE.STORE));
+			registerFactory.resetAvailableTemporaryRegisterIndex();
 		}
 		
 		isLoad = false;
-		annotedIR.addAll(getLoadStoreRegisters(annotatedVariablesWithRegister, isLoad));
+		annotatedIR.addAll(getLoadStoreRegisters(variablesRegisterMap, isLoad));
 		
-		return annotedIR;
+		return annotatedIR;
 	}
 	
-	private String manageRegisters(InstructionDetail instructionDetail, Map<String, String> annotatedVariablesWithRegister) {
+	private List<String> getTemporaryLoadStoreRegisters(String[] variablesNeedLoadStore, Map<String, String> temporaryVariablesRegisterMap, LOAD_STORE isLoad) {
+		List<String> loadsOrStores = new ArrayList<>();
+		if(variablesNeedLoadStore != null) { 
+			for(String variableName : variablesNeedLoadStore) {
+				if(temporaryVariablesRegisterMap.containsKey(variableName)) {
+					if(isLoad == LOAD_STORE.LOAD) {
+						loadsOrStores.add(generateLoad(variableName, temporaryVariablesRegisterMap.get(variableName)));					
+					} else {
+						loadsOrStores.add(generateStore(variableName, temporaryVariablesRegisterMap.get(variableName)));
+					}
+				}
+			}
+		}
+		return loadsOrStores;
+	}
+	
+	private String manageRegisters(InstructionDetail instructionDetail, Map<String, String> variablesRegisterMap, 
+			Map<String, String> temporaryVariablesRegisterMap, Map<String, String> promotedRegisters) {
 		String[] splitedInstruction = instructionDetail.getOriginalInstruction().split(", ");
 		for(int i=0; i<splitedInstruction.length; i++) {
-			String replacement = annotatedVariablesWithRegister.get(splitedInstruction[i]);
+			String variableName = splitedInstruction[i];
+			String replacement = promotedRegisters.get(variableName);
+			if(replacement == null) {				
+				replacement = temporaryVariablesRegisterMap.get(variableName);
+			}
+			if(replacement == null) {
+				replacement = variablesRegisterMap.get(variableName);
+			}
 			if(replacement != null) {
 				splitedInstruction[i] = replacement;
 			}
@@ -80,7 +133,7 @@ public class BasicBlock {
 	}
 	
 	private String generateLoadInstruction(String variableName, String registerName, boolean isLoad) {
-		return (isLoad ? "LOAD " : "STORE ") + variableName + ", " + registerName;
+		return (isLoad ? "load, " : "store, ") + variableName + ", " + registerName;
 	}
 	
 	public void setNextBasicBlock(BasicBlock nextBasicBlock) {
