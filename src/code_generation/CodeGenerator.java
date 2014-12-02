@@ -63,7 +63,7 @@ public class CodeGenerator {
 	 */
 	private String generateText(){
 		//TODO actually implement this
-		return ".text\n.globl main\n";
+		return ".text\n";
 		
 	}
 	
@@ -78,9 +78,6 @@ public class CodeGenerator {
 				System.out.println(MIPSLine);
 				writeMIPSToFile(MIPSLine);
 			}
-			MIPSLine = Instruction.closeFile();
-			System.out.println(MIPSLine);
-			writeMIPSToFile(MIPSLine);
 			
 			br.close();
 		} catch (IOException e){
