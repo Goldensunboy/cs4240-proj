@@ -43,6 +43,7 @@ public class IRParser {
 	}
 	/**
 	 * Used temporarily during testing. TODO GET RID OF THIS.
+	 * First param is in first location in array list
 	 * @param funcName
 	 * @return
 	 */	

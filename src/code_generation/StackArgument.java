@@ -43,4 +43,7 @@ public class StackArgument {
 			return false;
 		}
 	}
+	public RegisterType getType(){
+		return variableType;
+	}
 }

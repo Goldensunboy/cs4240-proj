@@ -47,7 +47,7 @@ public class StackFrame {
 		/* parameters */
 		ArrayList<String> localParameters = IRParser.getFuncParams(functionName);
 		for(String parameter : localParameters){
-			pushOnStack(new StackArgument(IRParser.getVariableName(parameter), IRParser.getVariableType(parameter), true, Category.PARAMETERS)); //TODO passes everything on the stack. only works for naive.
+			pushOnStack(new StackArgument(IRParser.getVariableName(parameter), IRParser.getVariableType(parameter), true, Category.PARAMETERS)); 
 		}
 		
 		stackFrame.beginOfFrame = stackFrame.stack.size(); /* points to one after the last parameter */
@@ -91,6 +91,32 @@ public class StackFrame {
 		String instruction = "addi $sp, $sp, "+ -(4*(stackFrame.stack.size() - stackFrame.beginOfFrame)); //TODO check indexing
 		return instruction;
 	}
+	
+	public static String callFunction(String functionName){
+		if(stackFrame == null){
+			stackFrame = new StackFrame();
+		}
+		
+		String MIPSInstruction = "";
+		
+		int oldSPLocation = stackFrame.stack.size();
+		/* caller saved registers */
+		for(int i = 0; i < 7; i++){
+			pushOnStack(new StackArgument("$t"+i, RegisterType.INT, false, Category.CALLER_SAVED));
+		}
+		for(int i = 4; i < 11; i++){
+			pushOnStack(new StackArgument("$f"+i, RegisterType.FLOAT, false, Category.CALLER_SAVED));
+		}	
+		/* parameters for the next function */
+		ArrayList<String> localParameters = IRParser.getFuncParams(functionName);
+		for(String parameter : localParameters){
+			pushOnStack(new StackArgument(IRParser.getVariableName(parameter), IRParser.getVariableType(parameter), true, Category.PARAMETERS)); 
+		}
+		MIPSInstruction += "addi $sp, $sp, "+ (4*(stackFrame.stack.size() - oldSPLocation)); //TODO check indexing /* generate the instruction to move the stack pointer at the being of function */
+		
+		return MIPSInstruction;
+	}
+	
 	
 	/**
 	 * Clears the current frame
@@ -218,7 +244,17 @@ public class StackFrame {
 		throw new BadDeveloperException("Variable is not in the stack");
 	}
 	
-	
+	public static RegisterType getVariableType(String variableName){
+		if(stackFrame == null){
+			stackFrame = new StackFrame();
+		}
+		for(int i = 0; i <stackFrame.stack.size(); i++){
+			if(stackFrame.stack.get(i).getVariableName().equals(variableName)){
+				return stackFrame.stack.get(i).getType();
+			}
+		}
+		throw new BadDeveloperException("Variable is not in the stack");
+	}
 	
 }
 
