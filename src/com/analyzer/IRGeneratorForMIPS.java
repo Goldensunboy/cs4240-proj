@@ -11,7 +11,7 @@ import java.util.Map.Entry;
 
 public class IRGeneratorForMIPS {
 	
-	private List<String> getLoadStoreRegisters(Map<String, String> annotatedVariablesWithRegister,
+	private static List<String> getLoadStoreRegisters(Map<String, String> annotatedVariablesWithRegister,
 			LOAD_STORE isLoad) {
 		List<String> loadInstructions = new ArrayList<>();
 		for(Entry<String, String> annotatedVariable : annotatedVariablesWithRegister.entrySet()) {
@@ -23,11 +23,11 @@ public class IRGeneratorForMIPS {
 		return loadInstructions;
 	}
 	
-	private String generateLoadInstruction(String variableName, String registerName, LOAD_STORE isLoad) {
+	private static String generateLoadInstruction(String variableName, String registerName, LOAD_STORE isLoad) {
 		return (isLoad == LOAD_STORE.LOAD ? "load, " : "store, ") + variableName + ", " + registerName;
 	}
 	
-	private List<String> getTemporaryLoadStoreRegisters(String[] variablesNeedLoadStore, Map<String, String> temporaryVariablesRegisterMap, LOAD_STORE isLoad) {
+	private static List<String> getTemporaryLoadStoreRegisters(String[] variablesNeedLoadStore, Map<String, String> temporaryVariablesRegisterMap, LOAD_STORE isLoad) {
 		List<String> loadsOrStores = new ArrayList<>();
 		if(variablesNeedLoadStore != null) { 
 			for(String variableName : variablesNeedLoadStore) {
@@ -43,7 +43,7 @@ public class IRGeneratorForMIPS {
 		return loadsOrStores;
 	}
 	
-	private String manageRegisters(InstructionDetail instructionDetail, Map<String, String> variablesRegisterMap, 
+	private static String manageRegisters(InstructionDetail instructionDetail, Map<String, String> variablesRegisterMap, 
 			Map<String, String> temporaryVariablesRegisterMap, Map<String, String> promotedRegisters) {
 		String[] splitedInstruction = instructionDetail.getOriginalInstruction().split(", ");
 		for(int i=0; i<splitedInstruction.length; i++) {
@@ -69,11 +69,15 @@ public class IRGeneratorForMIPS {
 	}
 	
 	
-	public List<String> getAnnotatedIR(Map<String, Integer> intVariableOccurances, Map<String, Integer> floatVariableOccurances, List<InstructionDetail> instructionDetails) {
+	public static List<String> getAnnotatedIR(Map<String, Integer> intVariableOccurances, Map<String, Integer> floatVariableOccurances, 
+			List<InstructionDetail> instructionDetails, boolean generateLoad, boolean generateStore) {
 		RegisterFactory registerFactory = new RegisterFactory(intVariableOccurances, floatVariableOccurances);
 		Map<String, String> variablesRegisterMap = registerFactory.getRegisterMap();
-		
-		List<String> annotatedIR = getLoadStoreRegisters(variablesRegisterMap, LOAD_STORE.LOAD);
+
+		List<String> annotatedIR = new ArrayList<>(); 
+		if(generateLoad) {			
+			annotatedIR.addAll(getLoadStoreRegisters(variablesRegisterMap, LOAD_STORE.LOAD));
+		}
 		for(InstructionDetail instructionDetail : instructionDetails) {
 			
 			if(instructionDetail.getInstructionName().equals(Instructions.RETURN.getName())) {
@@ -96,7 +100,7 @@ public class IRGeneratorForMIPS {
 			
 			annotatedIR.addAll(registerFactory.getPromotions(registersToPromote, promotedRegisters));
 
-			if(instructionDetail.isBranch()) {
+			if(generateStore && instructionDetail.isBranch()) {
 				annotatedIR.addAll(getLoadStoreRegisters(variablesRegisterMap, LOAD_STORE.STORE));
 			} 
 
@@ -109,7 +113,7 @@ public class IRGeneratorForMIPS {
 			registerFactory.resetAvailableTemporaryRegisterIndex();
 		}
 		
-		if(!instructionDetails.get(instructionDetails.size()-1).isBranch()) {
+		if(generateStore && !instructionDetails.get(instructionDetails.size()-1).isBranch()) {
 			annotatedIR.addAll(getLoadStoreRegisters(variablesRegisterMap, LOAD_STORE.STORE));
 		}
 		

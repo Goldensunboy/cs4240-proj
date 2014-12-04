@@ -3,22 +3,9 @@ begin
 	begin
 		var b : int := 10;
 		b := b + b;
-		b := b + b;
-		b := b + b;
-		b := b + b;
-		b := b + b;
-		b := b + b;
-		b := b + b;
-		b := b + b;
-		b := b + b;
-		b := b + b;
-		b := b + b;
-		b := b + b;
-		b := b + b;
-		b := b + b;
-		b := b + b;
-		b := b + b;
-		b := b + b;
-		b := b + b;	
+		if b = 2 then
+			b := 1;
+		endif;
+		b := 3;
 	end;
 end;

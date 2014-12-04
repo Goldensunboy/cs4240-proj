@@ -7,9 +7,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.analyzer.IRGeneratorForMIPS;
 import com.analyzer.InstructionDetail;
 import com.analyzer.Instructions;
+import com.analyzer.basic_block_approach.ebb.EBB;
 /**
  * @author saman
  * 
@@ -23,6 +23,10 @@ public class BasicBlock {
 	public static int overallBlockId = 0;
 	private int blockId;
 	
+	// Below is used for EBB
+	private boolean startOfEBB, endOfEBB;
+	private EBB enclosingEBB;
+	
 	public BasicBlock() {
 		instructionDetails = new ArrayList<>();
 		predecessors = new ArrayList<>();
@@ -32,6 +36,30 @@ public class BasicBlock {
 		returnVariableSet = new HashSet<>();
 		overallBlockId++;
 		blockId = overallBlockId;
+	}
+	
+	public void setEnclosingEBB(EBB enclosingEBB) {
+		this.enclosingEBB = enclosingEBB;
+	}
+	
+	public EBB getEnclosingEBB() {
+		return enclosingEBB;
+	}
+	
+	public void setAsStartOfEBB() {
+		startOfEBB = true;
+	}
+	
+	public void setAsEndOfEBB() {
+		endOfEBB = true;
+	}
+	
+	public boolean isStartOfEBB() {
+		return startOfEBB;
+	}
+	
+	public boolean isEndOfEBB() {
+		return endOfEBB;
 	}
 	
 	public List<InstructionDetail> getInstructionDetails() {
@@ -44,11 +72,6 @@ public class BasicBlock {
 	
 	public Map<String, Integer> getFloatVariableOccurances() {
 		return floatVariableOccurances;
-	}
-
-	public List<String> getAnnotatedIR() {
-		IRGeneratorForMIPS testing = new IRGeneratorForMIPS();
-		return testing.getAnnotatedIR(intVariableOccurances, floatVariableOccurances, instructionDetails);
 	}
 
 	public void setNextBasicBlock(BasicBlock nextBasicBlock) {
