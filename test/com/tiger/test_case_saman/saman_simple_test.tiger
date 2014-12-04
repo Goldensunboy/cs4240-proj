@@ -1,11 +1,37 @@
 void main()
 begin
 	begin
+		var a : int := 10;
 		var b : int := 10;
+		var c : int := 10;
+		var d : int := 10;
+		var e : int := 10;
+		var f : int := 10;
+		var g : int := 10;
+		var h : int := 10;
+		var i : int := 10;
+		var j : int := 10;
+		var k : int := 10;
+		var l : int := 10;
+		var m : int := 10;
+		var n : int := 10;
+		var o : int := 10;
+		var p : int := 10;
+		a := a + a;
 		b := b + b;
-		if b = 2 then
-			b := 1;
-		endif;
-		b := 3;
+		c:= c + c;
+		d := d + d;
+		e := e + e;
+		f := f + f;
+		g:= g + g;
+		h := h + h;
+		i := i + i;
+		j := j + j;
+		k:= k + k;
+		l := l + l;
+		m := m + m;
+		n := n + n;
+		o:= o + o;
+		p := p + p;
 	end;
 end;
