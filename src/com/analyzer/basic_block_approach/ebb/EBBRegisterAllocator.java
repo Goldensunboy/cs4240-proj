@@ -79,7 +79,7 @@ public class EBBRegisterAllocator implements RegisterAllocator{
 		leaders.add(currentRoot);
 		
 		while(!leaders.isEmpty()) {
-			BasicBlock leader = leaders.remove(0);			
+			BasicBlock leader = leaders.remove(0);
 			ebbElements.add(leader);
 			EBB enclosingEBB = new EBB();
 			
@@ -87,6 +87,16 @@ public class EBBRegisterAllocator implements RegisterAllocator{
 			
 			while(!ebbElements.isEmpty()) {
 				BasicBlock currentBasicBlock = ebbElements.remove(0);
+
+				/*
+				 *  add the basic blocks created by changing functions (remember, 
+				 *  new function creates new basic block that has no predecessor)
+				 *   
+				 */
+				BasicBlock functionLabelAsLeader = currentBasicBlock.getNextBasicBlock();
+				if (functionLabelAsLeader != null && functionLabelAsLeader.getPredecessors().size()==0) {
+					leaders.add(functionLabelAsLeader);
+				}
 				currentBasicBlock.setEnclosingEBB(enclosingEBB);
 				
 				enclosingEBB.addToBasicBlocks(currentBasicBlock);

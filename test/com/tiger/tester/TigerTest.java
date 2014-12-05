@@ -9,6 +9,7 @@ import code_generation.CodeGenerator;
 import com.analyzer.RegisterAllocator;
 import com.analyzer.basic_block_approach.cfg.CFGRegisterAllocator;
 import com.analyzer.basic_block_approach.ebb.EBBRegisterAllocator;
+import com.analyzer.naive_approach.NaiveRegisterAllocator;
 import com.analyzer.naive_approach.NaiveRegisterAllocator_deprecated;
 import com.antlr.generated.TigerParser;
 import com.compiler.TigerCompiler;
@@ -85,7 +86,13 @@ public class TigerTest {
 		RegisterAllocator regalloc;
 		switch (developerName) {
 		case MARISSA:
-			CFGRegisterAllocator registerAllocator = new CFGRegisterAllocator(parser.getIRCode());
+			IRList = parser.getIRCode();
+			System.out.println("==== IR Code ====");
+			for (String ir : IRList) 
+				System.out.println(ir);
+			System.out.println("=================");
+			CFGRegisterAllocator registerAllocator = new CFGRegisterAllocator(IRList);
+//			NaiveRegisterAllocator registerAllocator = new NaiveRegisterAllocator(parser.getIRCode());
 			List<String> IRIR = registerAllocator.getAnnotatedIRCode();
 			for(int i = 0; i<IRIR.size(); i++)
 				System.out.println(IRIR.get(i));
@@ -119,7 +126,7 @@ public class TigerTest {
 			
 //			CFGRegisterAllocator allocator = new CFGRegisterAllocator(IRList);
 			EBBRegisterAllocator allocator = new EBBRegisterAllocator(IRList);
-//			NaiveRegisterAllocator_saman allocator = new NaiveRegisterAllocator_saman(IRList);
+//			NaiveRegisterAllocator allocator = new NaiveRegisterAllocator(IRList);
 			List<String> IRAndRegs = allocator.getAnnotatedIRCode();
 			System.out.println("==== IR Regs ====");
 			for (String ir : IRAndRegs) 

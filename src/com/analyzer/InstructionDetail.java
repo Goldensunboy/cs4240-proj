@@ -38,6 +38,10 @@ public class InstructionDetail {
 		return splitedInstruction[0];
 	}
 	
+	public Instructions getInstruction() {
+		return instruction;
+	}
+	
 	public String getLHS() {
 		if(hasLHS()) {			
 			return instruction.getLHS(splitedInstruction);

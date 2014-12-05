@@ -217,8 +217,14 @@ public class Instruction {
 			case "brneq":
 				MIPSInstruction += "bne ";						
 				break;
+			case "brgt":
+				MIPSInstruction += "bgt ";
+				break;
 			case "brgeq":
 				MIPSInstruction += "bge ";
+				break;
+			case "brlt":
+				MIPSInstruction += "blt ";
 				break;
 			case "brleq":
 				MIPSInstruction += "ble ";
@@ -226,7 +232,7 @@ public class Instruction {
 			default:
 				MIPSInstruction += operation;
 			}
-			MIPSInstruction += instructionParts[1]+ ", "+ instructionParts[2] + ", "+ instructionParts[3];
+			MIPSInstruction += " "+instructionParts[1]+ ", "+ instructionParts[2] + ", "+ instructionParts[3];
 			return MIPSInstruction;
 		} else if (type == InstructionType.FLOAT){
 			switch(operation) {
@@ -249,7 +255,7 @@ public class Instruction {
 				MIPSInstruction += "c.le.s ";
 				break;
 			}
-			MIPSInstruction +=  instructionParts[1]+ ", "+ instructionParts[2];
+			MIPSInstruction +=  " "+instructionParts[1]+ ", "+ instructionParts[2];
 			MIPSInstruction += "\nbc1t "+ instructionParts[3];
 			return MIPSInstruction;
 		}

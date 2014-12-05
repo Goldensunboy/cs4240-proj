@@ -82,12 +82,12 @@ public class IRGeneratorForMIPS {
 		RegisterFactory registerFactory = new RegisterFactory(intVariableOccurances, floatVariableOccurances);
 		Map<String, String> variablesRegisterMap = registerFactory.getRegisterMap();
 
-		List<String> annotatedIR = new ArrayList<>(); 
-		if(generateLoad) {			
+		List<String> annotatedIR = new ArrayList<>();
+		boolean notFunctionName = !instructionDetails.get(0).getInstruction().equals(Instructions.FUNC);
+		if(generateLoad && notFunctionName) {			
 			annotatedIR.addAll(getLoadStoreRegisters(variablesRegisterMap, LOAD_STORE.LOAD));
 		}
 		for(InstructionDetail instructionDetail : instructionDetails) {
-			
 			if(instructionDetail.getInstructionName().equals(Instructions.RETURN.getName())) {
 				annotatedIR.addAll(getLoadStoreRegisters(variablesRegisterMap, LOAD_STORE.STORE));
 				annotatedIR.add(instructionDetail.getOriginalInstruction());
@@ -108,12 +108,17 @@ public class IRGeneratorForMIPS {
 				
 				annotatedIR.addAll(registerFactory.getPromotions(registersToPromote, promotedRegisters));
 				
-				if(/*instructionDetail.isFunctionCall() || */generateStore && instructionDetail.isBranch()) {
+				if(generateStore && instructionDetail.isBranch()) {
 					annotatedIR.addAll(getLoadStoreRegisters(variablesRegisterMap, LOAD_STORE.STORE));
 				} 
 				
 				annotatedIR.add(manageRegisters(instructionDetail, variablesRegisterMap, temporaryVariablesRegisterMap, promotedRegisters));
 				
+				// puts load after the function label
+				if(instructionDetail.getInstruction().equals(Instructions.FUNC)) {
+					annotatedIR.addAll(getLoadStoreRegisters(variablesRegisterMap, LOAD_STORE.LOAD));
+				}
+
 				if(!instructionDetail.isBranch()){
 					annotatedIR.addAll(getTemporaryLoadStoreRegisters(variablesNeedStore, temporaryVariablesRegisterMap, LOAD_STORE.STORE));				
 				}
@@ -121,14 +126,14 @@ public class IRGeneratorForMIPS {
 				registerFactory.resetAvailableTemporaryRegisterIndex();
 			}
 			
-			if(generateStore && !instructionDetails.get(instructionDetails.size()-1).isBranch()) {
+			if(generateStore && instructionDetails.get(instructionDetails.size()-1).isBranch()) {
 				annotatedIR.addAll(getLoadStoreRegisters(variablesRegisterMap, LOAD_STORE.STORE));
 			}
 			
-			//TODO testing - delete me later
-			annotatedIR.add("");
 		}
 		
+		//TODO testing - delete me later
+		annotatedIR.add("");
 		
 		return annotatedIR;
 	}

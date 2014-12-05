@@ -6,6 +6,7 @@ import java.util.Map;
 
 import com.analyzer.IRAnalyzer;
 import com.analyzer.InstructionDetail;
+import com.analyzer.Instructions;
 
 public class BasicBlockFactory {
 
@@ -38,8 +39,12 @@ public class BasicBlockFactory {
 				BasicBlock newBasicBlock;
 				String label = instructionDetail.getLabel();
 				
-				//Labels are leaders
-				if(instructionDetail.isLabel()) {
+				//function name starts a basic block with no predecessor 
+				if(instructionDetail.getInstruction().equals(Instructions.FUNC)) {
+					newBasicBlock = new BasicBlock();
+					newBasicBlock.addInstructionDetail(instructionDetail);
+					currentJustGotCreatedFromConditional = false;
+				} else if(instructionDetail.isLabel()) {
 					newBasicBlock = labelAsLeader(labeledBasicBlocks, currentBasicBlock, label, currentJustGotCreatedFromConditional);
 					newBasicBlock.addInstructionDetail(instructionDetail);
 					currentJustGotCreatedFromConditional = false;
@@ -52,9 +57,15 @@ public class BasicBlockFactory {
 				currentBasicBlock.setNextBasicBlock(newBasicBlock);
 				newBasicBlock.setPreviousBasicBlock(currentBasicBlock);
 				currentBasicBlock = newBasicBlock;
-			} else { 
+			} else {
 				currentBasicBlock.addInstructionDetail(instructionDetail);
 				currentJustGotCreatedFromConditional = false;
+				
+				/*
+				 *  NOTE: If the instruction is RETURN, then it will be followed by a 
+				 *  new function name or EOF. Therefore we don't need to explicitly
+				 *  do anything for RETURN. 
+				 */
 			}
 		}
 		
