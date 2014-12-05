@@ -28,19 +28,20 @@ public class CodeGenerator {
 		this.parser = parser;
 		this.IRIR = IRIR;
 		this.symbolTableManager = parser.getSymbolTableManager();
-		setUpFile();
-		translateIRtoMIPS();
 	}
 	
 	public CodeGenerator(TigerParser parser,List<String> IRIR){
 		this.parser = parser;
 		this.IRIR = IRIR;
 		this.symbolTableManager = parser.getSymbolTableManager();
-//		setUpFile();
-//		translateIRtoMIPS();
-		test();
+//		test();
 	}
 	
+	
+	public void generateCode(){
+		setUpFile();
+		translateIRtoMIPS();		
+	}
 	
 	public void test() {
 		String functionName = "myFunc";
@@ -55,7 +56,7 @@ public class CodeGenerator {
 //		System.out.println(functionAttribute.getParameterTypes().get(0).getType().getSuffix());
 //		System.out.println(functionAttribute);
 //		System.out.println();
-		System.out.println(functionAttribute.getReturnTypeName());
+		System.out.println(symbolTableManager.getAttributeInCurrentScope(functionAttribute.getReturnTypeName(), null));
 //		System.out.println(IRIR);
 	}
 	

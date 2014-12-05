@@ -86,8 +86,12 @@ public class TigerTest {
 		switch (developerName) {
 		case MARISSA:
 			CFGRegisterAllocator registerAllocator = new CFGRegisterAllocator(parser.getIRCode());
-			CodeGenerator codeGenerator = new CodeGenerator(parser, registerAllocator.getAnnotatedIRCode());
-			codeGenerator.test();
+			List<String> IRIR = registerAllocator.getAnnotatedIRCode();
+			for(int i = 0; i<IRIR.size(); i++)
+				System.out.println(IRIR.get(i));
+			CodeGenerator codeGenerator = new CodeGenerator(parser, IRIR);
+			codeGenerator.generateCode();
+//			codeGenerator.test();
 			// Get IR code
 //			IRList = parser.getIRCode();
 //			System.out.println("IR Code:");
