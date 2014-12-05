@@ -8,7 +8,16 @@ import com.analyzer.IRAnalyzer;
 import com.analyzer.InstructionDetail;
 
 public class BasicBlockFactory {
-	
+
+	/**
+	 * goes through the IRDetails of the WHOLE program. Identifies the control flows (labels, branches)
+	 * branches are the last IR of a basic block and labels are the beginning IR of a basic block.
+	 * 
+	 * If and IR is not a control flow, simply add to basic block
+	 * 
+	 * @param IRList
+	 * @return first basic block
+	 */
 	public static BasicBlock makeBasicBlocks(List<String> IRList) {	
 		List<InstructionDetail> IRDetails = IRAnalyzer.analyze(IRList);
 		
@@ -52,6 +61,21 @@ public class BasicBlockFactory {
 		return root;
 	}
 	
+	/**
+	 * Basic block can have a label IR as a leader or a non-label IR after branch as the 
+	 * leader. 
+	 * This method takes care of the former case.
+	 * 
+	 * @param labeledBasicBlock - once hit a label in any part of the IR we generate its corresponding 
+	 * basic block. Once we actually hit the line with only the label i.e. beginning of the basic block
+	 * we use this map to remember it's predecessor and successor
+	 * 
+	 * @param currentBasicBlock - will be swapped with the newly generated label-BasicBlock
+	 * @param label 
+	 * @param currentJustGotCreatedFromConditional - takes care of predecessor pointer to the
+	 * label-BasicBlock, if the IR caused a fall-through
+	 * @return
+	 */
 	private static BasicBlock labelAsLeader(Map<String, BasicBlock> labeledBasicBlocks, BasicBlock currentBasicBlock, 
 			String label, boolean currentJustGotCreatedFromConditional) {
 		
@@ -65,7 +89,8 @@ public class BasicBlockFactory {
 		/*
 		 * Takes care of fall-through from a branch directly to Label block
 		 * 
-		 * Swapping the currentBasicBlock with newBasicBlock
+		 * Swapping the currentBasicBlock with newBasicBlock, but recording the 
+		 * appropriate predecessor/successor pointers 
 		 */
 		if(currentJustGotCreatedFromConditional) {
 			for (BasicBlock predecessor : currentBasicBlock.getPredecessors()) {							
@@ -84,10 +109,24 @@ public class BasicBlockFactory {
 		return newBasicBlock;
 	}
 	
+	/**
+	 * IR after goto will be leader too 
+	 * @param labeledBasicBlocks
+	 * @param currentBasicBlock
+	 * @param label
+	 * @param letsFallThrough
+	 * @return
+	 */
 	private static BasicBlock afterGotoAsLabel(Map<String, BasicBlock> labeledBasicBlocks, BasicBlock currentBasicBlock, 
 			String label, boolean letsFallThrough) {
 		
-		//add currentBasicBlock to the predecessors of the block we jump to 
+		/*
+		 * add currentBasicBlock to the predecessors of the block we jump to
+		 * NOTE: the following code block doesn't have affects on the new basic block
+		 * it merely adjusts the predecessor/successor pointers between the block we 
+		 * jump to in the goto IR above the currently considered IR and the basic block 
+		 * we jump from 
+		 */
 		BasicBlock labeledBasicBlock = labeledBasicBlocks.get(label);
 		if(labeledBasicBlock == null) {
 			labeledBasicBlock = new BasicBlock();
@@ -96,6 +135,7 @@ public class BasicBlockFactory {
 		labeledBasicBlock.addToPredecessors(currentBasicBlock);
 		currentBasicBlock.addToSuccessors(labeledBasicBlock);
 
+		
 		BasicBlock newBasicBlock = new BasicBlock();
 		if(letsFallThrough) {
 			newBasicBlock.addToPredecessors(currentBasicBlock);

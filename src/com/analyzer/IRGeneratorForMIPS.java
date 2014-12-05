@@ -4,10 +4,11 @@ import static com.analyzer.InstructionUtility.generateLoad;
 import static com.analyzer.InstructionUtility.generateStore;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
+import java.util.Set;
 
 public class IRGeneratorForMIPS {
 	
@@ -28,9 +29,16 @@ public class IRGeneratorForMIPS {
 	}
 	
 	private static List<String> getTemporaryLoadStoreRegisters(String[] variablesNeedLoadStore, Map<String, String> temporaryVariablesRegisterMap, LOAD_STORE isLoad) {
-		List<String> loadsOrStores = new ArrayList<>();
+		List<String> loadsOrStores = new ArrayList<>();		
 		if(variablesNeedLoadStore != null) { 
-			for(String variableName : variablesNeedLoadStore) {
+			
+			//TODO this is a hack. Very inefficient
+			Set<String> vars = new HashSet<>();
+			for(String var : variablesNeedLoadStore) {
+				vars.add(var);
+			}
+			
+			for(String variableName : vars) {
 				if(temporaryVariablesRegisterMap.containsKey(variableName)) {
 					if(isLoad == LOAD_STORE.LOAD) {
 						loadsOrStores.add(generateLoad(variableName, temporaryVariablesRegisterMap.get(variableName)));					
@@ -81,44 +89,46 @@ public class IRGeneratorForMIPS {
 		for(InstructionDetail instructionDetail : instructionDetails) {
 			
 			if(instructionDetail.getInstructionName().equals(Instructions.RETURN.getName())) {
-				continue; // TODO deal with this later
-			}
-			
-			String[] variablesNeedLoad = instructionDetail.getRHS();
-			String lhs = instructionDetail.getLHS();
-			String[] variablesNeedStore = {lhs}; // TODO this need refactoring
-			if(lhs == null) {
-				variablesNeedStore = null;
-			}
-
-			Map<String, String> temporaryVariablesRegisterMap = registerFactory.createTemporaryRegisterMap(variablesNeedLoad, variablesNeedStore);  
-
-			annotatedIR.addAll(getTemporaryLoadStoreRegisters(variablesNeedLoad, temporaryVariablesRegisterMap, LOAD_STORE.LOAD));
-			
-			Map<String, String> registersToPromote = registerFactory.getRegistersToPromotion(variablesNeedLoad, variablesNeedStore, temporaryVariablesRegisterMap);
-			Map<String, String> promotedRegisters = registerFactory.getPromotedRegisters(registersToPromote);
-			
-			annotatedIR.addAll(registerFactory.getPromotions(registersToPromote, promotedRegisters));
-
-			if(generateStore && instructionDetail.isBranch()) {
 				annotatedIR.addAll(getLoadStoreRegisters(variablesRegisterMap, LOAD_STORE.STORE));
-			} 
-
-			annotatedIR.add(manageRegisters(instructionDetail, variablesRegisterMap, temporaryVariablesRegisterMap, promotedRegisters));
-			
-			if(!instructionDetail.isBranch()){
-				annotatedIR.addAll(getTemporaryLoadStoreRegisters(variablesNeedStore, temporaryVariablesRegisterMap, LOAD_STORE.STORE));				
+				annotatedIR.add(instructionDetail.getOriginalInstruction());
+			} else {
+				String[] variablesNeedLoad = instructionDetail.getRHS();
+				String lhs = instructionDetail.getLHS();
+				String[] variablesNeedStore = {lhs}; // TODO this need refactoring
+				if(lhs == null) {
+					variablesNeedStore = null;
+				}
+				
+				Map<String, String> temporaryVariablesRegisterMap = registerFactory.createTemporaryRegisterMap(variablesNeedLoad, variablesNeedStore);  
+				
+				annotatedIR.addAll(getTemporaryLoadStoreRegisters(variablesNeedLoad, temporaryVariablesRegisterMap, LOAD_STORE.LOAD));
+				
+				Map<String, String> registersToPromote = registerFactory.getRegistersToPromotion(variablesNeedLoad, variablesNeedStore, temporaryVariablesRegisterMap);
+				Map<String, String> promotedRegisters = registerFactory.getPromotedRegisters(registersToPromote);
+				
+				annotatedIR.addAll(registerFactory.getPromotions(registersToPromote, promotedRegisters));
+				
+				if(generateStore && instructionDetail.isBranch()) {
+					annotatedIR.addAll(getLoadStoreRegisters(variablesRegisterMap, LOAD_STORE.STORE));
+				} 
+				
+				annotatedIR.add(manageRegisters(instructionDetail, variablesRegisterMap, temporaryVariablesRegisterMap, promotedRegisters));
+				
+				if(!instructionDetail.isBranch()){
+					annotatedIR.addAll(getTemporaryLoadStoreRegisters(variablesNeedStore, temporaryVariablesRegisterMap, LOAD_STORE.STORE));				
+				}
+				
+				registerFactory.resetAvailableTemporaryRegisterIndex();
 			}
 			
-			registerFactory.resetAvailableTemporaryRegisterIndex();
+			if(generateStore && !instructionDetails.get(instructionDetails.size()-1).isBranch()) {
+				annotatedIR.addAll(getLoadStoreRegisters(variablesRegisterMap, LOAD_STORE.STORE));
+			}
+			
+			//TODO testing - delete me later
+			//annotatedIR.add("");
 		}
 		
-		if(generateStore && !instructionDetails.get(instructionDetails.size()-1).isBranch()) {
-			annotatedIR.addAll(getLoadStoreRegisters(variablesRegisterMap, LOAD_STORE.STORE));
-		}
-		
-		//TODO testing - delete me later
-		//annotatedIR.add("");
 		
 		return annotatedIR;
 	}

@@ -32,6 +32,7 @@ public class RegisterFactory {
 	
 	private Map<String, String> registerMap;
 	
+	// used for graph coloring PQ
 	private final static Comparator<Entry<String, Integer>> ValueComparator = new Comparator<Entry<String, Integer>>() {
 		public int compare(Entry<String, Integer> o1, Entry<String, Integer> o2) {
 			Integer value1 = o1.getValue();
@@ -40,6 +41,13 @@ public class RegisterFactory {
 		}
 	};
 
+	/**
+	 * Based on occurances(yes, I misspelled it) of vars make register maps between variable names 
+	 * and available registers.
+	 *   
+	 * @param intVariableOccurances
+	 * @param floatVariableOccurances
+	 */
 	public RegisterFactory(Map<String, Integer> intVariableOccurances, Map<String, Integer> floatVariableOccurances) {
 		this.intVariableOccurances = intVariableOccurances;
 		this.floatVariableOccurances = floatVariableOccurances;
@@ -187,7 +195,7 @@ public class RegisterFactory {
 				if(registerMap.containsKey(variableName)) {
 					continue;
 				}
-				if(isIntLiteral(variableName) || isIntRegister(variableName)) {
+				if(isIntLiteral(variableName) || isIntRegister(variableName)) { //TODO change them to isIntish(varName)
 					temporaryRegisterMap.put(variableName, getAvailableTemporaryRegister(IS_INT));
 				} else {
 					temporaryRegisterMap.put(variableName, getAvailableTemporaryRegister(IS_FLOAT));

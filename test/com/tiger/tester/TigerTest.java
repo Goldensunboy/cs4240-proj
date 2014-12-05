@@ -9,7 +9,7 @@ import code_generation.CodeGenerator;
 import com.analyzer.RegisterAllocator;
 import com.analyzer.basic_block_approach.cfg.CFGRegisterAllocator;
 import com.analyzer.basic_block_approach.ebb.EBBRegisterAllocator;
-import com.analyzer.naive_approach.NaiveRegisterAllocator;
+import com.analyzer.naive_approach.NaiveRegisterAllocator_deprecated;
 import com.antlr.generated.TigerParser;
 import com.compiler.TigerCompiler;
 import com.compiler.TigerCompiler.CompilerErrorReport;
@@ -103,7 +103,7 @@ public class TigerTest {
 //			regalloc = new NaiveRegisterAllocator(IRList);
 //			System.out.println("before");
 //			((NaiveRegisterAllocator)regalloc).printRegisterAllocatorData();
-//			System.out.println("after");
+
 			break;
 		
 		case SAMAN:
@@ -115,6 +115,7 @@ public class TigerTest {
 			
 //			CFGRegisterAllocator allocator = new CFGRegisterAllocator(IRList);
 			EBBRegisterAllocator allocator = new EBBRegisterAllocator(IRList);
+//			NaiveRegisterAllocator_saman allocator = new NaiveRegisterAllocator_saman(IRList);
 			List<String> IRAndRegs = allocator.getAnnotatedIRCode();
 			System.out.println("==== IR Regs ====");
 			for (String ir : IRAndRegs) 
@@ -168,8 +169,8 @@ public class TigerTest {
 			}
 			
 			// Print details about the analyzed IR code
-			regalloc = new NaiveRegisterAllocator(IRList);
-			((NaiveRegisterAllocator)regalloc).printRegisterAllocatorData();
+			regalloc = new NaiveRegisterAllocator_deprecated(IRList);
+			((NaiveRegisterAllocator_deprecated)regalloc).printRegisterAllocatorData();
 			
 			break;
 			

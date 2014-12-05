@@ -23,7 +23,7 @@ public class BasicBlock {
 	public static int overallBlockId = 0;
 	private int blockId;
 	
-	// Below is used for EBB
+	// Below 2 are used for EBB
 	private boolean startOfEBB, endOfEBB;
 	private EBB enclosingEBB;
 	
@@ -122,6 +122,14 @@ public class BasicBlock {
 		this.successors = successors;
 	}
 
+	/**
+	 * Depending on if the instruction is RETURN or not update the 
+	 * variable maps for int or float. 
+	 * Since RHS and LHS have different behaviors (can have multiple 
+	 * variables ins RHS) we have to treat them differently
+	 * 
+	 *  But no matter what, add to the basic block's instruction detail list
+	 */
 	public void addInstructionDetail(InstructionDetail instructionDetail) {
 		
 		if(instructionDetail.isReturn()) {
@@ -143,6 +151,12 @@ public class BasicBlock {
 		instructionDetails.add(instructionDetail);		
 	}
 
+	/**
+	 * LHS is only 1 therefore see if it's a variable (i.e. non-literal) 
+	 * update its corresponding variable map
+	 * 
+	 * TODO countLHS and countRHS can potentially be combined
+	 */
 	private void countLhsVariablesOccurances(InstructionDetail instructionDetail) {
 		String variableName = instructionDetail.getLHS();
 		if(isVariable(variableName)) {
@@ -157,7 +171,13 @@ public class BasicBlock {
 			variableOccurances.put(variableName, occuranceCount);
 		}		
 	}
-	
+
+	/**
+	 * if RHS and if a var happens two times, only record it once, because
+	 * one load suffices
+	 * 
+	 * TODO countLHS and countRHS can potentially be combined
+	 */
 	private void countRhsVariablesOccurances(InstructionDetail instructionDetail) {
 		Set<String> variableToUpdateOccurances = new HashSet<>();
 		for(String variableName : instructionDetail.getRHS()) {
@@ -188,6 +208,7 @@ public class BasicBlock {
 		
 		return floatVariableOccurances;
 	}
+
 	private boolean isVariable(String variableName) {
 		return variableName != null && variableName.split("\\$").length > 1;
 	}
