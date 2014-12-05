@@ -108,7 +108,7 @@ public class IRGeneratorForMIPS {
 				
 				annotatedIR.addAll(registerFactory.getPromotions(registersToPromote, promotedRegisters));
 				
-				if(generateStore && instructionDetail.isBranch()) {
+				if(/*instructionDetail.isFunctionCall() || */generateStore && instructionDetail.isBranch()) {
 					annotatedIR.addAll(getLoadStoreRegisters(variablesRegisterMap, LOAD_STORE.STORE));
 				} 
 				

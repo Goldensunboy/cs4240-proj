@@ -159,7 +159,7 @@ public class SymbolTableManager {
 		if(attributeName == null || "".equals(attributeName)) {
 			return null;
 		}
-		Attribute retVal = attributeMap.get(attributeName);
+		Attribute retVal = attributeMap == null ? null : attributeMap.get(attributeName);
 		if(retVal != null){
 			return retVal;
 		}
@@ -434,7 +434,7 @@ public class SymbolTableManager {
 		TypeAttribute typeAttribute;
 		
 		try {
-			typeAttribute = (TypeAttribute)attributeMap.get(aliasName);
+			typeAttribute = attributeMap == null ? null : (TypeAttribute)attributeMap.get(aliasName);
 			if(typeAttribute == null) {
 				List<Symbol> symbolList = symbolTable.get(aliasName);
 				if(symbolList == null) {
