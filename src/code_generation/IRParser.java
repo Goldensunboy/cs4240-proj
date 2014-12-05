@@ -53,8 +53,10 @@ public class IRParser {
 		
 		FunctionAttribute functionAttribute = symbolTableManager.getFunctionAttribute(functionName);
 		List<String> parameters = new ArrayList<String>();
-		for(int i = 0;i<functionAttribute.getAcrualtParameters().size();i++)
+		for(int i = 0;i<functionAttribute.getAcrualtParameters().size();i++){
 			parameters.set(i, functionAttribute.getAcrualtParameters().get(i)+functionAttribute.getParameterTypes().get(i).getType().getSuffix());
+			System.out.println(parameters.get(i));
+		}
 		return parameters;
 	}
 	
