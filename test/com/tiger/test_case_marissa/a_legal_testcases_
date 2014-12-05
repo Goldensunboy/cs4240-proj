@@ -3,7 +3,7 @@
 void main()
 begin
 	begin
-		var x : int := 10;
+		var x : int;
 		x := x + x;
 	end;
 end;
