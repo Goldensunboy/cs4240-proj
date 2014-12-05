@@ -9,6 +9,7 @@ import code_generation.CodeGenerator;
 import com.analyzer.RegisterAllocator;
 import com.analyzer.basic_block_approach.cfg.CFGRegisterAllocator;
 import com.analyzer.basic_block_approach.ebb.EBBRegisterAllocator;
+import com.analyzer.naive_approach.NaiveRegisterAllocator;
 import com.analyzer.naive_approach.NaiveRegisterAllocator_deprecated;
 import com.antlr.generated.TigerParser;
 import com.compiler.TigerCompiler;
@@ -113,9 +114,9 @@ public class TigerTest {
 				System.out.println(ir);
 			System.out.println("=================");
 			
-//			CFGRegisterAllocator allocator = new CFGRegisterAllocator(IRList);
-			EBBRegisterAllocator allocator = new EBBRegisterAllocator(IRList);
-//			NaiveRegisterAllocator_saman allocator = new NaiveRegisterAllocator_saman(IRList);
+			CFGRegisterAllocator allocator = new CFGRegisterAllocator(IRList);
+//			EBBRegisterAllocator allocator = new EBBRegisterAllocator(IRList);
+//			NaiveRegisterAllocator allocator = new NaiveRegisterAllocator(IRList);
 			List<String> IRAndRegs = allocator.getAnnotatedIRCode();
 			System.out.println("==== IR Regs ====");
 			for (String ir : IRAndRegs) 

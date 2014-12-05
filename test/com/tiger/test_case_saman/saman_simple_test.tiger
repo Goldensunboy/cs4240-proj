@@ -43,13 +43,6 @@ begin
 		o:= o + o;
 		p := p + p;*/
 		var a : int :=1;
-		var b : fixedpt :=1;
-		
 		a := a + a;		
-		b := a + 1;
-		
-		if a = b then
-			b :=a;
-		endif;
 	end;
 end;
