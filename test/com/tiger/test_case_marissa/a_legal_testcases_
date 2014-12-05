@@ -1,12 +1,11 @@
 
 
-int function funcTest1(x:int) 
+int function myFunc(x:int, y:fixedpt, z:int) 
 begin
      begin
           var a: int :=0;
           a := 1;          
           a := a + a;
-          funcTest1(a);
           return a;
      end;
 end;

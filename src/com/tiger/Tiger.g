@@ -210,6 +210,10 @@ import com.exception.NameSpaceConflictException;
       "$" + scopeId + "\%" + (ta.getType() == Type.INT ? "i" :
                              (ta.getType() == Type.FIXPT ? "f" : "a")));
   }
+  
+  public SymbolTableManager getSymbolTableManager() {
+    return symbolTableManager;
+  }
 }
 
 tigerProgram :

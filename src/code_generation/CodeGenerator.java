@@ -1,17 +1,15 @@
 package code_generation;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
-import java.util.ArrayList;
+import java.util.List;
 
-import code_generation.Register.RegisterType;
-import code_generation.StackArgument.Category;
+import com.antlr.generated.TigerParser;
+import com.attribute.FunctionAttribute;
+import com.symbol_table.SymbolTableManager;
 
 /**
  * TODO Change to be functional. Remove all static.
@@ -21,16 +19,45 @@ import code_generation.StackArgument.Category;
 public class CodeGenerator {
 	
 	private String fileOutputed = "output\\MIPS.s";
-	private String fileToTranslate = "C:\\Users\\Risa\\Desktop\\IR\\IR_Test_Code.txt";
-	private boolean naive;
+	private TigerParser parser;
+	private List<String> IRIR;
+	private SymbolTableManager symbolTableManager;
 	
-	public CodeGenerator(String fileOutputed, String fileToTranslate, boolean naive){
+	public CodeGenerator(TigerParser parser,List<String> IRIR, String fileOutputed){
 		this.fileOutputed = fileOutputed;
-		this.naive = naive;
+		this.parser = parser;
+		this.IRIR = IRIR;
+		this.symbolTableManager = parser.getSymbolTableManager();
+		setUpFile();
+		translateIRtoMIPS();
+		test();
 	}
 	
-	public CodeGenerator(boolean naive){
-		this.naive = naive;
+	public CodeGenerator(TigerParser parser,List<String> IRIR){
+		this.parser = parser;
+		this.IRIR = IRIR;
+		this.symbolTableManager = parser.getSymbolTableManager();
+//		setUpFile();
+//		translateIRtoMIPS();
+		test();
+	}
+	
+	
+	public void test() {
+		String functionName = "myFunc";
+		FunctionAttribute functionAttribute = symbolTableManager.getFunctionAttribute(functionName);
+		System.out.println(functionAttribute);
+		
+		System.out.println("");
+//		System.out.println(functionAttribute.getReturnTypeName());
+//		System.out.println();
+//		System.out.println(functionAttribute.getAcrualtParameters());
+//		System.out.println();
+//		System.out.println(functionAttribute.getParameterTypes().get(0).getType().getSuffix());
+//		System.out.println(functionAttribute);
+//		System.out.println();
+		System.out.println(functionAttribute.getReturnTypeName());
+//		System.out.println(IRIR);
 	}
 	
 	/**
@@ -67,26 +94,20 @@ public class CodeGenerator {
 		
 	}
 	
+	
+	
 	public void translateIRtoMIPS(){
-		try {
-			BufferedReader br = new BufferedReader(new FileReader(fileToTranslate));
-			String line;
-			String MIPSLine;
-			
-			while ((line = br.readLine()) != null) {
-				MIPSLine = translateInstruction(line)+"\n";
-				System.out.println(MIPSLine);
-				writeMIPSToFile(MIPSLine);
-			}
-			
-			br.close();
-		} catch (IOException e){
-			e.printStackTrace();
+		String MIPSLine;
+		
+		for(String line: IRIR) {
+			MIPSLine = translateInstruction(line,symbolTableManager)+"\n";
+			System.out.println(MIPSLine);
+			writeMIPSToFile(MIPSLine);
 		}
 	}
 	
-	private String translateInstruction(String instruction){
-		return Instruction.decodeInstruction(instruction);
+	private String translateInstruction(String instruction, SymbolTableManager symbolTableManager){
+		return Instruction.decodeInstruction(instruction, symbolTableManager);
 	}
 	
 	/**
@@ -105,25 +126,25 @@ public class CodeGenerator {
 	}
 	
 	
-	public static void main(String[] args){
-		boolean naive = true;
-		CodeGenerator cg = new CodeGenerator(naive);
-		cg.setUpFile();
-		cg.translateIRtoMIPS();
-		
-//		String temp =Instruction.decodeInstruction("FUNC_main:", naive);
-//		cg.writeMIPSToFile(temp);
-//		Instruction.decodeInstruction("assign, x$3%i#$t0, 5", naive);
-//		Instruction.decodeInstruction("assign, z$3%f#$f0, x$3%i#$t2", naive);
-//		Instruction.decodeInstruction("assign, y$3%i#$t2, x$3%i#$t0", naive);
-//		Instruction.decodeInstruction("label:", naive);
-//		Instruction.decodeInstruction("add, x$3%i#$t0, y$3%i#$t2, b$3%i#$t1", naive);
-//		Instruction.decodeInstruction("breq, x$3%i#$t0, y$3%i#$t2, hello", naive);
-//		Instruction.decodeInstruction("return, 5", naive);
-////		StackFrame.printStackFrame();
-//		Instruction.decodeInstruction("FUNC_test:", naive);
-//		Instruction.decodeInstruction("assign, x$3%f#$f16, 5.0", naive);
-//		Instruction.decodeInstruction("return, x$3%f#$f16", naive);
-
-	}
+//	public static void main(String[] args){
+//		boolean naive = true;
+//		CodeGenerator cg = new CodeGenerator(naive);
+//		cg.setUpFile();
+//		cg.translateIRtoMIPS();
+//		
+////		String temp =Instruction.decodeInstruction("FUNC_main:", naive);
+////		cg.writeMIPSToFile(temp);
+////		Instruction.decodeInstruction("assign, x$3%i#$t0, 5", naive);
+////		Instruction.decodeInstruction("assign, z$3%f#$f0, x$3%i#$t2", naive);
+////		Instruction.decodeInstruction("assign, y$3%i#$t2, x$3%i#$t0", naive);
+////		Instruction.decodeInstruction("label:", naive);
+////		Instruction.decodeInstruction("add, x$3%i#$t0, y$3%i#$t2, b$3%i#$t1", naive);
+////		Instruction.decodeInstruction("breq, x$3%i#$t0, y$3%i#$t2, hello", naive);
+////		Instruction.decodeInstruction("return, 5", naive);
+//////		StackFrame.printStackFrame();
+////		Instruction.decodeInstruction("FUNC_test:", naive);
+////		Instruction.decodeInstruction("assign, x$3%f#$f16, 5.0", naive);
+////		Instruction.decodeInstruction("return, x$3%f#$f16", naive);
+//
+//	}
 }
