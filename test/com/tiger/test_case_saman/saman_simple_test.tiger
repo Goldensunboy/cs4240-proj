@@ -1,7 +1,16 @@
+int function myFunc()
+begin
+	begin
+		var a : int := 1;
+		a := 2;
+		return a;
+	end;
+end;
+
 void main()
 begin
 	begin
-		var a : int := 10;
+		/*var a : int := 10;
 		var b : int := 10;
 		var c : int := 10;
 		var d : int := 10;
@@ -32,6 +41,15 @@ begin
 		m := m + m;
 		n := n + n;
 		o:= o + o;
-		p := p + p;
+		p := p + p;*/
+		var a : int :=1;
+		var b : fixedpt :=1;
+		
+		a := a + a;		
+		b := a + 1;
+		
+		if a = b then
+			b :=a;
+		endif;
 	end;
 end;

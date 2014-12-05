@@ -5,8 +5,8 @@ import java.io.FileInputStream;
 import java.util.List;
 
 import com.analyzer.RegisterAllocator;
-import com.analyzer.naive_approach.NaiveRegisterAllocator;
-import com.analyzer.naive_approach.NaiveRegisterAllocator_saman;
+import com.analyzer.basic_block_approach.ebb.EBBRegisterAllocator;
+import com.analyzer.naive_approach.NaiveRegisterAllocator_deprecated;
 import com.antlr.generated.TigerParser;
 import com.compiler.TigerCompiler;
 import com.compiler.TigerCompiler.CompilerErrorReport;
@@ -94,9 +94,9 @@ public class TigerTest {
 			}
 			
 			// Print details about the analyzed IR code
-			regalloc = new NaiveRegisterAllocator(IRList);
+			regalloc = new NaiveRegisterAllocator_deprecated(IRList);
 			System.out.println("before");
-			((NaiveRegisterAllocator)regalloc).printRegisterAllocatorData();
+			((NaiveRegisterAllocator_deprecated)regalloc).printRegisterAllocatorData();
 			System.out.println("after");
 			break;
 		
@@ -108,8 +108,8 @@ public class TigerTest {
 			System.out.println("=================");
 			
 //			CFGRegisterAllocator allocator = new CFGRegisterAllocator(IRList);
-//			EBBRegisterAllocator allocator = new EBBRegisterAllocator(IRList);
-			NaiveRegisterAllocator_saman allocator = new NaiveRegisterAllocator_saman(IRList);
+			EBBRegisterAllocator allocator = new EBBRegisterAllocator(IRList);
+//			NaiveRegisterAllocator_saman allocator = new NaiveRegisterAllocator_saman(IRList);
 			List<String> IRAndRegs = allocator.getAnnotatedIRCode();
 			System.out.println("==== IR Regs ====");
 			for (String ir : IRAndRegs) 
@@ -163,8 +163,8 @@ public class TigerTest {
 			}
 			
 			// Print details about the analyzed IR code
-			regalloc = new NaiveRegisterAllocator(IRList);
-			((NaiveRegisterAllocator)regalloc).printRegisterAllocatorData();
+			regalloc = new NaiveRegisterAllocator_deprecated(IRList);
+			((NaiveRegisterAllocator_deprecated)regalloc).printRegisterAllocatorData();
 			
 			break;
 			
