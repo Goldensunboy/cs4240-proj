@@ -2,17 +2,18 @@ package com.compiler;
 
 
 public enum Type {
-  INT("int", true),
-  FIXPT("fixedpt", true),
-  VOID("void", false),
-  ARRAY("array", true), //TODO isValidReturnType == true?
-  TEMPORARY("temp", false /*should never be needed*/),
+  INT("int", true, "%i"),
+  FIXPT("fixedpt", true, "%f"),
+  VOID("void", false, "%NA"),
+  ARRAY("array", true, "%NIY"), //TODO isValidReturnType == true?
+  TEMPORARY("temp", false /*should never be needed*/,"%TEMP"),
   
-  INVALID("", false); //temporary for testing
+  INVALID("", false, "%ERR"); //temporary for testing
   
-  private String name;
+  private String name, suffix;
   private boolean isValidVarType;
-  Type(String name, boolean isValidVarType) {
+  Type(String name, boolean isValidVarType, String suffix) {
+	  this.suffix = suffix;
 	  this.name = name;
 	  this.isValidVarType = isValidVarType; 
   }
@@ -48,4 +49,12 @@ public enum Type {
 	  
 	  return INVALID;
   }
+
+public String getSuffix() {
+	return suffix;
+}
+
+public void setSuffix(String suffix) {
+	this.suffix = suffix;
+}
 }

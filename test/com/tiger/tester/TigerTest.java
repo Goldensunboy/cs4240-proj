@@ -4,7 +4,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.List;
 
+import code_generation.CodeGenerator;
+
 import com.analyzer.RegisterAllocator;
+import com.analyzer.basic_block_approach.cfg.CFGRegisterAllocator;
 import com.analyzer.basic_block_approach.ebb.EBBRegisterAllocator;
 import com.analyzer.naive_approach.NaiveRegisterAllocator_deprecated;
 import com.antlr.generated.TigerParser;
@@ -82,22 +85,25 @@ public class TigerTest {
 		RegisterAllocator regalloc;
 		switch (developerName) {
 		case MARISSA:
+			CFGRegisterAllocator registerAllocator = new CFGRegisterAllocator(parser.getIRCode());
+			CodeGenerator codeGenerator = new CodeGenerator(parser, registerAllocator.getAnnotatedIRCode());
+			codeGenerator.test();
 			// Get IR code
-			IRList = parser.getIRCode();
-			System.out.println("IR Code:");
-			if(IRList == null) {
-				System.out.println(IRList);
-			} else {
-				for(String s : IRList) {
-					System.out.println("\t" + s);
-				}
-			}
-			
-			// Print details about the analyzed IR code
-			regalloc = new NaiveRegisterAllocator_deprecated(IRList);
-			System.out.println("before");
-			((NaiveRegisterAllocator_deprecated)regalloc).printRegisterAllocatorData();
-			System.out.println("after");
+//			IRList = parser.getIRCode();
+//			System.out.println("IR Code:");
+//			if(IRList == null) {
+//				System.out.println(IRList);
+//			} else {
+//				for(String s : IRList) {
+//					System.out.println("\t" + s);
+//				}
+//			}
+//			
+//			// Print details about the analyzed IR code
+//			regalloc = new NaiveRegisterAllocator(IRList);
+//			System.out.println("before");
+//			((NaiveRegisterAllocator)regalloc).printRegisterAllocatorData();
+
 			break;
 		
 		case SAMAN:

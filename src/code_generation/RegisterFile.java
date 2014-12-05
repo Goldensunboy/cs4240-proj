@@ -90,6 +90,19 @@ public class RegisterFile {
 	}
 	
 	/**
+	 * Call this function to check if the inputed register is in the int register file
+	 * @return
+	 */
+	static public boolean isIntRegister(String register){
+		if(registerFile==null){
+			registerFile = new RegisterFile();
+		}
+		if(registerFile.intRegisters.containsKey(register))
+			return true;
+		return false;
+	}
+	
+	/**
 	 * Call this function to get the one instance if the float registers
 	 * @return
 	 */
@@ -98,5 +111,18 @@ public class RegisterFile {
 			registerFile = new RegisterFile();
 		}
 		return registerFile.floatRegisters;
+	}
+	
+	/**
+	 * Call this function to check if the inputed register is in the float register file
+	 * @return
+	 */
+	static public boolean isFloatRegister(String register){
+		if(registerFile==null){
+			registerFile = new RegisterFile();
+		}
+		if(registerFile.floatRegisters.containsKey(register))
+			return true;
+		return false;
 	}
 }

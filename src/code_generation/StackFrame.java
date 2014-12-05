@@ -1,9 +1,11 @@
 package code_generation;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import com.exception.BadDeveloperException;
 import com.exception.CorruptedStackException;
+import com.symbol_table.SymbolTableManager;
 
 import code_generation.Register.RegisterType;
 import code_generation.StackArgument.Category;
@@ -43,7 +45,7 @@ public class StackFrame {
 	 * Builds up the stack for the current function
 	 * @param functionName
 	 */
-	public static String enterCurrentFrame(String functionName) {		
+	public static String enterCurrentFrame(String functionName, SymbolTableManager symbolTableManager) {		
 		
 		if(stackFrame == null){
 			stackFrame = new StackFrame();
@@ -51,7 +53,7 @@ public class StackFrame {
 		
 		String MIPSInstruction = "";
 		/* parameters */
-		ArrayList<String> localParameters = IRParser.getFuncParams(functionName);
+		List<String> localParameters = IRParser.getFuncParams(functionName, symbolTableManager);
 		for(String parameter : localParameters){
 			pushOnStack(new StackArgument(IRParser.getVariableName(parameter), IRParser.getVariableType(parameter), true, Category.PARAMETERS)); 
 		}
@@ -103,7 +105,7 @@ public class StackFrame {
 	 * @param functionName
 	 * @return
 	 */
-	public static String callingFunctionBegin(String functionName){
+	public static String callingFunctionBegin(String functionName,SymbolTableManager symbolTableManager){
 		if(stackFrame == null){
 			stackFrame = new StackFrame();
 		}
@@ -119,7 +121,7 @@ public class StackFrame {
 			pushOnStack(new StackArgument("$f"+i, RegisterType.FLOAT, false, Category.CALLER_SAVED));
 		}	
 		/* parameters for the next function */
-		ArrayList<String> localParameters = IRParser.getFuncParams(functionName);
+		List<String> localParameters = IRParser.getFuncParams(functionName, symbolTableManager);
 		for(String parameter : localParameters){
 			pushOnStack(new StackArgument(IRParser.getVariableName(parameter)+"_param", IRParser.getVariableType(parameter), true, Category.PARAMETERS)); 
 		}

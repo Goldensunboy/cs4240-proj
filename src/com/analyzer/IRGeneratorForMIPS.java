@@ -128,6 +128,8 @@ public class IRGeneratorForMIPS {
 			//TODO testing - delete me later
 			//annotatedIR.add("");
 		}
+		
+		
 		return annotatedIR;
 	}
 }

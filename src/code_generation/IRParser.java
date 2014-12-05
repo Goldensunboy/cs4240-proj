@@ -1,10 +1,13 @@
 package code_generation;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import code_generation.Register.RegisterType;
 
+import com.attribute.FunctionAttribute;
 import com.exception.BadIRInstructionException;
+import com.symbol_table.SymbolTableManager;
 
 public class IRParser {
 	
@@ -33,17 +36,8 @@ public class IRParser {
 	 */
 	public static ArrayList<String> getFuncVariables(String funcName){
 		ArrayList<String> funcVariables = new ArrayList<String>();
-//		funcVariables.add("int_var1%i");
 		funcVariables.add("int_var2%i");
 		funcVariables.add("fp_var2%f");
-//		funcVariables.add("q$3%i");
-//		funcVariables.add("r$3%i");
-//		funcVariables.add("s$3%i");
-//		funcVariables.add("t$3%i");
-//		funcVariables.add("u$3%f");
-//		funcVariables.add("v$3%f");
-//		funcVariables.add("w$3%f");
-//		funcVariables.add("x$3%f");
 		return funcVariables;
 	}
 	/**
@@ -52,12 +46,16 @@ public class IRParser {
 	 * @param funcName
 	 * @return
 	 */	
-	public static ArrayList<String> getFuncParams(String funcName){
-		ArrayList<String> funcParams = new ArrayList<String>();
-		funcParams.add("int_var1%i");
+	public static List<String> getFuncParams(String functionName, SymbolTableManager symbolTableManager){
+//		funcParams.add("int_var1%i");
 //		funcParams.add("b$3%i");
 //		funcParams.add("c$3%f");
-		return funcParams;
+		
+		FunctionAttribute functionAttribute = symbolTableManager.getFunctionAttribute(functionName);
+		List<String> parameters = new ArrayList<String>();
+		for(int i = 0;i<functionAttribute.getAcrualtParameters().size();i++)
+			parameters.set(i, functionAttribute.getAcrualtParameters().get(i)+functionAttribute.getParameterTypes().get(i).getType().getSuffix());
+		return parameters;
 	}
 	
 	/**
@@ -65,7 +63,9 @@ public class IRParser {
 	 * @param funcName
 	 * @return
 	 */	
-	public static RegisterType returnType(String funcName){
+	public static RegisterType returnType(String funcName, SymbolTableManager symbolTableManager){
+		FunctionAttribute functionAttribute = symbolTableManager.getFunctionAttribute(funcName);
+		functionAttribute.getReturnTypeName();
 		return RegisterType.INT;
 	}
 	

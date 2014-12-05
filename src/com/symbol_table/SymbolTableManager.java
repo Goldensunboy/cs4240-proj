@@ -241,7 +241,7 @@ public class SymbolTableManager {
 	 * Finds the function attribute in the symbol table and casts it to 
 	 * FunctionNameAttribute and returns it.
 	 */
-	private FunctionAttribute getFunctionAttribute(String functionName) {
+	public FunctionAttribute getFunctionAttribute(String functionName) {
 		List<Symbol> symbolList = symbolTable.get(functionName);
 		if (symbolList.size() != 1) {
 			return null;

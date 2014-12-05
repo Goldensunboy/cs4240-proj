@@ -1,14 +1,14 @@
 package code_generation;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.List;
 
 import code_generation.Register.RegisterType;
-import code_generation.StackArgument.Category;
 
 import com.exception.BadDeveloperException;
 import com.exception.BadIRInstructionException;
 import com.exception.InvalidTypeException;
+import com.symbol_table.SymbolTableManager;
 
 public class Instruction {
 	
@@ -26,7 +26,7 @@ public class Instruction {
 	 * @param instruction
 	 * @return
 	 */
-	public static String decodeInstruction(String IRInstruction){
+	public static String decodeInstruction(String IRInstruction, SymbolTableManager symbolTableManager){
 		
 		if(Instruction.instruction==null){
 			instruction = new Instruction();
@@ -67,7 +67,7 @@ public class Instruction {
 			MIPSInstruction += ".ent "+instruction.currentFunctionName;
 			MIPSInstruction += "\n.globl "+instruction.currentFunctionName;
 			MIPSInstruction += "\n"+instruction.currentFunctionName +":";			
-			MIPSInstruction += "\n"+instruction.enterFunction(instruction.currentFunctionName);
+			MIPSInstruction += "\n"+instruction.enterFunction(instruction.currentFunctionName, symbolTableManager);
 			return MIPSInstruction;
 		}
 		
@@ -76,6 +76,9 @@ public class Instruction {
 		}	
 		ArrayList<String> parameters;
 		switch(instructionParts[0]){
+			case "assign":
+				MIPSInstruction += assign(instructionParts);
+				break;
 			case "add":
 			case "sub":
 			case "mult":
@@ -117,7 +120,7 @@ public class Instruction {
 				for(int i = 2; i < instructionParts.length; i++){
 					parameters.add(instructionParts[i]);
 				}
-				MIPSInstruction += instruction.callFunction(instructionParts[1],parameters);
+				MIPSInstruction += instruction.callFunction(instructionParts[1],parameters, symbolTableManager);
 				break;
 			case "callr":
 				if(instructionParts.length < 3)
@@ -126,8 +129,8 @@ public class Instruction {
 				for(int i = 3; i < instructionParts.length; i++){
 					parameters.add(instructionParts[i]);
 				}
-				MIPSInstruction += instruction.callFunction(instructionParts[2],parameters);
-				MIPSInstruction += "\n"+instruction.getReturnValue(instructionParts[2],instructionParts[1]);
+				MIPSInstruction += instruction.callFunction(instructionParts[2],parameters, symbolTableManager);
+				MIPSInstruction += "\n"+instruction.getReturnValue(instructionParts[2],instructionParts[1], symbolTableManager);
 				break;
 				
 			case "array_store":
@@ -139,6 +142,32 @@ public class Instruction {
 				MIPSInstruction = IRInstruction;
 				break;
 		}
+		return MIPSInstruction;
+	}
+	
+	private static String assign(String[] instructionParts){
+		if(instructionParts.length != 3){
+			throw new BadIRInstructionException("assign takes in two registers");
+		} 
+		String MIPSInstruction = "";
+		/* a :=b */
+		if(RegisterFile.isIntRegister(instructionParts[1])){
+			if(RegisterFile.isIntRegister(instructionParts[2])){
+				MIPSInstruction += "move "+instructionParts[1]+", "+instructionParts[2];
+			} else 
+				throw new InvalidTypeException("Can only assign ints to ints");
+				
+		} else if (RegisterFile.isFloatRegister(instructionParts[1])){
+			if(RegisterFile.isIntRegister(instructionParts[2])){
+				MIPSInstruction += "mtc1 "+instructionParts[2]+", "+instructionParts[1]+"\ncvt.s.w "+instructionParts[1]+", "+instructionParts[1];
+			} else if (RegisterFile.isFloatRegister(instructionParts[2])){
+				MIPSInstruction += "mov.s "+instructionParts[1]+", "+instructionParts[2];
+			} else
+				throw new InvalidTypeException("Can only assign ints and floats to floats");
+			
+		} else 
+			throw new InvalidTypeException("Types can only be int or float. Arrays have not been implmented yet");
+			
 		return MIPSInstruction;
 	}
 	
@@ -274,9 +303,9 @@ public class Instruction {
 	 * @param functionName
 	 * @return
 	 */
-	private String enterFunction(String functionName){
+	private String enterFunction(String functionName, SymbolTableManager symbolTableManager){
 		String MIPSInstruction = "";
-		MIPSInstruction += StackFrame.enterCurrentFrame(functionName);
+		MIPSInstruction += StackFrame.enterCurrentFrame(functionName, symbolTableManager);
 		
 		for(int i = 0; i < 7; i++){
 			MIPSInstruction += "\n"+StackFrame.generateStore("$s"+i,"$s"+i, true);
@@ -310,17 +339,17 @@ public class Instruction {
 		return MIPSInstruction;
 	}
 	
-	private String callFunction(String functionName, ArrayList<String> localParameters){
+	private String callFunction(String functionName, ArrayList<String> localParameters, SymbolTableManager symbolTableManager){
 //		functionName = (functionName.equals("FUNC_main"))? "main":functionName;
 		
-		String MIPSInstruction = StackFrame.callingFunctionBegin(functionName);
+		String MIPSInstruction = StackFrame.callingFunctionBegin(functionName,symbolTableManager);
 		for(int i = 0; i < 8; i++){
 			MIPSInstruction += "\n"+StackFrame.generateStore("$t"+i,"$t"+i, true);
 		}
 		for(int i = 4; i < 12; i++){
 			MIPSInstruction += "\n"+StackFrame.generateStore("$f"+i,"$f"+i, false);
 		}
-		ArrayList<String> actualParameters = IRParser.getFuncParams(functionName);
+		List<String> actualParameters = IRParser.getFuncParams(functionName,symbolTableManager);
 		if(actualParameters.size()!=localParameters.size())
 			throw new BadDeveloperException("Calling function incorrectly");
 		for(int i = 0; i<actualParameters.size(); i++){
@@ -372,9 +401,9 @@ public class Instruction {
 		return MIPSInstruction;
 	}
 	
-	private String getReturnValue(String functionName, String returnVariable){
+	private String getReturnValue(String functionName, String returnVariable, SymbolTableManager symbolTableManager){
 		String MIPSInstruction = "";
-		RegisterType type = IRParser.returnType(functionName);
+		RegisterType type = IRParser.returnType(functionName, symbolTableManager);
 		if(type == RegisterType.INT){
 			
 			if(IRParser.getVariableType(returnVariable) == RegisterType.INT){

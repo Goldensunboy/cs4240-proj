@@ -1,7 +1,6 @@
 package code_generation;
 
 import com.exception.BadDeveloperException;
-import com.exception.BadIRInstructionException;
 import com.exception.RegisterInUseException;
 
 public class Register {
