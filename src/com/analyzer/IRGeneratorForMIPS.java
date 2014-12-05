@@ -126,10 +126,10 @@ public class IRGeneratorForMIPS {
 				registerFactory.resetAvailableTemporaryRegisterIndex();
 			}
 			
-			if(generateStore && instructionDetails.get(instructionDetails.size()-1).isBranch()) {
-				annotatedIR.addAll(getLoadStoreRegisters(variablesRegisterMap, LOAD_STORE.STORE));
-			}
-			
+		}
+		
+		if(generateStore && !instructionDetails.get(instructionDetails.size()-1).isBranch()) {
+			annotatedIR.addAll(getLoadStoreRegisters(variablesRegisterMap, LOAD_STORE.STORE));
 		}
 		
 		//TODO testing - delete me later
