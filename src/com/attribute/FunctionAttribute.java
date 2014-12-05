@@ -8,16 +8,22 @@ public class FunctionAttribute implements Attribute{
 	private String functionName;
 	private String returnTypeName;
 	private List<TypeAttribute> parameterTypes;
+	private TypeAttribute returnTypeAttribute;
 	private List<String> actualParameterNames;
 	private final int scopeId;
 	
-	public FunctionAttribute(String functionName, String returnTypeName, List<TypeAttribute> parameterTypes, 
+	public FunctionAttribute(String functionName, TypeAttribute returnTypeAttribute, List<TypeAttribute> parameterTypes, 
 			List<String> actualParameterNames, int scopeId) {
 		this.functionName = functionName;
 		this.parameterTypes = parameterTypes;
-		this.returnTypeName = returnTypeName;
+		this.returnTypeName = returnTypeAttribute.getAliasName();
+		this.returnTypeAttribute = returnTypeAttribute;
 		this.actualParameterNames = actualParameterNames;
 		this.scopeId = scopeId;
+	}
+	
+	public TypeAttribute getReturnTypeAttribute() {
+		return returnTypeAttribute;
 	}
 	
 	// Getters and setters. You know, because "encapsulation"...

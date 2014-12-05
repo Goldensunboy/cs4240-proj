@@ -94,8 +94,7 @@ import com.exception.NameSpaceConflictException;
   private void putFunctionAttributeMap(String functionName,  TypeAttribute returnTypeAttribute, List<TypeAttribute> parameters, List<String> actualParameterNames) {
     Scope currScope = symbolTableManager.getCurrentScope();
     int scopeId = currScope == null ? -1 : currScope.getScopeId();
-    String typeName = returnTypeAttribute.getAliasName();
-    FunctionAttribute functionAttribute = new FunctionAttribute(functionName, typeName, 
+    FunctionAttribute functionAttribute = new FunctionAttribute(functionName, returnTypeAttribute, 
         parameters, actualParameterNames, scopeId);
     attributeMap.put(functionName, functionAttribute);
   }

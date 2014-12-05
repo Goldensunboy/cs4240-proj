@@ -382,7 +382,7 @@ public class SymbolTableManager {
 				
 				List<TypeAttribute> params = isVoid ? new ArrayList<TypeAttribute>() : (isFixedpt ? paramsFixedpt : paramsInt);
 				List<String> actualParameterNames = isVoid ? new ArrayList<String>() : actualParameterName;
-				funcAttribute = new FunctionAttribute(func[0], func[1], params, actualParameterNames, -1); 
+				funcAttribute = new FunctionAttribute(func[0], new TypeAttribute(Type.valueOf(func[1]).getName(), Type.valueOf(func[1]), -1), params, actualParameterNames, -1);
 			}
 			else {				
 				throw new ShouldNotHappenException("functions file includes invalid lines");
