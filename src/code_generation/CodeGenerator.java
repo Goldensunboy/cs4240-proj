@@ -30,7 +30,6 @@ public class CodeGenerator {
 		this.symbolTableManager = parser.getSymbolTableManager();
 		setUpFile();
 		translateIRtoMIPS();
-		test();
 	}
 	
 	public CodeGenerator(TigerParser parser,List<String> IRIR){

@@ -1,16 +1,5 @@
 
 
-int function myFunc(x:int, y:fixedpt, z:int) 
-begin
-     begin
-          var a: int :=0;
-          a := 1;          
-          a := a + a;
-          return a;
-     end;
-end;
- 
-
 void main()
 begin
 	begin
