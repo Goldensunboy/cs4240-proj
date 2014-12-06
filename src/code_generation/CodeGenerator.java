@@ -37,6 +37,7 @@ public class CodeGenerator {
 		this.functionVariables = functionVariables;
 		this.functionRegisters = functionRegisters;
 		this.symbolTableManager = parser.getSymbolTableManager();
+		System.out.println(functionVariables);
 	}
 	
 	
@@ -109,7 +110,7 @@ public class CodeGenerator {
 	}
 	
 	private String translateInstruction(String instruction, SymbolTableManager symbolTableManager){
-		return Instruction.decodeInstruction(instruction, symbolTableManager);
+		return Instruction.decodeInstruction(instruction, symbolTableManager, functionVariables, functionRegisters);
 	}
 	
 	/**

@@ -1,16 +1,16 @@
-
+int function func(a:int)
+begin
+	begin
+		var b : int := 10;
+		b := a+b;
+		return b;
+	end;
+end;
 
 void main()
 begin
 	begin
-		var x : int:=6;
-		var y,z : fixedpt:=13;
-		x := x+x;
-		y := x+x;
-		y := x+y;
-		z := y+z;
-		x := x;
-		y := y;
-		z := z;
+		var x,y : int:=6;
+		y:= func(x);
 	end;
 end;

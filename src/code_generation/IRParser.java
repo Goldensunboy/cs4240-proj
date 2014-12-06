@@ -1,12 +1,14 @@
 package code_generation;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import code_generation.Register.RegisterType;
 
 import com.attribute.FunctionAttribute;
 import com.exception.BadIRInstructionException;
+import com.exception.UndeclaredFunctionException;
 import com.symbol_table.SymbolTableManager;
 
 public class IRParser {
@@ -29,40 +31,52 @@ public class IRParser {
 	 * library calls
 	 * Currently we are over saving registers
 	 */
-	/**
-	 * Used temporarily during testing. TODO GET RID OF THIS.
-	 * @param funcName
-	 * @return
-	 */
-	public static ArrayList<String> getFuncVariables(String funcName){
-		ArrayList<String> funcVariables = new ArrayList<String>();
-		funcVariables.add("i$3%i");
-		funcVariables.add("x$1%i");
-		funcVariables.add("y$1%f");
-		funcVariables.add("z$1%f");
-		funcVariables.add("$t0%i");
-		funcVariables.add("$t1%i");
-		funcVariables.add("$t2%f");
-		funcVariables.add("$t3%f");
-//		funcVariables.add("$t4%i");
-		return funcVariables;
+
+	private static List<String> getFuncRegisters(String funcName,HashMap<String, List<String>> functionRegisters){
+		if(funcName.equals("main"))
+			funcName ="FUNC_main";
+		List<String> variables = functionRegisters.get(funcName);
+		if(variables!=null)
+			return variables;
+		throw new UndeclaredFunctionException("Function does not exists in the IR");
 	}
-	/**
-	 * Used temporarily during testing. TODO GET RID OF THIS.
-	 * First param is in first location in array list
-	 * @param funcName
-	 * @return
-	 */	
+	
+	public static List<String> getFuncCalleeRegisters(String funcName,HashMap<String, List<String>> functionRegisters){
+		List<String> funcRegisters = getFuncRegisters(funcName,functionRegisters);
+		List<String> calleeRegisters = new ArrayList<String>();
+		for(String register: funcRegisters){
+			if(RegisterFile.isCalleeRegister(register))
+				calleeRegisters.add(register);
+		}
+		return calleeRegisters;
+	}
+	
+	public static List<String> getFuncCallerRegisters(String funcName,HashMap<String, List<String>> functionRegisters){
+		List<String> funcRegisters = getFuncRegisters(funcName,functionRegisters);
+		List<String> callerRegisters = new ArrayList<String>();
+		for(String register: funcRegisters){
+			if(RegisterFile.isCallerRegister(register))
+				callerRegisters.add(register);
+		}
+		return callerRegisters;
+	}
+	
+	public static List<String> getFuncVariables(String funcName,HashMap<String, List<String>> functionVariables){
+		if(funcName.equals("main"))
+			funcName ="FUNC_main";
+		List<String> variables = functionVariables.get(funcName);
+		if(variables!=null)
+			return variables;
+		throw new UndeclaredFunctionException("Function does not exists in the IR");
+	}
+
 	public static List<String> getFuncParams(String functionName, SymbolTableManager symbolTableManager){
-//		funcParams.add("int_var1%i");
-//		funcParams.add("b$3%i");
-//		funcParams.add("c$3%f");
-		
+		if(!functionName.equals("main"))
+			functionName =functionName.replaceFirst("FUNC_","");
 		FunctionAttribute functionAttribute = symbolTableManager.getFunctionAttribute(functionName);
 		List<String> parameters = new ArrayList<String>();
 		for(int i = 0;i<functionAttribute.getAcrualtParameters().size();i++){
-			parameters.set(i, functionAttribute.getAcrualtParameters().get(i)+functionAttribute.getParameterTypes().get(i).getType().getSuffix());
-			System.out.println(parameters.get(i));
+			parameters.add(i, functionAttribute.getAcrualtParameters().get(i)+functionAttribute.getParameterTypes().get(i).getType().getSuffix());
 		}
 		return parameters;
 	}
@@ -72,8 +86,10 @@ public class IRParser {
 	 * @param funcName
 	 * @return
 	 */	
-	public static RegisterType returnType(String funcName, SymbolTableManager symbolTableManager){
-		FunctionAttribute functionAttribute = symbolTableManager.getFunctionAttribute(funcName);
+	public static RegisterType returnType(String functionName, SymbolTableManager symbolTableManager){
+		if(!functionName.equals("main"))
+			functionName =functionName.replaceFirst("FUNC_","");
+		FunctionAttribute functionAttribute = symbolTableManager.getFunctionAttribute(functionName);
 		functionAttribute.getReturnTypeName();
 		return RegisterType.INT;
 	}

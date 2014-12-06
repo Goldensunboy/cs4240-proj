@@ -1,23 +1,29 @@
 package code_generation;
 
+
+
 import com.exception.BadDeveloperException;
 import com.exception.RegisterInUseException;
 
 public class Register {
 
 	public enum RegisterType {UNINITIALIZED, INT, FLOAT};
+
+	public enum Category {UNINITIALIZED, CALLER_SAVED, CALLEE_SAVED, RETURN_ADDRESS, FRAME_POINTER, PARAMETERS, LOCAL_VARIABLES, RETURN_VALUE, STACK_POINTER}; 
 	
 	private String registerName;
 	private String registerNumber; // Yes, this is a string because float register "numbers" contain an f
 	private RegisterType registerType;
 	private boolean inUse;
 	private String variableName;
+	private Category category;
 	
 	
-	public Register(String registerName, String registerNumber, RegisterType registerType){
+	public Register(String registerName, String registerNumber, RegisterType registerType, Category category){
 		this.registerName = registerName;
 		this.registerNumber = registerNumber;
 		this.registerType = registerType;
+		this.category = category;
 		this.inUse = false;
 	}
 	
@@ -62,6 +68,10 @@ public class Register {
 		throw new BadDeveloperException("Register does not contain any value");
 	}
 	
+	public Category getCategory(){
+		return category;
+	}
+	
 	/**
 	 * Removes the variable from the register.
 	 */
@@ -79,6 +89,19 @@ public class Register {
 			return RegisterType.INT;
 		else if(RegisterFile.getFloatRegisters().containsKey(register))
 			return RegisterType.FLOAT;
+		throw new BadDeveloperException("This isn't a register");
+	}
+	
+	public static boolean isCalleeRegister(String registerName){
+		if(RegisterFile.getIntRegisters().containsKey(registerName)){
+			Register register = RegisterFile.getIntRegisters().get(registerName);
+			if(register.category==Category.CALLEE_SAVED)
+				return true;
+			return false;
+		}
+		else if(RegisterFile.getFloatRegisters().containsKey(registerName)){
+			
+		}
 		throw new BadDeveloperException("This isn't a register");
 	}
 	
