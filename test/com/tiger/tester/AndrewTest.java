@@ -1,8 +1,13 @@
 package com.tiger.tester;
 
+import java.util.HashMap;
 import java.util.List;
 
+import code_generation.CodeGenerator;
+
 import com.analyzer.RegisterAllocator;
+import com.analyzer.RegisterAndVariableDetectionFactory;
+import com.analyzer.basic_block_approach.cfg.CFGRegisterAllocator;
 import com.analyzer.naive_approach.NaiveRegisterAllocator_deprecated;
 import com.antlr.generated.TigerParser;
 
@@ -11,50 +16,38 @@ public class AndrewTest {
 		
 		// Get IR code
 		List<String> IRList = parser.getIRCode();
-		System.out.println("IR Code:");
-		if(IRList == null) {
-			System.out.println(IRList);
-		} else {
-			for(String s : IRList) {
-				System.out.println("\t" + s);
+		System.out.println("==== IR Code ====");
+		for (String ir : IRList) 
+			System.out.println(ir);
+		System.out.println("=================");
+		
+		// Allocate registers
+		RegisterAllocator registerAllocator = new CFGRegisterAllocator(IRList);
+		List<String> IRIR = registerAllocator.getAnnotatedIRCode();
+		for(int i = 0; i<IRIR.size(); i++)
+			System.out.println(IRIR.get(i));
+		
+		// Check registers and vars per function
+		HashMap<String, List<String>> varmap =
+				RegisterAndVariableDetectionFactory.getFunctionVariables(IRIR);
+		HashMap<String, List<String>> regmap =
+				RegisterAndVariableDetectionFactory.getFunctionRegisters(IRIR);
+		
+		System.out.println("Variables:");
+		for(String func : varmap.keySet()) {
+			System.out.println("\t" + func);
+			for(String var : varmap.get(func)) {
+				System.out.println("\t\t" + var);
 			}
 		}
-		
-		// Verify that the IR code has valid variable names
-		for(String s : IRList) {
-			String parts[] = s.split(", ");
-			// Skip the operation text (i = 1 instead of 0)
-			for(int i = 1; i < parts.length; ++i) {
-				if(parts[i].length() > 1 && "$t".equals(parts[i].substring(0, 2))) {
-					// Temp var
-					if(!parts[i].contains("%")) {
-						System.err.println("No type on a temp: " + parts[i]);
-						System.exit(1);
-					}
-				} else if(parts[i].contains("$")) {
-					// Variable
-					if(!parts[i].contains("%")) {
-						System.err.println("No type on variable: " + parts[i]);
-						System.exit(1);
-					}
-					String[] parts2 = parts[i].split("%");
-					if("-1".equals(parts2[1])) {
-						System.err.println("Invalid type on variable: " + parts[i]);
-						System.exit(1);
-					}
-				} else {
-					// Constant
-					if(parts[i].contains("%")) {
-						System.err.println("Type on a constant: " + parts[i]);
-						System.exit(1);
-					}
-				}
+		System.out.println();
+		System.out.println("Registers:");
+		for(String func : regmap.keySet()) {
+			System.out.println("\t" + func);
+			for(String reg : regmap.get(func)) {
+				System.out.println("\t\t" + reg);
 			}
 		}
-		
-		// Print details about the analyzed IR code
-		RegisterAllocator regalloc = new NaiveRegisterAllocator_deprecated(IRList);
-		((NaiveRegisterAllocator_deprecated)regalloc).printRegisterAllocatorData();
 		
 	}
 }
