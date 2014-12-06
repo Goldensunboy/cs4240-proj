@@ -1,13 +1,16 @@
 package code_generation;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import code_generation.Register.RegisterType;
 
 import com.exception.BadDeveloperException;
 import com.exception.BadIRInstructionException;
+import com.exception.InvalidInvocationException;
 import com.exception.InvalidTypeException;
+import com.exception.UndeclaredFunctionException;
 import com.symbol_table.SymbolTableManager;
 
 public class Instruction {
@@ -17,7 +20,7 @@ public class Instruction {
 	private String currentFunctionName;
 	
 	private static Instruction instruction;
-	
+		
 	private Instruction(){}
 	
 	/**
@@ -120,7 +123,10 @@ public class Instruction {
 				for(int i = 2; i < instructionParts.length; i++){
 					parameters.add(instructionParts[i]);
 				}
-				MIPSInstruction += instruction.callFunction(instructionParts[1],parameters, symbolTableManager);
+				if(instruction.isLibraryCall(instructionParts))
+					MIPSInstruction += instruction.callLibraryFunction(instructionParts);
+				else
+					MIPSInstruction += instruction.callFunction(instructionParts[1],parameters, symbolTableManager);
 				break;
 			case "callr":
 				if(instructionParts.length < 3)
@@ -129,8 +135,12 @@ public class Instruction {
 				for(int i = 3; i < instructionParts.length; i++){
 					parameters.add(instructionParts[i]);
 				}
-				MIPSInstruction += instruction.callFunction(instructionParts[2],parameters, symbolTableManager);
-				MIPSInstruction += "\n"+instruction.getReturnValue(instructionParts[2],instructionParts[1], symbolTableManager);
+				if(instruction.isLibraryCall(instructionParts))
+					MIPSInstruction += instruction.callLibraryFunction(instructionParts);
+				else {
+					MIPSInstruction += instruction.callFunction(instructionParts[2],parameters, symbolTableManager);
+					MIPSInstruction += "\n"+instruction.getReturnValue(instructionParts[2],instructionParts[1], symbolTableManager);
+				}
 				break;
 				
 			case "array_store":
@@ -207,8 +217,14 @@ public class Instruction {
 			case "brneq":
 				MIPSInstruction += "bne ";						
 				break;
+			case "brgt":
+				MIPSInstruction += "bgt ";
+				break;
 			case "brgeq":
 				MIPSInstruction += "bge ";
+				break;
+			case "brlt":
+				MIPSInstruction += "blt ";
 				break;
 			case "brleq":
 				MIPSInstruction += "ble ";
@@ -216,7 +232,7 @@ public class Instruction {
 			default:
 				MIPSInstruction += operation;
 			}
-			MIPSInstruction += instructionParts[1]+ ", "+ instructionParts[2] + ", "+ instructionParts[3];
+			MIPSInstruction += " "+instructionParts[1]+ ", "+ instructionParts[2] + ", "+ instructionParts[3];
 			return MIPSInstruction;
 		} else if (type == InstructionType.FLOAT){
 			switch(operation) {
@@ -239,7 +255,7 @@ public class Instruction {
 				MIPSInstruction += "c.le.s ";
 				break;
 			}
-			MIPSInstruction +=  instructionParts[1]+ ", "+ instructionParts[2];
+			MIPSInstruction +=  " "+instructionParts[1]+ ", "+ instructionParts[2];
 			MIPSInstruction += "\nbc1t "+ instructionParts[3];
 			return MIPSInstruction;
 		}
@@ -425,6 +441,89 @@ public class Instruction {
 			
 		} else 
 			throw new InvalidTypeException("Retrieving return value can only be done for ints and floats");
+		return MIPSInstruction;
+	}
+	
+	boolean isLibraryCall(String[] instructionParts){
+		try {
+			callLibraryFunction(instructionParts);
+			return true;
+		} catch (UndeclaredFunctionException e){
+			return false;
+		}
+	}
+	
+	String callLibraryFunction(String[] instructionParts){
+		String MIPSInstruction = "";
+		if(instructionParts.length==3)
+			throw new InvalidInvocationException();
+		
+		if(instructionParts[0].equals("call")){
+			switch(instructionParts[1]){
+			case "Print_int":
+				if(IRParser.getVariableType(instructionParts[2])==RegisterType.INT){
+					MIPSInstruction += "li $v0, 1";
+					MIPSInstruction += "\n"+StackFrame.generateLoad(instructionParts[2],"$a0", true);
+					MIPSInstruction += "\nsyscall";
+					
+				} else
+					throw new InvalidInvocationException();				
+				break;
+			case "Print_float":
+				if(IRParser.getVariableType(instructionParts[2])==RegisterType.INT){
+					MIPSInstruction += "li $v0, 2";
+					MIPSInstruction += "\n"+StackFrame.generateLoad(instructionParts[2],"$a0", false);
+					MIPSInstruction += "\nmtc1 $a0, $f12";
+					MIPSInstruction += "\ncvt.s.w $f12, $f12";				
+					MIPSInstruction += "\nsyscall";
+					
+				} else if (IRParser.getVariableType(instructionParts[2])==RegisterType.FLOAT){
+					MIPSInstruction += "li $v0, 2";
+					MIPSInstruction += "\n"+StackFrame.generateLoad(instructionParts[2],"$f12", false);
+					MIPSInstruction += "\nsyscall";
+					
+				} else
+					throw new InvalidInvocationException();
+				break;
+			default:
+				throw new UndeclaredFunctionException("Not a library function");
+			}
+			
+		} else if (instructionParts[0].equals("callr")){
+			
+			switch(instructionParts[1]){
+			case "Read_int":
+				if(IRParser.getVariableType(instructionParts[2])==RegisterType.INT){
+					MIPSInstruction += "li $v0, 5";
+					MIPSInstruction += "\nsyscall";
+					MIPSInstruction += "\n"+StackFrame.generateStore(instructionParts[2],"$v0", false);
+					
+				} else if (IRParser.getVariableType(instructionParts[2])==RegisterType.FLOAT){
+					MIPSInstruction += "li $v0, 5";
+					MIPSInstruction += "\nsyscall";//TODO
+					MIPSInstruction += "\n";
+//					MIPSInstruction += "\n"+StackFrame.generateStore(instructionParts[2],"$v0", false);
+					//TODO					
+					
+				} else
+					throw new InvalidInvocationException();
+				break;
+			case "Read_float":
+				if(IRParser.getVariableType(instructionParts[2])==RegisterType.FLOAT){
+					MIPSInstruction += "li $v0, 6";
+					MIPSInstruction += "\nsyscall";
+					MIPSInstruction += "\n"+StackFrame.generateStore(instructionParts[2],"$f0", false);
+					
+				} else
+					throw new InvalidInvocationException();
+				break;
+			default:
+				throw new UndeclaredFunctionException("Not a library function");
+			}	
+		}
+		if(MIPSInstruction.equals(""))
+			throw new UndeclaredFunctionException("Not a library function");
+			
 		return MIPSInstruction;
 	}
 	

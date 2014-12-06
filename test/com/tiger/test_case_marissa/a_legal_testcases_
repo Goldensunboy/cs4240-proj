@@ -3,7 +3,9 @@
 void main()
 begin
 	begin
-		var x : int := 10;
-		x := x + x;
+		var x : int:=6;
+		for i := 1 to 2 do
+			x :=x+x;
+		enddo;
 	end;
 end;

@@ -34,7 +34,7 @@ public class CodeGenerator {
 		this.parser = parser;
 		this.IRIR = IRIR;
 		this.symbolTableManager = parser.getSymbolTableManager();
-//		test();
+		test();
 	}
 	
 	
@@ -44,7 +44,7 @@ public class CodeGenerator {
 	}
 	
 	public void test() {
-		String functionName = "myFunc";
+		String functionName = "main";
 		FunctionAttribute functionAttribute = symbolTableManager.getFunctionAttribute(functionName);
 		System.out.println(functionAttribute);
 		
@@ -56,7 +56,7 @@ public class CodeGenerator {
 //		System.out.println(functionAttribute.getParameterTypes().get(0).getType().getSuffix());
 //		System.out.println(functionAttribute);
 //		System.out.println();
-		System.out.println(symbolTableManager.getAttributeInCurrentScope(functionAttribute.getReturnTypeName(), null));
+		System.out.println(functionAttribute.getReturnTypeAttribute().getType());
 //		System.out.println(IRIR);
 	}
 	
