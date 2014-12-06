@@ -1,0 +1,14 @@
+void main()
+begin
+	begin
+		var n, i, product : int := 0;
+		product := 1;
+		n := 5;
+		while 0 = 0 do
+			if i > n then
+				break;
+			endif;
+			product := product * i;
+		enddo;
+	end;
+end;

@@ -1,0 +1,10 @@
+void main()
+begin
+	begin
+		var n, sum : int := 0;
+		n := 10;
+		for i := 1 to n do
+			sum := sum + i;
+		enddo;
+	end;
+end;

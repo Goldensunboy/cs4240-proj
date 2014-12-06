@@ -1,18 +1,18 @@
 void main()
 begin
 	begin
-		var int_var1 : int = 1;
-		var fixpt_var1 : fixedpt = 1.5;
+		var int_var1 : int := 1;
+		var fixpt_var1 : fixedpt := 1.5;
 		
-		int_var1 = 7;
-		int_var1 = int_var1;
-		int_var1 = int_var1 * 5;
-		fixpt_var1 = 4;
-		fixpt_var1 = 4.5;
-		fixpt_var1 = 4.5 * 4.5;
-		fixpt_var1 = fixpt_var1 + 3;
-		fixpt_var1 = 4.5 * fixpt_var1;
-		fixpt_var1 = int_var1;
-		fixpt_var1 = int_var1 * 5.9;
+		int_var1 := 7;
+		int_var1 := int_var1;
+		int_var1 := int_var1 * 5;
+		fixpt_var1 := 4;
+		fixpt_var1 := 4.5;
+		fixpt_var1 := 4.5 * 4.5;
+		fixpt_var1 := fixpt_var1 + 3;
+		fixpt_var1 := 4.5 * fixpt_var1;
+		fixpt_var1 := int_var1;
+		fixpt_var1 := int_var1 * 5.9;
 	end;
 end;

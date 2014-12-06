@@ -2,15 +2,15 @@ void main()
 begin
 	begin
 		var prev1, prev2, fib, temp, n : int := 0;
-		prev2 = 1;
-		n = 5
-		fib = prev1 + prev2;
+		prev2 := 1;
+		n := 5;
+		fib := prev1 + prev2;
 		while n > 0 do
-			temp = fib;
-			fib = fib + prev1;
-			prev2 = prev1;
-			prev1 = temp;
-			n = n - 1;
+			temp := fib;
+			fib := fib + prev1;
+			prev2 := prev1;
+			prev1 := temp;
+			n := n - 1;
 		enddo;
 	end;
 end;
