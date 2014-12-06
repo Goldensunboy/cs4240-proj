@@ -80,6 +80,15 @@ public class InstructionDetail {
 		return !Instructions.GOTO.equals(instruction);
 	}
 	
+	public boolean isAnyOfInstructions(Instructions ... instructions) {
+		for (Instructions instruction : instructions) {
+			if(instruction.equals(this.instruction)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	public String toString() {
 		StringBuffer strBuffer = new StringBuffer();
 		strBuffer.append(Arrays.toString(splitedInstruction));

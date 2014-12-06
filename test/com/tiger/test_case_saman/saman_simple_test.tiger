@@ -1,7 +1,40 @@
-void main()
+int function myFunc(k:int, k:int)
 begin
 	begin
-		/*var a : int := 10;
+		var a : int := 1;
+		a := 2;
+		return a;
+	end;
+end;
+
+void main() 
+begin
+	begin
+		var b : int := 3;
+		myFunc(b, b);
+		b := myFunc(b, 3);
+		b := b + b;
+	end;
+end;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*void main()
+begin
+	begin
+		var a : int := 10;
 		var b : int := 10;
 		var c : int := 10;
 		var d : int := 10;
@@ -32,10 +65,10 @@ begin
 		m := m + m;
 		n := n + n;
 		o:= o + o;
-		p := p + p;*/
+		p := p + p;
 		var a : int :=1;
 		for i := 1 to 2 do 
 			a := a + a;
 		enddo;
 	end;
-end;
+end;*/

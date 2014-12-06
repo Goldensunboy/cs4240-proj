@@ -122,7 +122,7 @@ public class TigerTest {
 //			EBBRegisterAllocator allocator = new EBBRegisterAllocator(IRList);
 //			NaiveRegisterAllocator allocator = new NaiveRegisterAllocator(IRList);
 			List<String> IRAndRegs = allocator.getAnnotatedIRCode();
-			System.out.println("==== IR Regs ====");
+			System.out.println("==== IR Regs ("+ allocator.getClass().getSimpleName()+ ") ====");
 			for (String ir : IRAndRegs) 
 				System.out.println(ir);
 			System.out.println("=================");
