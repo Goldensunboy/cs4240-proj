@@ -193,6 +193,8 @@ public class Instruction {
 		}
 		String[] registers = {instructionParts[1],instructionParts[2],instructionParts[3]};
 		String operation = instructionParts[0];
+		if(operation.equals("mult"))
+			operation = "mul";
 		InstructionType type = determineInstructionType(registers);
 		if(type == InstructionType.FLOAT)
 			operation +=".s";
@@ -471,38 +473,39 @@ public class Instruction {
 		try {
 			callLibraryFunction(instructionParts);
 			return true;
-		} catch (UndeclaredFunctionException e){
+		} catch (UndeclaredFunctionException |InvalidInvocationException e){
 			return false;
 		}
 	}
 	
 	String callLibraryFunction(String[] instructionParts){
 		String MIPSInstruction = "";
-		if(instructionParts.length==3)
+		if(instructionParts.length!=3)
 			throw new InvalidInvocationException();
+		
 		
 		if(instructionParts[0].equals("call")){
 			switch(instructionParts[1]){
-			case "Print_int":
+			case "FUNC_Print_int":
 				if(IRParser.getVariableType(instructionParts[2])==RegisterType.INT){
 					MIPSInstruction += "li $v0, 1";
-					MIPSInstruction += "\n"+StackFrame.generateLoad(instructionParts[2],"$a0", true);
+					MIPSInstruction += "\n"+StackFrame.generateLoad(IRParser.getVariableName(instructionParts[2]),"$a0", true);
 					MIPSInstruction += "\nsyscall";
 					
 				} else
 					throw new InvalidInvocationException();				
 				break;
-			case "Print_float":
+			case "FUNC_Print_float":
 				if(IRParser.getVariableType(instructionParts[2])==RegisterType.INT){
 					MIPSInstruction += "li $v0, 2";
-					MIPSInstruction += "\n"+StackFrame.generateLoad(instructionParts[2],"$a0", false);
+					MIPSInstruction += "\n"+StackFrame.generateLoad(IRParser.getVariableName(instructionParts[2]),"$a0", false);
 					MIPSInstruction += "\nmtc1 $a0, $f12";
 					MIPSInstruction += "\ncvt.s.w $f12, $f12";				
 					MIPSInstruction += "\nsyscall";
 					
 				} else if (IRParser.getVariableType(instructionParts[2])==RegisterType.FLOAT){
 					MIPSInstruction += "li $v0, 2";
-					MIPSInstruction += "\n"+StackFrame.generateLoad(instructionParts[2],"$f12", false);
+					MIPSInstruction += "\n"+StackFrame.generateLoad(IRParser.getVariableName(instructionParts[2]),"$f12", false);
 					MIPSInstruction += "\nsyscall";
 					
 				} else
@@ -515,28 +518,28 @@ public class Instruction {
 		} else if (instructionParts[0].equals("callr")){
 			
 			switch(instructionParts[1]){
-			case "Read_int":
+			case "FUNC_Read_int":
 				if(IRParser.getVariableType(instructionParts[2])==RegisterType.INT){
 					MIPSInstruction += "li $v0, 5";
 					MIPSInstruction += "\nsyscall";
-					MIPSInstruction += "\n"+StackFrame.generateStore(instructionParts[2],"$v0", false);
+					MIPSInstruction += "\n"+StackFrame.generateStore(IRParser.getVariableName(instructionParts[2]),"$v0", false);
 					
 				} else if (IRParser.getVariableType(instructionParts[2])==RegisterType.FLOAT){
 					MIPSInstruction += "li $v0, 5";
 					MIPSInstruction += "\nsyscall";
 					MIPSInstruction += "\nmtc1 $v0, $f0";
 					MIPSInstruction += "\ncvt.s.w $f0, $f0";			
-					MIPSInstruction += "\n"+StackFrame.generateStore(instructionParts[2],"$f0", false);
+					MIPSInstruction += "\n"+StackFrame.generateStore(IRParser.getVariableName(instructionParts[2]),"$f0", false);
 					//TODO					
 					
 				} else
 					throw new InvalidInvocationException();
 				break;
-			case "Read_float":
+			case "FUNC_Read_float":
 				if(IRParser.getVariableType(instructionParts[2])==RegisterType.FLOAT){
 					MIPSInstruction += "li $v0, 6";
 					MIPSInstruction += "\nsyscall";
-					MIPSInstruction += "\n"+StackFrame.generateStore(instructionParts[2],"$f0", false);
+					MIPSInstruction += "\n"+StackFrame.generateStore(IRParser.getVariableName(instructionParts[2]),"$f0", false);
 					
 				} else
 					throw new InvalidInvocationException();

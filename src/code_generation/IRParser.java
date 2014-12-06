@@ -61,13 +61,20 @@ public class IRParser {
 		return callerRegisters;
 	}
 	
-	public static List<String> getFuncVariables(String funcName,HashMap<String, List<String>> functionVariables){
+	public static List<String> getFuncVariables(String funcName,HashMap<String, List<String>> functionVariables, SymbolTableManager symbolTableManager){
 		if(funcName.equals("main"))
 			funcName ="FUNC_main";
 		List<String> variables = functionVariables.get(funcName);
-		if(variables!=null)
-			return variables;
-		throw new UndeclaredFunctionException("Function does not exists in the IR");
+		if(variables==null)
+			throw new UndeclaredFunctionException("Function does not exists in the IR");
+		
+		List<String> localVariables = new ArrayList<String>();
+		List<String> parameters = getFuncParams(funcName,symbolTableManager);
+		for(String variable: variables){
+			if(!parameters.contains(variable))
+				localVariables.add(variable);
+		}
+		return variables;
 	}
 
 	public static List<String> getFuncParams(String functionName, SymbolTableManager symbolTableManager){
