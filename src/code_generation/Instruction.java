@@ -194,6 +194,9 @@ public class Instruction {
 		String[] registers = {instructionParts[1],instructionParts[2],instructionParts[3]};
 		String operation = instructionParts[0];
 		InstructionType type = determineInstructionType(registers);
+		if("mult".equals(operation)) {
+			operation = "mul";
+		}
 		if(type == InstructionType.FLOAT)
 			operation +=".s";
 		return operation+" "+instructionParts[3]+", "+instructionParts[1]+", "+instructionParts[2];

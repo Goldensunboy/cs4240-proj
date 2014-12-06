@@ -2,6 +2,7 @@ void main()
 begin
 	begin
 		var n, i, product : int := 0;
+		i := 1;
 		product := 1;
 		n := 5;
 		while 0 = 0 do
@@ -9,6 +10,7 @@ begin
 				break;
 			endif;
 			product := product * i;
+			i := i + 1;
 		enddo;
 	end;
 end;
