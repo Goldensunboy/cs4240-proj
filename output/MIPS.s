@@ -28,58 +28,45 @@ swc1 $f29, -4($sp)
 swc1 $f30, 0($sp)
 sw $fp, -120($sp)
 sw $ra, -124($sp)
+lwc1 $f4, -92($sp)
+lwc1 $f5, -104($sp)
+lw $t0, -96($sp)
+lw $t1, -100($sp)
+lwc1 $f6, -108($sp)
+lwc1 $f7, -88($sp)
+lw $t2, -112($sp)
 li $t7, 6
-move $t8, $t7
-sw $t8, -112($sp)
+move $t2, $t7
 li $t7, 13
-mtc1, $t7, $f30
-cvt.s.w, $f30, $f30
-mov.s $f29, $f30
-swc1 $f29, -104($sp)
+mtc1, $t7, $f29
+cvt.s.w, $f29, $f29
+mov.s $f5, $f29
 li $t7, 13
-mtc1, $t7, $f30
-cvt.s.w, $f30, $f30
-mov.s $f29, $f30
-swc1 $f29, -108($sp)
-lw $t8, -112($sp)
-add $t9, $t8, $t8
-sw $t9, -100($sp)
-lw $t7, -100($sp)
-move $t8, $t7
-sw $t8, -112($sp)
-lw $t8, -112($sp)
-add $t9, $t8, $t8
-sw $t9, -96($sp)
-lw $t7, -96($sp)
-mtc1, $t7, $f30
-cvt.s.w, $f30, $f30
-mov.s $f29, $f30
-swc1 $f29, -108($sp)
-lwc1 $f29, -108($sp)
-lw $t7, -112($sp)
-mtc1, $t7, $f31
-cvt.s.w, $f31, $f31
-add.s $f30, $f31, $f29
-swc1 $f30, -92($sp)
-lwc1 $f29, -92($sp)
-mov.s $f30, $f29
-swc1 $f30, -108($sp)
-lwc1 $f30, -104($sp)
-lwc1 $f29, -108($sp)
-add.s $f31, $f29, $f30
-swc1 $f31, -88($sp)
-lwc1 $f29, -88($sp)
-mov.s $f30, $f29
-swc1 $f30, -104($sp)
-lw $t8, -112($sp)
-move $t8, $t8
-sw $t8, -112($sp)
-lwc1 $f30, -108($sp)
-mov.s $f30, $f30
-swc1 $f30, -108($sp)
-lwc1 $f30, -104($sp)
-mov.s $f30, $f30
-swc1 $f30, -104($sp)
+mtc1, $t7, $f29
+cvt.s.w, $f29, $f29
+mov.s $f6, $f29
+add $t1, $t2, $t2
+move $t2, $t1
+add $t0, $t2, $t2
+mtc1, $t0, $f29
+cvt.s.w, $f29, $f29
+mov.s $f6, $f29
+mtc1, $t2, $f29
+cvt.s.w, $f29, $f29
+add.s $f4, $f29, $f6
+mov.s $f6, $f4
+add.s $f7, $f6, $f5
+mov.s $f5, $f7
+move $t2, $t2
+mov.s $f6, $f6
+mov.s $f5, $f5
+swc1 $f4, -92($sp)
+swc1 $f5, -104($sp)
+sw $t0, -96($sp)
+sw $t1, -100($sp)
+swc1 $f6, -108($sp)
+swc1 $f7, -88($sp)
+sw $t2, -112($sp)
 lw $fp, -120($sp)
 lw $ra, -124($sp)
 lw $s0, -84($sp)

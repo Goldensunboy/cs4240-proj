@@ -2,15 +2,7 @@ package com.tiger.tester;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.util.List;
 
-import code_generation.CodeGenerator;
-
-import com.analyzer.RegisterAllocator;
-import com.analyzer.basic_block_approach.cfg.CFGRegisterAllocator;
-import com.analyzer.basic_block_approach.ebb.EBBRegisterAllocator;
-import com.analyzer.naive_approach.NaiveRegisterAllocator;
-import com.analyzer.naive_approach.NaiveRegisterAllocator_deprecated;
 import com.antlr.generated.TigerParser;
 import com.compiler.TigerCompiler;
 import com.compiler.TigerCompiler.CompilerErrorReport;
@@ -82,138 +74,25 @@ public class TigerTest {
 	 */
 	private void runSpecificTestCases(TigerParser parser, DeveloperName developerName,
 			boolean irCodeOn, boolean symbolTableOn) {
-		List<String> IRList;
-		RegisterAllocator regalloc;
 		switch (developerName) {
 		case MARISSA:
-			IRList = parser.getIRCode();
-			System.out.println("==== IR Code ====");
-			for (String ir : IRList) 
-				System.out.println(ir);
-			System.out.println("=================");
-//			EBBRegisterAllocator registerAllocator = new EBBRegisterAllocator(IRList);
-//			CFGRegisterAllocator registerAllocator = new CFGRegisterAllocator(IRList);
-			NaiveRegisterAllocator registerAllocator = new NaiveRegisterAllocator(IRList);
-			List<String> IRIR = registerAllocator.getAnnotatedIRCode();
-			for(int i = 0; i<IRIR.size(); i++)
-				System.out.println(IRIR.get(i));
-			CodeGenerator codeGenerator = new CodeGenerator(parser, IRIR);
-			codeGenerator.generateCode();
-//			codeGenerator.test();
-			// Get IR code
-//			IRList = parser.getIRCode();
-//			System.out.println("IR Code:");
-//			if(IRList == null) {
-//				System.out.println(IRList);
-//			} else {
-//				for(String s : IRList) {
-//					System.out.println("\t" + s);
-//				}
-//			}
-//			
-//			// Print details about the analyzed IR code
-//			regalloc = new NaiveRegisterAllocator(IRList);
-//			System.out.println("before");
-//			((NaiveRegisterAllocator)regalloc).printRegisterAllocatorData();
-
+			MarissaTest.test(parser);
 			break;
 		
 		case SAMAN:
-			IRList = parser.getIRCode();
-			System.out.println("==== IR Code ====");
-			for (String ir : IRList) 
-				System.out.println(ir);
-			System.out.println("=================");
-			
-			CFGRegisterAllocator allocator = new CFGRegisterAllocator(IRList);
-//			EBBRegisterAllocator allocator = new EBBRegisterAllocator(IRList);
-//			NaiveRegisterAllocator allocator = new NaiveRegisterAllocator(IRList);
-			List<String> IRAndRegs = allocator.getAnnotatedIRCode();
-			System.out.println("==== IR Regs ("+ allocator.getClass().getSimpleName()+ ") ====");
-			for (String ir : IRAndRegs) 
-				System.out.println(ir);
-			System.out.println("=================");
+			SamanTest.test(parser);
 			break;
 			
 		case ANDREW:
-			
-			// Get IR code
-			IRList = parser.getIRCode();
-			System.out.println("IR Code:");
-			if(IRList == null) {
-				System.out.println(IRList);
-			} else {
-				for(String s : IRList) {
-					System.out.println("\t" + s);
-				}
-			}
-			
-			// Verify that the IR code has valid variable names
-			for(String s : IRList) {
-				String parts[] = s.split(", ");
-				// Skip the operation text (i = 1 instead of 0)
-				for(int i = 1; i < parts.length; ++i) {
-					if(parts[i].length() > 1 && "$t".equals(parts[i].substring(0, 2))) {
-						// Temp var
-						if(!parts[i].contains("%")) {
-							System.err.println("No type on a temp: " + parts[i]);
-							System.exit(1);
-						}
-					} else if(parts[i].contains("$")) {
-						// Variable
-						if(!parts[i].contains("%")) {
-							System.err.println("No type on variable: " + parts[i]);
-							System.exit(1);
-						}
-						String[] parts2 = parts[i].split("%");
-						if("-1".equals(parts2[1])) {
-							System.err.println("Invalid type on variable: " + parts[i]);
-							System.exit(1);
-						}
-					} else {
-						// Constant
-						if(parts[i].contains("%")) {
-							System.err.println("Type on a constant: " + parts[i]);
-							System.exit(1);
-						}
-					}
-				}
-			}
-			
-			// Print details about the analyzed IR code
-			regalloc = new NaiveRegisterAllocator_deprecated(IRList);
-			((NaiveRegisterAllocator_deprecated)regalloc).printRegisterAllocatorData();
-			
+			AndrewTest.test(parser);
 			break;
 			
 		case VINCENT:
-			if(irCodeOn) {
-				runIRCode(parser);
-			}
-			if(symbolTableOn) {
-				printSymbolTable(parser);
-			}
+			VincentTest.test(parser);
 			break;
 		}
 	}
 
-	private void printSymbolTable(TigerParser parser) {
-		parser.printSymbolTable();
-	}
-	
-	private void runIRCode(TigerParser parser) {
-		List<String> IRList = parser.getIRCode();
-		System.out.println("IR code:\n**********");
-		if(IRList == null) {
-			System.out.println(IRList);
-			return;
-		}
-	    for(String s : IRList) {
-	      System.out.println(s);
-	    }
-	    System.out.println("**********");
-	}
-	
 	public enum DeveloperName {
 		SAMAN("saman", "saman"),
 		MARISSA("Risa", "marissa"),
