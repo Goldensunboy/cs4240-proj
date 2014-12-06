@@ -34,7 +34,6 @@ public class CodeGenerator {
 		this.parser = parser;
 		this.IRIR = IRIR;
 		this.symbolTableManager = parser.getSymbolTableManager();
-		test();
 	}
 	
 	
@@ -101,7 +100,7 @@ public class CodeGenerator {
 		
 		for(String line: IRIR) {
 			MIPSLine = translateInstruction(line,symbolTableManager)+"\n";
-			System.out.println(MIPSLine);
+			System.out.print(MIPSLine);
 			writeMIPSToFile(MIPSLine);
 		}
 	}

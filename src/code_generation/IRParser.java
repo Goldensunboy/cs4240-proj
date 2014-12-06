@@ -38,11 +38,12 @@ public class IRParser {
 		ArrayList<String> funcVariables = new ArrayList<String>();
 		funcVariables.add("i$3%i");
 		funcVariables.add("x$1%i");
-//		funcVariables.add("j$5%i");
+		funcVariables.add("y$1%f");
+		funcVariables.add("z$1%f");
 		funcVariables.add("$t0%i");
 		funcVariables.add("$t1%i");
-		funcVariables.add("$t2%i");
-//		funcVariables.add("$t3%i");
+		funcVariables.add("$t2%f");
+		funcVariables.add("$t3%f");
 //		funcVariables.add("$t4%i");
 		return funcVariables;
 	}

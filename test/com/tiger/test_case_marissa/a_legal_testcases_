@@ -4,8 +4,13 @@ void main()
 begin
 	begin
 		var x : int:=6;
-		for i := 1 to 2 do
-			x :=x+x;
-		enddo;
+		var y,z : fixedpt:=13;
+		x := x+x;
+		y := x+x;
+		y := x+y;
+		z := y+z;
+		x := x;
+		y := y;
+		z := z;
 	end;
 end;

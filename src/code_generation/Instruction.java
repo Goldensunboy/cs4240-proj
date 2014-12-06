@@ -151,6 +151,8 @@ public class Instruction {
 			case "cvt.s.w":
 				MIPSInstruction = IRInstruction;
 				break;
+			default:
+				MIPSInstruction += MIPSInstruction;
 		}
 		return MIPSInstruction;
 	}
@@ -500,9 +502,10 @@ public class Instruction {
 					
 				} else if (IRParser.getVariableType(instructionParts[2])==RegisterType.FLOAT){
 					MIPSInstruction += "li $v0, 5";
-					MIPSInstruction += "\nsyscall";//TODO
-					MIPSInstruction += "\n";
-//					MIPSInstruction += "\n"+StackFrame.generateStore(instructionParts[2],"$v0", false);
+					MIPSInstruction += "\nsyscall";
+					MIPSInstruction += "\nmtc1 $v0, $f0";
+					MIPSInstruction += "\ncvt.s.w $f0, $f0";			
+					MIPSInstruction += "\n"+StackFrame.generateStore(instructionParts[2],"$f0", false);
 					//TODO					
 					
 				} else
