@@ -12,5 +12,6 @@ begin
 	begin
 		var x,y : int:=6;
 		y:= func(x);
+		Print_int(y);
 	end;
 end;
