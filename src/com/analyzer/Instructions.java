@@ -1,13 +1,10 @@
 package com.analyzer;
 
-import java.util.Arrays;
 
 
 public enum Instructions {
 	
 	ASSIGN ("assign", 1, 2, 3, -1),
-	
-	
 	ADD ("add", 3, 1, 3, -1),
 	SUB ("sub", 3, 1, 3, -1),
 	MULT ("mult", 3, 1, 3, -1),
@@ -40,45 +37,24 @@ public enum Instructions {
 		this.rhsEndIndex = rhsEndIndex;
 		this.labelIndex = labelIndex;
 	}
-	
-	public boolean hasLHS() {
-		return lhsIndex != -1;
+
+	public int getLhsIndex() {
+		return lhsIndex;
 	}
 	
-	public boolean hasRHS() {
-		return rhsStartIndex != -1;
+	public int getRhsStartIndex() {
+		return rhsStartIndex;
+	}
+	
+	public int getRhsEndIndex() {
+		return rhsEndIndex;
+	}
+	
+	public int getLabelIndex() {
+		return labelIndex;
 	}
 
-	public boolean hasLabel() {
-		return labelIndex != -1;
-	}
-	
-	public boolean isLabel() {
-		return this.getName() == LABEL.getName();
-	}
-	
-	public boolean isControlFlow() {
-		return isLabel() || labelIndex != -1;
-	}
-	
-	public boolean isBranch() {
-		return getName() != FUNC.getName() && !isLabel() && labelIndex != -1;
-	}
-	
-	public String getLHS(String[] splitedInstruction) {
-		return splitedInstruction[lhsIndex];
-	}
-	
-	public String[] getRHS(String[] splitedInstruction) {
-		return Arrays.copyOfRange(splitedInstruction, rhsStartIndex, rhsEndIndex);
-	}
-	
-	public String getLabel(String[] splitedInstruction) {
-		return splitedInstruction[labelIndex];
-	}
-	
 	public String getName() {
 		return name;
 	}
-	
 }
