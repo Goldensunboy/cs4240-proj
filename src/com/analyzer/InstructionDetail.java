@@ -1,12 +1,20 @@
 package com.analyzer;
 
+import static com.analyzer.Instructions.*;
+
 import java.util.Arrays;
 
 public class InstructionDetail {
 	
 	private String[] splitedInstruction;
 	private Instructions instruction;
-	private String originalInstruction;
+	private String originalInstruction;	
+	private static Instructions[] branchGotoInstructions = {BREQ, BRGEQ, BRGT, BRLEQ, BRLT, BRNEQ, GOTO};
+	private static Instructions[] dontNeedStoreAfter = {BREQ, BRGEQ, BRGT, BRLEQ, BRLT, BRNEQ, GOTO, CALL, CALLR, RETURN};
+	private static Instructions[] controlFlowInstructions = {GOTO, BREQ, BRNEQ, BRLT, BRGT, BRGEQ, BRLEQ, FUNC, LABEL};
+	private static Instructions[] instructionsWithLabel = {GOTO, BREQ, BRNEQ, BRLT, BRGT, BRGEQ, BRLEQ, CALL, CALLR, LABEL, FUNC};
+	private int lhsIndex, rhsStartIndex, rhsEndIndex, labelIndex;
+		
 	
 	public InstructionDetail(String line) {
 		this.originalInstruction = line;
@@ -20,14 +28,38 @@ public class InstructionDetail {
 			instructionName = Instructions.FUNC.getName();
 		}
 		this.instruction = Instructions.valueOf(instructionName.toUpperCase());
+		lhsIndex = instruction.getLhsIndex();
+		rhsStartIndex = instruction.getRhsStartIndex();
+		rhsEndIndex = instruction.getRhsEndIndex();
+		labelIndex = instruction.getLabelIndex();
+	}
+	
+	public boolean isBranch() {
+		return isAnyOfInstructions(branchGotoInstructions);
+	}
+	
+	public boolean doesNeedStoreAfter() {
+		return isAnyOfInstructions(dontNeedStoreAfter);
 	}
 
-	public boolean isBranch() {
-		return instruction.isBranch();
+	public boolean letsFallThrough() {
+		return !isAnyOfInstructions(GOTO);
 	}
 	
 	public boolean isReturn() {
-		return Instructions.RETURN.equals(instruction);
+		return isAnyOfInstructions(RETURN);
+	}
+	
+	public boolean isLabel() {
+		return isAnyOfInstructions(LABEL);
+	}
+	
+	public boolean hasLabel() {
+		return isAnyOfInstructions(instructionsWithLabel);
+	}
+	
+	public boolean isControlFlow() {
+		return isAnyOfInstructions(controlFlowInstructions);
 	}
 	
 	public String getOriginalInstruction() {
@@ -44,40 +76,23 @@ public class InstructionDetail {
 	
 	public String getLHS() {
 		if(hasLHS()) {			
-			return instruction.getLHS(splitedInstruction);
+			return getLHS(splitedInstruction);
 		}
 		return null;
 	}
 	
 	public String[] getRHS() {
 		if(hasRHS()) {
-			return instruction.getRHS(splitedInstruction);
+			return getRHS(splitedInstruction);
 		}
 		return null;
 	}
 
-	public boolean isControlFlow() {
-		return instruction.isControlFlow();
-	}
-	
 	public String getLabel() {
-		return instruction.getLabel(splitedInstruction);
-	}
-	
-	public boolean isLabel() {
-		return instruction.isLabel();
-	}
-	
-	public boolean hasLHS() {
-		return instruction.hasLHS();
-	}
-	
-	public boolean hasRHS() {
-		return instruction.hasRHS();
-	}
-	
-	public boolean letsFallThrough() {
-		return !Instructions.GOTO.equals(instruction);
+		if(hasLabel()) {			
+			return splitedInstruction[labelIndex];
+		}
+		return null;
 	}
 	
 	public boolean isAnyOfInstructions(Instructions ... instructions) {
@@ -89,6 +104,26 @@ public class InstructionDetail {
 		return false;
 	}
 	
+	public boolean hasLHS() {
+		return lhsIndex != -1;
+	}
+	
+	public boolean hasRHS() {
+		return rhsStartIndex != -1;
+	}
+	
+	public String getLHS(String[] splitedInstruction) {
+		return splitedInstruction[lhsIndex];
+	}
+	
+	public String[] getRHS(String[] splitedInstruction) {
+		return Arrays.copyOfRange(splitedInstruction, rhsStartIndex, rhsEndIndex);
+	}
+	
+	public String getLabel(String[] splitedInstruction) {
+		return splitedInstruction[labelIndex];
+	}
+	
 	public String toString() {
 		StringBuffer strBuffer = new StringBuffer();
 		strBuffer.append(Arrays.toString(splitedInstruction));
@@ -97,15 +132,15 @@ public class InstructionDetail {
 		strBuffer.append(instruction);
 		strBuffer.append("\t");
 
-		String lhs = instruction.hasLHS() ? instruction.getLHS(splitedInstruction) : null;
+		String lhs = getLHS();
 		strBuffer.append(lhs);
 		strBuffer.append("\t");
 		
-		String [] rhs = instruction.hasRHS() ? instruction.getRHS(splitedInstruction) : null;
+		String [] rhs = getRHS();
 		strBuffer.append(Arrays.toString(rhs));
 		strBuffer.append("\t");
 		
-		String label = instruction.hasLabel() ? instruction.getLabel(splitedInstruction) : null;
+		String label = getLabel();
 		strBuffer.append(label);
 		strBuffer.append("\n");
 		
