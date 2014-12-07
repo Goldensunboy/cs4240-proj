@@ -55,7 +55,7 @@ public class TigerTest {
 					
 					if (!errorReport.hasError()) {
 						runSpecificTestCases(compiler.getTigerParser(), developerName,
-								irCodeOn, symbolTableOn);
+								irCodeOn, symbolTableOn, fileName);
 					}
 					
 					System.out.println(errorReport.getErrorReportMessage());
@@ -73,7 +73,7 @@ public class TigerTest {
 	 * Put your test methods below your case. It will automatically call those methods
 	 */
 	private void runSpecificTestCases(TigerParser parser, DeveloperName developerName,
-			boolean irCodeOn, boolean symbolTableOn) {
+			boolean irCodeOn, boolean symbolTableOn, String filename) {
 		switch (developerName) {
 		case MARISSA:
 			MarissaTest.test(parser);
@@ -84,7 +84,7 @@ public class TigerTest {
 			break;
 			
 		case ANDREW:
-			AndrewTest.test(parser);
+			AndrewTest.test(parser, filename);
 			break;
 			
 		case VINCENT:
