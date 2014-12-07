@@ -14,7 +14,7 @@ public class SamanTest {
 			System.out.println(ir);
 		System.out.println("=================");
 		
-//		cFGRegisterAllocator allocator = new CFGRegisterAllocator(IRList);
+//		CFGRegisterAllocator allocator = new CFGRegisterAllocator(IRList);
 //		EBBRegisterAllocator allocator = new EBBRegisterAllocator(IRList);
 		RegisterAllocator allocator = new NaiveRegisterAllocator(IRList);
 		List<String> IRAndRegs = allocator.getAnnotatedIRCode();

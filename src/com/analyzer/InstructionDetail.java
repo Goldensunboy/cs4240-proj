@@ -27,11 +27,36 @@ public class InstructionDetail {
 		if(instructionName.matches("^FUNC.*")) {			
 			instructionName = Instructions.FUNC.getName();
 		}
+		
+		// array assign case, ugh!
+		if(instructionName.matches("assign")) {
+			if(splitedInstruction.length > 3) {
+				instructionName = "array_assign";
+				originalInstruction =instructionName;
+				for (int i=1; i< splitedInstruction.length; i++) {
+					originalInstruction += ", " + splitedInstruction[i];
+				}
+			}
+		}
+		
 		this.instruction = Instructions.valueOf(instructionName.toUpperCase());
+		
+		if(isAnyOfInstructions(ARRAY_ASSIGN, ARRAY_STORE, ARRAY_LOAD)) {
+			originalInstruction += ", " + splitedInstruction[instruction.getArrayNameIndex()];
+		}
+		
 		lhsIndex = instruction.getLhsIndex();
 		rhsStartIndex = instruction.getRhsStartIndex();
 		rhsEndIndex = instruction.getRhsEndIndex();
 		labelIndex = instruction.getLabelIndex();
+	}
+	
+	public String getArrayName() {
+		return splitedInstruction[instruction.getArrayNameIndex()];
+	}
+	
+	public String getVariableOrLiteralForPermotion() {
+		return splitedInstruction[3];
 	}
 	
 	public boolean isBranchOrGoto() {

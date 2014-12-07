@@ -8,6 +8,7 @@ import code_generation.Register.RegisterType;
 
 import com.attribute.FunctionAttribute;
 import com.exception.BadIRInstructionException;
+import com.exception.InvalidInvocationException;
 import com.exception.InvalidTypeException;
 import com.exception.UndeclaredFunctionException;
 import com.symbol_table.SymbolTableManager;
@@ -138,9 +139,27 @@ public class IRParser {
 		throw new BadIRInstructionException("Not a valid variable");
 	}
 
+	public static boolean isArray(String variable){
+		String[] parts = variable.split("\\%");
+		return (parts.length==2&&(parts[1].equals("ai")||parts[1].equals("af")));
+	}
 	
+	public static int sizeOfArray(HashMap<String, HashMap<String, Integer>> functionArraySizes, String functionName, String variable){
+		if(functionName.equals("main"))
+			functionName = "FUNC_"+functionName;
+		return functionArraySizes.get(functionName).get(variable);
+	}
 	
-	
+	public static RegisterType getArrayType(String array){
+		String[] parts = array.split("\\%");
+		if(parts.length==2){
+			if(parts[1].equals("ai"))
+				return RegisterType.INT;
+			else if(parts[1].equals("af"))
+				return RegisterType.FLOAT;
+		}
+		throw new InvalidInvocationException("Can only get the type of valid arrays");
+	}
 	
 //	
 //	/**

@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+
+import com.compiler.Type;
+
 import static com.analyzer.Instructions.*;
 import static com.analyzer.LOAD_STORE.*;
 
@@ -62,7 +65,12 @@ public class IRGeneratorForMIPS {
 	private static String manageRegisters(InstructionDetail instructionDetail, Map<String, String> variablesRegisterMap, 
 			Map<String, String> temporaryVariablesRegisterMap, Map<String, String> promotedRegisters) {
 		String[] splitedInstruction = instructionDetail.getOriginalInstruction().split(", ");
-		for(int i=0; i<splitedInstruction.length; i++) {
+		
+		int makeRoomForArrayName =  0;
+		if(instructionDetail.isAnyOfInstructions(ARRAY_ASSIGN, ARRAY_LOAD, ARRAY_STORE)) {
+			makeRoomForArrayName = 1;
+		}
+		for(int i=0; i<splitedInstruction.length - makeRoomForArrayName; i++) {
 			String variableName = splitedInstruction[i];
 			String replacement = promotedRegisters.get(variableName);
 			if(replacement == null) {				
@@ -131,23 +139,52 @@ public class IRGeneratorForMIPS {
 				if(lhs == null) {
 					variablesNeedStore = null;
 				}
+
 				Map<String, String> temporaryVariablesRegisterMap = registerFactory.createTemporaryRegisterMap(variablesNeedLoad, variablesNeedStore);  
-				
 				annotatedIR.addAll(getTemporaryLoadStoreRegisters(variablesNeedLoad, temporaryVariablesRegisterMap, LOAD));
 				
-				Map<String, String> registersToPromote = registerFactory.getRegistersToPromotion(variablesNeedLoad, variablesNeedStore, temporaryVariablesRegisterMap);
-				Map<String, String> promotedRegisters = registerFactory.getPromotedRegisters(registersToPromote);
-				
-				annotatedIR.addAll(registerFactory.getPromotions(registersToPromote, promotedRegisters));
-				boolean isBranch = generateStore && instructionDetail.isAnyOfInstructions(branchGotoInstructions);
-				if(isBranch){
-					annotatedIR.addAll(getLoadStoreRegisters(variablesRegisterMap, STORE));
-				}
+				if(instructionDetail.isAnyOfInstructions(ARRAY_ASSIGN, ARRAY_LOAD, ARRAY_STORE)) {
+					/*
+					 *  Hacky but YOLO.
+					 *  arrays are as weird as Kanye West. The lhs (a.k.a variablesNeedStore) are the ones who need
+					 *  to be loaded. Therefore, the variablesNeedStore are the ones needed to be loaded.
+					 */
+					
+					// See if the type of the array is fixedpt (only applicable to array_store and array_assign)
+					String[] variablesNeedPromotion = null;
+					String arrayName = instructionDetail.getArrayName();
+					boolean isFloatArray = arrayName.matches(".*"+Type.ARRAY.getSuffix() + Type.FIXPT.getNoPercentSuffix());
+					if(isFloatArray && instructionDetail.isAnyOfInstructions(ARRAY_STORE, ARRAY_ASSIGN)) {
+						String variableOrLiteralForPermotion = instructionDetail.getVariableOrLiteralForPermotion();
+						if(InstructionUtility.isIntIsh(variableOrLiteralForPermotion)) {
+							variablesNeedPromotion = new String[]{variableOrLiteralForPermotion};
+						}
+					}
+					
+					String[] fakeLHS = {"fakeLHSToForcePromotionOfInt%f"};
+					Map<String, String> registersToPromote = registerFactory.getRegistersToPromotion(variablesNeedPromotion, fakeLHS, temporaryVariablesRegisterMap);
+					Map<String, String> promotedRegisters = registerFactory.getPromotedRegisters(registersToPromote);
+					annotatedIR.addAll(registerFactory.getPromotions(registersToPromote, promotedRegisters));
+					if(instructionDetail.isAnyOfInstructions(ARRAY_LOAD, ARRAY_STORE)) {
+						annotatedIR.addAll(getTemporaryLoadStoreRegisters(new String[]{instructionDetail.getArrayName()}, temporaryVariablesRegisterMap, LOAD));
+					}
+					annotatedIR.add(manageRegisters(instructionDetail, variablesRegisterMap, temporaryVariablesRegisterMap, promotedRegisters));
 
-				annotatedIR.add(manageRegisters(instructionDetail, variablesRegisterMap, temporaryVariablesRegisterMap, promotedRegisters));
-				
-				if(!isBranch) {					
-					annotatedIR.addAll(getTemporaryLoadStoreRegisters(variablesNeedStore, temporaryVariablesRegisterMap, STORE));				
+				} else {
+					Map<String, String> registersToPromote = registerFactory.getRegistersToPromotion(variablesNeedLoad, variablesNeedStore, temporaryVariablesRegisterMap);
+					Map<String, String> promotedRegisters = registerFactory.getPromotedRegisters(registersToPromote);
+					
+					annotatedIR.addAll(registerFactory.getPromotions(registersToPromote, promotedRegisters));
+					boolean isBranch = generateStore && instructionDetail.isAnyOfInstructions(branchGotoInstructions);
+					if(isBranch){
+						annotatedIR.addAll(getLoadStoreRegisters(variablesRegisterMap, STORE));
+					}
+					
+					annotatedIR.add(manageRegisters(instructionDetail, variablesRegisterMap, temporaryVariablesRegisterMap, promotedRegisters));
+					
+					if(!isBranch) {					
+						annotatedIR.addAll(getTemporaryLoadStoreRegisters(variablesNeedStore, temporaryVariablesRegisterMap, STORE));				
+					}
 				}
 				registerFactory.resetAvailableTemporaryRegisterIndex();
 			}

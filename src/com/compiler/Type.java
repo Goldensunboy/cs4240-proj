@@ -2,20 +2,21 @@ package com.compiler;
 
 
 public enum Type {
-  INT("int", true, "%i"),
-  FIXPT("fixedpt", true, "%f"),
-  VOID("void", false, "%NA"),
-  ARRAY("array", true, "%NIY"), //TODO isValidReturnType == true?
-  TEMPORARY("temp", false /*should never be needed*/,"%TEMP"),
+  INT("int", true, "%i", "i"),
+  FIXPT("fixedpt", true, "%f", "f"),
+  VOID("void", false, "%NA", "a"),
+  ARRAY("array", true, "%a", "a"), //TODO isValidReturnType == true?
+  TEMPORARY("temp", false /*should never be needed*/,"%TEMP", "TEMP"),
   
-  INVALID("", false, "%ERR"); //temporary for testing
+  INVALID("", false, "%ERR", "ERR"); //temporary for testing
   
-  private String name, suffix;
+  private String name, suffix, noPercentSuffix;
   private boolean isValidVarType;
-  Type(String name, boolean isValidVarType, String suffix) {
+  Type(String name, boolean isValidVarType, String suffix, String noPercentSuffix) {
 	  this.suffix = suffix;
 	  this.name = name;
 	  this.isValidVarType = isValidVarType; 
+	  this.noPercentSuffix = noPercentSuffix;
   }
   
   public String getName() {
@@ -50,11 +51,19 @@ public enum Type {
 	  return INVALID;
   }
 
-public String getSuffix() {
-	return suffix;
-}
-
-public void setSuffix(String suffix) {
-	this.suffix = suffix;
-}
+	public String getSuffix() {
+		return suffix;
+	}
+	
+	public void setSuffix(String suffix) {
+		this.suffix = suffix;
+	}
+	
+	public String getNoPercentSuffix() {
+		return noPercentSuffix;
+	}
+	
+	public void setNoPrefixSuffix(String noPrefixSuffix) {
+		this.noPercentSuffix = noPrefixSuffix;
+	}
 }

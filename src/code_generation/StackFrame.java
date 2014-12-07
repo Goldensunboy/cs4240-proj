@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.exception.BadDeveloperException;
 import com.exception.CorruptedStackException;
+import com.exception.InvalidInvocationException;
 import com.symbol_table.SymbolTableManager;
 
 import code_generation.Register.Category;
@@ -24,7 +25,7 @@ public class StackFrame {
 	int beginOfFrame = -1;
 	int beforeFuncCall = -1;
 	
-	public static void pushOnStack(StackArgument arg){
+	private static void pushOnStack(StackArgument arg){
 		if(stackFrame == null){
 			stackFrame = new StackFrame();
 		}
@@ -32,9 +33,25 @@ public class StackFrame {
 			stackFrame.stack.add(arg);
 		else
 			throw new CorruptedStackException("Variable begin added, "+arg.getVariableName()+", is already on the stack");
-		
 	}
-	public static void popOffStack(){
+	
+	private static void pushArrayVariableOnStack(HashMap<String, HashMap<String, Integer>> functionArraySizes, String functionName, String variable){
+		if(stackFrame == null){
+			stackFrame = new StackFrame();
+		}
+		if(!stackFrame.stack.contains(IRParser.getVariableName(variable))){
+			int size = IRParser.sizeOfArray(functionArraySizes,functionName,variable);
+			/* Push array address on stack */
+			pushOnStack(new StackArgument(IRParser.getVariableName(variable),RegisterType.INT,true,Category.LOCAL_VARIABLES_ARRAY));
+			/* Push array elements on stack */
+			for(int i = 0; i < size; i++)
+				pushOnStack(new StackArgument(IRParser.getVariableName(variable)+"_array["+i+"]",IRParser.getArrayType(variable),true,Category.LOCAL_VARIABLES));
+		} else
+			throw new CorruptedStackException("Variable begin added, "+IRParser.getVariableName(variable)+", is already on the stack");
+	}
+	
+	
+	private static void popOffStack(){
 		if(stackFrame == null){
 			stackFrame = new StackFrame();
 		}
@@ -46,7 +63,8 @@ public class StackFrame {
 	 * Builds up the stack for the current function
 	 * @param functionName
 	 */
-	public static String enterCurrentFrame(String functionName, SymbolTableManager symbolTableManager,HashMap<String, List<String>> functionVariables, HashMap<String, List<String>> functionRegisters) {		
+	public static String enterCurrentFrame(String functionName, SymbolTableManager symbolTableManager,HashMap<String, List<String>> functionVariables,
+			HashMap<String, List<String>> functionRegisters,HashMap<String, HashMap<String, Integer>> functionArraySizes) {		
 		
 		if(stackFrame == null){
 			stackFrame = new StackFrame();
@@ -69,24 +87,22 @@ public class StackFrame {
 		
 		/* local variables */
 		List<String> localVariables = IRParser.getFuncVariables(functionName,functionVariables);
-		for(String var : localVariables){
-			pushOnStack(new StackArgument(IRParser.getVariableName(var), IRParser.getVariableType(var), false, Category.LOCAL_VARIABLES));
+		List<String> localArrays = new ArrayList<String>();
+		for(String variable : localVariables){
+			if(IRParser.isArray(variable)){
+				pushArrayVariableOnStack(functionArraySizes,functionName,variable);
+				localArrays.add(IRParser.getVariableName(variable));
+			} else 
+				pushOnStack(new StackArgument(IRParser.getVariableName(variable), IRParser.getVariableType(variable), false, Category.LOCAL_VARIABLES));
 		}
 		
-		/* callee saved registers */ //TODO do not need to save all registers every time
-//		for(int i = 0; i < 7; i++){
-//			pushOnStack(new StackArgument("$s"+i, RegisterType.INT, false, Category.CALLEE_SAVED));
-//		}
-//		for(int i = 16; i < 31; i++){
-//			pushOnStack(new StackArgument("$f"+i, RegisterType.FLOAT, false, Category.CALLEE_SAVED));
-//		}
+		/* callee saved registers */
 		List<String> usedRegisters = IRParser.getFuncCalleeRegisters(functionName,functionRegisters);
 		for(String register: usedRegisters){
 			pushOnStack(new StackArgument(register, Register.getRegisterType(register), false, Category.CALLEE_SAVED));
 		}
 		
-		
-		MIPSInstruction += "addi $sp, $sp, "+ (4*(stackFrame.stack.size() - stackFrame.beginOfFrame)); //TODO check indexing /* generate the instruction to move the stack pointer at the being of function */
+		MIPSInstruction += "addi $sp, $sp, "+ (4*(stackFrame.stack.size() - stackFrame.beginOfFrame)); //TODO check indexing /* generate the instruction to move the stack pointer at the being of function */	
 		return MIPSInstruction;
 	}
 	
@@ -124,13 +140,7 @@ public class StackFrame {
 		for(String register: usedRegisters){
 			pushOnStack(new StackArgument(register,  Register.getRegisterType(register), false, Category.CALLER_SAVED));
 		}
-//		for(int i = 0; i < 8; i++){
-//			pushOnStack(new StackArgument("$t"+i, RegisterType.INT, false, Category.CALLER_SAVED));
-//		}
-//		for(int i = 4; i < 12; i++){
-//			pushOnStack(new StackArgument("$f"+i, RegisterType.FLOAT, false, Category.CALLER_SAVED));
-//		}	
-		/* parameters for the next function */
+
 		List<String> localParameters = IRParser.getFuncParams(functionName, symbolTableManager);
 		for(String parameter : localParameters){
 			pushOnStack(new StackArgument(IRParser.getVariableName(parameter)+"_param", IRParser.getVariableType(parameter), true, Category.PARAMETERS)); 
@@ -139,6 +149,24 @@ public class StackFrame {
 		
 		return MIPSInstruction;
 	}
+	/**
+	 * arrayAddressAddress is the register that will contain the address of where the address of the array is going. 
+	 * @return
+	 */
+	public static String initializeArray(String array, String arrayAddressAddress, String register, int arraySize){
+		String MIPSInstruction = "";
+		boolean isInt = IRParser.getArrayType(array) == RegisterType.INT;
+		MIPSInstruction += "\naddi "+arrayAddressAddress+", $sp, "+findVariableLocation(IRParser.getVariableName(array));
+		MIPSInstruction += "\naddi "+arrayAddressAddress+", "+arrayAddressAddress+", 4";
+		MIPSInstruction += "\n"+generateStore(IRParser.getVariableName(array), arrayAddressAddress, true);
+		for(int i = 0; i < arraySize; i++){
+			MIPSInstruction += "\n"+((isInt)?"sw ":"swc1 ")+register+", 0("+arrayAddressAddress+")";
+			MIPSInstruction += "\naddi "+arrayAddressAddress+", "+arrayAddressAddress+", 4";
+		}
+		return MIPSInstruction;
+	}
+	
+	
 	/**
 	 * Tears down stack after the function that was called returns
 	 */
@@ -204,22 +232,7 @@ public class StackFrame {
 		throw new BadDeveloperException("Variable on stack does not contain a value.");
 	}
 	
-//	/**
-//	 * Given a variable name and register name, this function will generate the instruction to load the value from the stack and into the register
-//	 * @return
-//	 */
-//	public static String generateLoad(Register register){ /* NOTE: this is not an instance of a register from the register file */
-//		if(stackFrame == null){
-//			stackFrame = new StackFrame();
-//		}
-//		if(findVariable(register.getVariableName()).getContainsValue()){
-//			String instruction = ((register.getRegisterType() == RegisterType.INT)?"lw ":"lwc1 ")+register.getRegisterName()+", ";
-//			instruction += findVariableLocation(register.getVariableName())+"($sp)";
-//			return instruction;
-//		}
-//		throw new BadDeveloperException("Variable on stack does not contain a value.");
-//	}
-	
+
 	/**
 	 * Given a variable name and a register name, this function will generate the instruction to store the value in the register to the stack
 	 * @param variableName
@@ -235,16 +248,6 @@ public class StackFrame {
 		findVariable(variableName).setContainsValue(true);
 		return instruction;
 	}
-	
-//	public static String generateStore(Register register){ /* NOTE: this is not an instance of a register from the register file */
-//		if(stackFrame == null){
-//			stackFrame = new StackFrame();
-//		}
-//		String instruction = ((register.getRegisterType() == RegisterType.INT)?"sw ":"swc1 ")+register.getRegisterName()+", ";
-//		instruction += findVariableLocation(register.getVariableName())+"($sp)";
-//		findVariable(register.getVariableName()).setContainsValue(true);
-//		return instruction;
-//	}
 	
 	/**
 	 * Will be relative to the stack pointer and in BYTES. Will return 1 if not found.

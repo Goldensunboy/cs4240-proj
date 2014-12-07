@@ -66,10 +66,10 @@ public class RegisterAndVariableDetectionFactory {
 				funcmap.put(currFunc, new HashMap<String, Integer>());
 			} else {
 				String[] parts = s.split(", ");
-				if(parts.length == 4 && "assign".equals(parts[0])) {
+				if("array_assign".equals(parts[0])) {
 					HashMap<String, Integer> arrmap = funcmap.get(currFunc);
-					if(!arrmap.containsKey(parts[1])) {
-						arrmap.put(parts[1], Integer.parseInt(parts[2]));
+					if(!arrmap.containsKey(parts[4])) {
+						arrmap.put(parts[4], Integer.parseInt(parts[2]));
 					}
 				}
 			}

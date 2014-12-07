@@ -1,16 +1,9 @@
-int function myFunc() 
-begin
-	begin
-		var a : int := 10;
-		return a;
-	end;
-end;
-
 void main() 
 begin
 	begin
-		var x : int:=6;
-		x := myFunc();
+		type ArrayInt = array [100] of int;
+		var a : ArrayInt := 9;
+		a[0] := 5;
 	end;
 end;
 
