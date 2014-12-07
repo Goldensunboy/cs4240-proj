@@ -152,7 +152,7 @@ public class Instruction {
 				break;
 			case "mtc1":
 			case "cvt.s.w":
-				MIPSInstruction = IRInstruction;
+				MIPSInstruction = IRInstruction.replaceFirst(",", "");
 				break;
 			default:
 				MIPSInstruction += MIPSInstruction;
@@ -256,7 +256,7 @@ public class Instruction {
 				MIPSInstruction += "c.lt.s ";
 				break;
 			case "brgt":
-				MIPSInstruction += "c.negt.s ";
+				MIPSInstruction += "c.gt.s ";
 				break;
 			case "brgeq":
 				MIPSInstruction += "c.ge.s ";
@@ -265,7 +265,7 @@ public class Instruction {
 				MIPSInstruction += "c.le.s ";
 				break;
 			}
-			MIPSInstruction +=  " "+instructionParts[1]+ ", "+ instructionParts[2];
+			MIPSInstruction += instructionParts[1] + ", "+ instructionParts[2];
 			MIPSInstruction += "\nbc1t "+ instructionParts[3];
 			return MIPSInstruction;
 		}
