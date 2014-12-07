@@ -150,12 +150,13 @@ public class StackFrame {
 		return MIPSInstruction;
 	}
 	/**
-	 * arrayAddressAddress is the register that contains the address of where the address of the array is going. 
+	 * arrayAddressAddress is the register that will contain the address of where the address of the array is going. 
 	 * @return
 	 */
 	public static String initializeArray(String array, String arrayAddressAddress, String register, int arraySize){
 		String MIPSInstruction = "";
-		boolean isInt = RegisterFile.isIntRegister(array);
+		boolean isInt = IRParser.getArrayType(array) == RegisterType.INT;
+		MIPSInstruction += "\naddi "+arrayAddressAddress+", $sp, "+findVariableLocation(IRParser.getVariableName(array));
 		MIPSInstruction += "\naddi "+arrayAddressAddress+", "+arrayAddressAddress+", 4";
 		MIPSInstruction += "\n"+generateStore(IRParser.getVariableName(array), arrayAddressAddress, true);
 		for(int i = 0; i < arraySize; i++){
