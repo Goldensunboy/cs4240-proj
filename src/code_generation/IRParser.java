@@ -145,6 +145,8 @@ public class IRParser {
 	}
 	
 	public static int sizeOfArray(HashMap<String, HashMap<String, Integer>> functionArraySizes, String functionName, String variable){
+		if(functionName.equals("main"))
+			functionName = "FUNC_"+functionName;
 		return functionArraySizes.get(functionName).get(variable);
 	}
 	

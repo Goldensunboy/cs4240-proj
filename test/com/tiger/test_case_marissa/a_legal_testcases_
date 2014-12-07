@@ -1,19 +1,9 @@
-fixedpt function func(a:fixedpt)
-begin
-	begin
-		var b : fixedpt := 10;
-		b := Read_float();
-		a := a+b;
-		return a;
-	end;
-end;
-
 void main()
 begin
 	begin
+		type ArrayInt = array [100] of int;
+		var arr : ArrayInt := 10;
 		var x : int:=6;
-		var y : fixedpt:=999.2;
-		y:= func(x);
-		Print_float(y);
+		x := 5;
 	end;
 end;

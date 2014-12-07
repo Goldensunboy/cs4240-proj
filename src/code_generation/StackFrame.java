@@ -154,15 +154,13 @@ public class StackFrame {
 	 * @return
 	 */
 	public static String initializeArray(String array, String arrayAddressAddress, String register, int arraySize){
-		if(!RegisterFile.isIntRegister(array))
-			throw new InvalidInvocationException("Array must be loaded into register");
 		String MIPSInstruction = "";
 		boolean isInt = RegisterFile.isIntRegister(array);
-		MIPSInstruction += "addi "+arrayAddressAddress+", "+arrayAddressAddress+", 4";
-		MIPSInstruction += generateStore(array, arrayAddressAddress, true);
+		MIPSInstruction += "\naddi "+arrayAddressAddress+", "+arrayAddressAddress+", 4";
+		MIPSInstruction += "\n"+generateStore(IRParser.getVariableName(array), arrayAddressAddress, true);
 		for(int i = 0; i < arraySize; i++){
-			MIPSInstruction += ((isInt)?"sw ":"swc1 ")+register+", 0("+arrayAddressAddress+")";
-			MIPSInstruction += "addi "+arrayAddressAddress+", "+arrayAddressAddress+", 4";
+			MIPSInstruction += "\n"+((isInt)?"sw ":"swc1 ")+register+", 0("+arrayAddressAddress+")";
+			MIPSInstruction += "\naddi "+arrayAddressAddress+", "+arrayAddressAddress+", 4";
 		}
 		return MIPSInstruction;
 	}
