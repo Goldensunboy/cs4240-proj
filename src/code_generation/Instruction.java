@@ -164,26 +164,7 @@ public class Instruction {
 		if(instructionParts.length != 3){
 			throw new BadIRInstructionException("assign takes in two registers");
 		} 
-		String MIPSInstruction = "";
-		/* a :=b */
-		if(RegisterFile.isIntRegister(instructionParts[1])){
-			if(RegisterFile.isIntRegister(instructionParts[2])){
-				MIPSInstruction += "move "+instructionParts[1]+", "+instructionParts[2];
-			} else 
-				throw new InvalidTypeException("Can only assign ints to ints");
-				
-		} else if (RegisterFile.isFloatRegister(instructionParts[1])){
-			if(RegisterFile.isIntRegister(instructionParts[2])){
-				MIPSInstruction += "mtc1 "+instructionParts[2]+", "+instructionParts[1]+"\ncvt.s.w "+instructionParts[1]+", "+instructionParts[1];
-			} else if (RegisterFile.isFloatRegister(instructionParts[2])){
-				MIPSInstruction += "mov.s "+instructionParts[1]+", "+instructionParts[2];
-			} else
-				throw new InvalidTypeException("Can only assign ints and floats to floats");
-			
-		} else 
-			throw new InvalidTypeException("Types can only be int or float. Arrays have not been implmented yet");
-			
-		return MIPSInstruction;
+		return putIntoRegister(instructionParts[2],instructionParts[1],null);
 	}
 	
 	private static String binaryOperands(String[] instructionParts){

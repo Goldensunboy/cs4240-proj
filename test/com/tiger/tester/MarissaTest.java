@@ -6,6 +6,7 @@ import java.util.List;
 import code_generation.CodeGenerator;
 
 import com.analyzer.RegisterAndVariableDetectionFactory;
+import com.analyzer.basic_block_approach.cfg.CFGRegisterAllocator;
 import com.analyzer.naive_approach.NaiveRegisterAllocator;
 import com.antlr.generated.TigerParser;
 
