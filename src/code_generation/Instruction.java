@@ -426,8 +426,10 @@ public class Instruction {
 			throw new BadIRInstructionException("Calling store array with an invalid number of operands");
 		String MIPSInstruction = "";
 		boolean isInt = RegisterFile.isIntRegister(instructionParts[4]);
-		MIPSInstruction += "addi "+ instructionParts[1]+", "+ instructionParts[1]+", "+instructionParts[2];
-		MIPSInstruction += ((isInt)?"sw ":"swc1 ")+instructionParts[3]+", 0("+instructionParts[1]+")";
+		MIPSInstruction += "\nadd "+instructionParts[2]+", "+ instructionParts[2]+", "+instructionParts[2];
+		MIPSInstruction += "\nadd "+instructionParts[2]+", "+ instructionParts[2]+", "+instructionParts[2];
+		MIPSInstruction += "\nadd "+ instructionParts[1]+", "+ instructionParts[1]+", "+instructionParts[2];
+		MIPSInstruction += "\n"+((isInt)?"sw ":"swc1 ")+instructionParts[3]+", 0("+instructionParts[1]+")";
 		return MIPSInstruction;
 	}
 	
@@ -436,8 +438,10 @@ public class Instruction {
 			throw new BadIRInstructionException("Calling store array with an invalid number of operands");
 		String MIPSInstruction = "";
 		boolean isInt = RegisterFile.isIntRegister(instructionParts[4]);
-		MIPSInstruction += "addi "+ instructionParts[2]+", "+ instructionParts[2]+", "+instructionParts[3];
-		MIPSInstruction += ((isInt)?"sw ":"swc1 ")+instructionParts[1]+", 0("+instructionParts[2]+")";
+		MIPSInstruction += "\nadd "+instructionParts[3]+", "+ instructionParts[3]+", "+instructionParts[3];
+		MIPSInstruction += "\nadd "+instructionParts[3]+", "+ instructionParts[3]+", "+instructionParts[3];
+		MIPSInstruction += "\nadd "+ instructionParts[2]+", "+ instructionParts[2]+", "+instructionParts[3];
+		MIPSInstruction += "\n"+((isInt)?"sw ":"swc1 ")+instructionParts[1]+", 0("+instructionParts[2]+")";
 		return MIPSInstruction;
 	}
 	

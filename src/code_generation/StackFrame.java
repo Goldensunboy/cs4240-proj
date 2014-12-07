@@ -156,7 +156,7 @@ public class StackFrame {
 	public static String initializeArray(String array, String arrayAddressAddress, String register, int arraySize){
 		String MIPSInstruction = "";
 		boolean isInt = IRParser.getArrayType(array) == RegisterType.INT;
-		MIPSInstruction += "addi "+arrayAddressAddress+", $sp, "+findVariableLocation(IRParser.getVariableName(array));
+		MIPSInstruction += "\naddi "+arrayAddressAddress+", $sp, "+findVariableLocation(IRParser.getVariableName(array));
 		MIPSInstruction += "\naddi "+arrayAddressAddress+", "+arrayAddressAddress+", 4";
 		MIPSInstruction += "\n"+generateStore(IRParser.getVariableName(array), arrayAddressAddress, true);
 		for(int i = 0; i < arraySize; i++){
