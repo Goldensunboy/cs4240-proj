@@ -1,11 +1,10 @@
-int function func(a:int)
+fixedpt function func(a:fixedpt)
 begin
 	begin
-		var b : int := 10;
-		begin
-			b := a+b;
-		end;
-		return b;
+		var b : fixedpt := 10;
+		b := Read_float();
+		a := a+b;
+		return a;
 	end;
 end;
 
@@ -13,7 +12,7 @@ void main()
 begin
 	begin
 		var x : int:=6;
-		var y : fixedpt:=999;
+		var y : fixedpt:=999.2;
 		y:= func(x);
 		Print_float(y);
 	end;
