@@ -24,7 +24,7 @@ public enum Instructions {
 	CALL ("call", -1, 1, 2, 1),
 	CALLR ("callr", 1, 3, 6, 2),
 	ARRAY_STORE ("array_store", 1, 2, 4, -1), // NIY
-	ARRAY_LOAD ("array_load", -1, 2, 4, -1), // NIY
+	ARRAY_LOAD ("array_load", 1, 2, 4, -1), // NIY
 	ARRAY_ASSIGN ("array_assign", 1, 3, 4, -1),
 	LABEL("label", -1, -1, -1, 0),
 	FUNC("func", -1, -1, -1, 0),
