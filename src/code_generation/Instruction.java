@@ -87,7 +87,6 @@ public class Instruction {
 				break;
 			case "assign_array":
 				MIPSInstruction += assignArray(instructionParts);
-				
 				break;
 			case "add":
 			case "sub":
@@ -151,8 +150,10 @@ public class Instruction {
 				break;
 				
 			case "array_store":
+				MIPSInstruction += arrayStore(instructionParts);
 				break;
 			case "array_load":
+				MIPSInstruction += arrayLoad(instructionParts);
 				break;
 			case "mtc1":
 			case "cvt.s.w":
@@ -420,7 +421,28 @@ public class Instruction {
 		return MIPSInstruction;
 	}
 	
-	boolean isLibraryCall(String[] instructionParts){
+	private static String arrayStore(String[] instructionParts){
+		if(instructionParts.length != 5)
+			throw new BadIRInstructionException("Calling store array with an invalid number of operands");
+		String MIPSInstruction = "";
+		boolean isInt = RegisterFile.isIntRegister(instructionParts[4]);
+		MIPSInstruction += "addi "+ instructionParts[1]+", "+ instructionParts[1]+", "+instructionParts[2];
+		MIPSInstruction += ((isInt)?"sw ":"swc1 ")+instructionParts[3]+", 0("+instructionParts[1]+")";
+		return MIPSInstruction;
+	}
+	
+	private static String arrayLoad(String[] instructionParts){
+		if(instructionParts.length != 5)
+			throw new BadIRInstructionException("Calling store array with an invalid number of operands");
+		String MIPSInstruction = "";
+		boolean isInt = RegisterFile.isIntRegister(instructionParts[4]);
+		MIPSInstruction += "addi "+ instructionParts[2]+", "+ instructionParts[2]+", "+instructionParts[3];
+		MIPSInstruction += ((isInt)?"sw ":"swc1 ")+instructionParts[1]+", 0("+instructionParts[2]+")";
+		return MIPSInstruction;
+	}
+	
+	
+	private static boolean isLibraryCall(String[] instructionParts){
 		try {
 			callLibraryFunction(instructionParts);
 			return true;
@@ -429,7 +451,7 @@ public class Instruction {
 		}
 	}
 	
-	String callLibraryFunction(String[] instructionParts){
+	private static String callLibraryFunction(String[] instructionParts){
 		String MIPSInstruction = "";
 		if(instructionParts.length!=3)
 			throw new InvalidInvocationException();
