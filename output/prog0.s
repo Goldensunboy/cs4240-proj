@@ -21,8 +21,8 @@ sub.s $f31, $f29, $f30
 swc1 $f31, -20($sp)
 lwc1 $f29, -20($sp)
 li.s $f30, 0.001
-c.ne.s $f29, $f30
-bc1t LABEL_WHILE_BEGIN_0
+c.le.s $f29, $f30
+bc1f LABEL_WHILE_BEGIN_0
 lwc1 $f30, -28($sp)
 mul.s $f31, $f30, $f30
 swc1 $f31, -16($sp)
@@ -77,7 +77,9 @@ sw $t7, -16($sp)
 swc1 $f30, -12($sp)
 swc1 $f29, -8($sp)
 swc1 $f31, -4($sp)
+
 lwc1 $f12, -20($sp)
+
 swc1 $f12, 0($sp)
 jal FUNC_sqrt
 lw $t7, -16($sp)
@@ -85,12 +87,13 @@ lwc1 $f30, -12($sp)
 lwc1 $f29, -8($sp)
 lwc1 $f31, -4($sp)
 addi $sp, $sp, -20
-mtc1 $v0, $f0
-cvt.s.w $f0, $f0
 swc1 $f0, 0($sp)
+lwc1 $f29, 0($sp)
 li $v0, 2
+
 lwc1 $f12, 0($sp)
 syscall
+
 lw $fp, -4($sp)
 lw $ra, -8($sp)
 addi $sp, $sp, -12
