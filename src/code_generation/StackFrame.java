@@ -163,6 +163,7 @@ public class StackFrame {
 			MIPSInstruction += "\n"+((isInt)?"sw ":"swc1 ")+register+", 0("+arrayAddressAddress+")";
 			MIPSInstruction += "\naddi "+arrayAddressAddress+", "+arrayAddressAddress+", 4";
 		}
+		MIPSInstruction += "\n"+generateLoad(IRParser.getVariableName(array),arrayAddressAddress,true);
 		return MIPSInstruction;
 	}
 	
