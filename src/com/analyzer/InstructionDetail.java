@@ -51,6 +51,10 @@ public class InstructionDetail {
 		labelIndex = instruction.getLabelIndex();
 	}
 	
+	public String getArrayIndexForArrayLoad() {
+		return splitedInstruction[instruction.getArrayIndex()];
+	}
+	
 	public String getArrayName() {
 		return splitedInstruction[instruction.getArrayNameIndex()];
 	}

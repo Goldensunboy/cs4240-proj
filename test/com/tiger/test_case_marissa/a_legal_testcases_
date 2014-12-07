@@ -1,9 +1,11 @@
 void main()
 begin
 	begin
-		type ArrayInt = array [100] of int;
-		var arr : ArrayInt := 10;
-		var x : int:=6;
-		x := 5;
+		type ArrayF = array [100] of int;
+		var arr : ArrayF := 10;
+		var x : int := 88;
+		arr[4] := 999;
+	/*	x := arr[3];
+		Print_int(x);*/
 	end;
 end;
