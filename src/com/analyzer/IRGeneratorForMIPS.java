@@ -112,6 +112,7 @@ public class IRGeneratorForMIPS {
 					if(variablesRegisterMap.isEmpty()) {
 						Map<String, String> temporaryVariablesRegisterMap = registerFactory.createTemporaryRegisterMap(new String[]{instructionDetail.getLHS()}, null);
 						annotatedIR.add(getLoadStoreRegistersWithFilter(instructionDetail.getLHS(), temporaryVariablesRegisterMap, LOAD));
+						registerFactory.resetAvailableTemporaryRegisterIndex();
 					} else {						
 						annotatedIR.add(getLoadStoreRegistersWithFilter(instructionDetail.getLHS(), variablesRegisterMap, LOAD));
 					}
