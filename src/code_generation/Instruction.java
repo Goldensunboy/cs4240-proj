@@ -31,7 +31,7 @@ public class Instruction {
 	 * @return
 	 */
 	public static String decodeInstruction(String IRInstruction, SymbolTableManager symbolTableManager, 
-			HashMap<String, List<String>> functionVariables, HashMap<String, List<String>> functionRegisters){
+			HashMap<String, List<String>> functionVariables, HashMap<String, List<String>> functionRegisters,HashMap<String, HashMap<String, Integer>> functionArraySizes){
 		
 		
 		if(Instruction.instruction==null){
@@ -73,7 +73,7 @@ public class Instruction {
 			MIPSInstruction += ".ent "+instruction.currentFunctionName;
 			MIPSInstruction += "\n.globl "+instruction.currentFunctionName;
 			MIPSInstruction += "\n"+instruction.currentFunctionName +":";			
-			MIPSInstruction += "\n"+instruction.enterFunction(instruction.currentFunctionName, symbolTableManager,functionVariables,functionRegisters);
+			MIPSInstruction += "\n"+instruction.enterFunction(instruction.currentFunctionName, symbolTableManager,functionVariables,functionRegisters,functionArraySizes);
 			return MIPSInstruction;
 		}
 		
@@ -84,6 +84,9 @@ public class Instruction {
 		switch(instructionParts[0]){
 			case "assign":
 				MIPSInstruction += assign(instructionParts);
+				break;
+			case "assign_array":
+				MIPSInstruction += assignArray(instructionParts);
 				break;
 			case "add":
 			case "sub":
@@ -147,8 +150,10 @@ public class Instruction {
 				break;
 				
 			case "array_store":
+				MIPSInstruction += arrayStore(instructionParts);
 				break;
 			case "array_load":
+				MIPSInstruction += arrayLoad(instructionParts);
 				break;
 			case "mtc1":
 			case "cvt.s.w":
@@ -164,27 +169,17 @@ public class Instruction {
 		if(instructionParts.length != 3){
 			throw new BadIRInstructionException("assign takes in two registers");
 		} 
-		String MIPSInstruction = "";
-		/* a :=b */
-		if(RegisterFile.isIntRegister(instructionParts[1])){
-			if(RegisterFile.isIntRegister(instructionParts[2])){
-				MIPSInstruction += "move "+instructionParts[1]+", "+instructionParts[2];
-			} else 
-				throw new InvalidTypeException("Can only assign ints to ints");
-				
-		} else if (RegisterFile.isFloatRegister(instructionParts[1])){
-			if(RegisterFile.isIntRegister(instructionParts[2])){
-				MIPSInstruction += "mtc1 "+instructionParts[2]+", "+instructionParts[1]+"\ncvt.s.w "+instructionParts[1]+", "+instructionParts[1];
-			} else if (RegisterFile.isFloatRegister(instructionParts[2])){
-				MIPSInstruction += "mov.s "+instructionParts[1]+", "+instructionParts[2];
-			} else
-				throw new InvalidTypeException("Can only assign ints and floats to floats");
-			
-		} else 
-			throw new InvalidTypeException("Types can only be int or float. Arrays have not been implmented yet");
-			
-		return MIPSInstruction;
+		return putIntoRegister(instructionParts[2],instructionParts[1],null);
 	}
+	
+	private static String assignArray(String[] instructionParts){
+		if(instructionParts.length != 5){
+			throw new BadIRInstructionException("assign array takes in three operands");
+		} 
+		return StackFrame.initializeArray(instructionParts[4], instructionParts[1], instructionParts[3], Integer.parseInt(instructionParts[2]));
+	}
+	
+	
 	
 	private static String binaryOperands(String[] instructionParts){
 		if(instructionParts.length != 4) {
@@ -334,9 +329,9 @@ public class Instruction {
 	 * @return
 	 */
 	private String enterFunction(String functionName, SymbolTableManager symbolTableManager,HashMap<String, 
-			List<String>> functionVariables, HashMap<String, List<String>> functionRegisters){
+			List<String>> functionVariables, HashMap<String, List<String>> functionRegisters,HashMap<String, HashMap<String, Integer>> functionArraySizes){
 		String MIPSInstruction = "";
-		MIPSInstruction += StackFrame.enterCurrentFrame(functionName, symbolTableManager,functionVariables,functionRegisters);
+		MIPSInstruction += StackFrame.enterCurrentFrame(functionName, symbolTableManager,functionVariables,functionRegisters,functionArraySizes);
 		
 		List<String> usedRegisters = IRParser.getFuncCalleeRegisters(functionName,functionRegisters);
 		for(String register: usedRegisters){
@@ -426,7 +421,28 @@ public class Instruction {
 		return MIPSInstruction;
 	}
 	
-	boolean isLibraryCall(String[] instructionParts){
+	private static String arrayStore(String[] instructionParts){
+		if(instructionParts.length != 5)
+			throw new BadIRInstructionException("Calling store array with an invalid number of operands");
+		String MIPSInstruction = "";
+		boolean isInt = RegisterFile.isIntRegister(instructionParts[4]);
+		MIPSInstruction += "addi "+ instructionParts[1]+", "+ instructionParts[1]+", "+instructionParts[2];
+		MIPSInstruction += ((isInt)?"sw ":"swc1 ")+instructionParts[3]+", 0("+instructionParts[1]+")";
+		return MIPSInstruction;
+	}
+	
+	private static String arrayLoad(String[] instructionParts){
+		if(instructionParts.length != 5)
+			throw new BadIRInstructionException("Calling store array with an invalid number of operands");
+		String MIPSInstruction = "";
+		boolean isInt = RegisterFile.isIntRegister(instructionParts[4]);
+		MIPSInstruction += "addi "+ instructionParts[2]+", "+ instructionParts[2]+", "+instructionParts[3];
+		MIPSInstruction += ((isInt)?"sw ":"swc1 ")+instructionParts[1]+", 0("+instructionParts[2]+")";
+		return MIPSInstruction;
+	}
+	
+	
+	private static boolean isLibraryCall(String[] instructionParts){
 		try {
 			callLibraryFunction(instructionParts);
 			return true;
@@ -435,7 +451,7 @@ public class Instruction {
 		}
 	}
 	
-	String callLibraryFunction(String[] instructionParts){
+	private static String callLibraryFunction(String[] instructionParts){
 		String MIPSInstruction = "";
 		if(instructionParts.length!=3)
 			throw new InvalidInvocationException();

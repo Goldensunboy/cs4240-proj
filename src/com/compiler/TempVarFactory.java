@@ -20,6 +20,6 @@ public class TempVarFactory {
 		default:
 			type += "u";
 		}
-		return "$t" + nextVar++ + type;
+		return "$temp" + nextVar++ + type;
 	}
 }

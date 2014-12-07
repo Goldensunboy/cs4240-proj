@@ -25,18 +25,23 @@ public class CodeGenerator {
 	private SymbolTableManager symbolTableManager;
 	private HashMap<String, List<String>> functionVariables;
 	private HashMap<String, List<String>> functionRegisters;
+	private HashMap<String, HashMap<String, Integer>> functionArraySizes;
 	
-	public CodeGenerator(TigerParser parser,List<String> IRIR, HashMap<String, List<String>> functionVariables, HashMap<String, List<String>> functionRegisters, String fileOutputed){
-		this(parser, IRIR, functionVariables, functionRegisters);
+	public CodeGenerator(TigerParser parser,List<String> IRIR, HashMap<String, List<String>> functionVariables, HashMap<String, List<String>> functionRegisters,
+			HashMap<String, HashMap<String, Integer>> functionArraySize, String fileOutputed){
+		this(parser, IRIR, functionVariables, functionRegisters, functionArraySize);
 		this.fileOutputed = fileOutputed;
 	}
 	
-	public CodeGenerator(TigerParser parser,List<String> IRIR, HashMap<String, List<String>> functionVariables, HashMap<String, List<String>> functionRegisters){
+	public CodeGenerator(TigerParser parser,List<String> IRIR, HashMap<String, List<String>> functionVariables, HashMap<String, List<String>> functionRegisters, 
+			HashMap<String, HashMap<String, Integer>> functionArraySizes){
+		
 		this.parser = parser;
 		this.IRIR = IRIR;
 		this.functionVariables = functionVariables;
 		this.functionRegisters = functionRegisters;
 		this.symbolTableManager = parser.getSymbolTableManager();
+		this.functionArraySizes = functionArraySizes;
 		System.out.println(functionVariables);
 	}
 	
@@ -45,23 +50,7 @@ public class CodeGenerator {
 		setUpFile();
 		translateIRtoMIPS();		
 	}
-	
-	public void test() {
-		String functionName = "main";
-		FunctionAttribute functionAttribute = symbolTableManager.getFunctionAttribute(functionName);
-		System.out.println(functionAttribute);
-		
-		System.out.println("");
-//		System.out.println(functionAttribute.getReturnTypeName());
-//		System.out.println();
-//		System.out.println(functionAttribute.getAcrualtParameters());
-//		System.out.println();
-//		System.out.println(functionAttribute.getParameterTypes().get(0).getType().getSuffix());
-//		System.out.println(functionAttribute);
-//		System.out.println();
-		System.out.println(functionAttribute.getReturnTypeAttribute().getType());
-//		System.out.println(IRIR);
-	}
+
 	
 	/**
 	 * Set up file for mips before adding instructions
@@ -110,7 +99,7 @@ public class CodeGenerator {
 	}
 	
 	private String translateInstruction(String instruction, SymbolTableManager symbolTableManager){
-		return Instruction.decodeInstruction(instruction, symbolTableManager, functionVariables, functionRegisters);
+		return Instruction.decodeInstruction(instruction, symbolTableManager, functionVariables, functionRegisters, functionArraySizes);
 	}
 	
 	/**

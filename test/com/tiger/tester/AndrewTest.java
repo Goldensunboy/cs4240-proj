@@ -24,15 +24,24 @@ public class AndrewTest {
 			System.out.println(ir);
 		System.out.println("=================");
 		
-//		RegisterAllocator registerAllocator = new EBBRegisterAllocator(IRList);
-//		RegisterAllocator registerAllocator = new CFGRegisterAllocator(IRList);
-		RegisterAllocator registerAllocator = new NaiveRegisterAllocator(IRList);
+		RegisterAllocator registerAllocator;
+		switch(3) {
+		case 1:
+			registerAllocator = new EBBRegisterAllocator(IRList);
+			break;
+		case 2:
+			registerAllocator = new CFGRegisterAllocator(IRList);
+			break;
+		default:
+			registerAllocator = new NaiveRegisterAllocator(IRList);
+		}
 		List<String> IRIR = registerAllocator.getAnnotatedIRCode();
 		for(int i = 0; i<IRIR.size(); i++)
 			System.out.println(IRIR.get(i));
 		HashMap<String, List<String>> functionVariables = RegisterAndVariableDetectionFactory.getFunctionVariables(IRIR);
 		HashMap<String, List<String>> functionRegisters = RegisterAndVariableDetectionFactory.getFunctionRegisters(IRIR);
-		CodeGenerator codeGenerator = new CodeGenerator(parser, IRIR, functionVariables, functionRegisters, "output/prog" + idx++ + ".s");
+		HashMap<String, HashMap<String, Integer>> functionArraySizes = RegisterAndVariableDetectionFactory.getFunctionArraySizes(IRIR);
+		CodeGenerator codeGenerator = new CodeGenerator(parser, IRIR, functionVariables, functionRegisters, functionArraySizes, "output/prog" + idx++ + ".s");
 		codeGenerator.generateCode();
 	}
 }

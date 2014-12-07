@@ -6,6 +6,7 @@ import java.util.List;
 import code_generation.CodeGenerator;
 
 import com.analyzer.RegisterAndVariableDetectionFactory;
+import com.analyzer.basic_block_approach.cfg.CFGRegisterAllocator;
 import com.analyzer.naive_approach.NaiveRegisterAllocator;
 import com.antlr.generated.TigerParser;
 
@@ -24,7 +25,8 @@ public class MarissaTest {
 			System.out.println(IRIR.get(i));
 		HashMap<String, List<String>> functionVariables = RegisterAndVariableDetectionFactory.getFunctionVariables(IRIR);
 		HashMap<String, List<String>> functionRegisters = RegisterAndVariableDetectionFactory.getFunctionRegisters(IRIR);
-		CodeGenerator codeGenerator = new CodeGenerator(parser, IRIR, functionVariables, functionRegisters);
+		HashMap<String, HashMap<String, Integer>> functionArraySizes = RegisterAndVariableDetectionFactory.getFunctionArraySizes(IRIR);
+		CodeGenerator codeGenerator = new CodeGenerator(parser, IRIR, functionVariables, functionRegisters, functionArraySizes);
 		codeGenerator.generateCode();
 //		codeGenerator.test();
 		// Get IR code
