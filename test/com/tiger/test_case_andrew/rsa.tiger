@@ -22,6 +22,21 @@ begin
 	end;
 end;
 
+int function modPow(x : int, n : int, m : int)
+begin
+	begin
+		var t : int := 0;
+		if n = 0 then
+			return 1;
+		else
+			t := modPow(x, n - 1, m);
+			t := x * t;
+			t := mod(t, m);
+			return t;
+		endif;
+	end;
+end;
+
 int function gcd(a : int, b : int)
 begin
 	begin
@@ -36,28 +51,23 @@ begin
 			endif;
 			return t;
 		endif;
+		return 0;
 	end;
 end;
 
 int function modularInverse(x : int, m : int)
 begin
 	begin
-		var a, b, u, q : int := 0;
-		b := m;
-		u := 1;
-		while x > 0 do
-			q := b / x;
-			x := mod(b, x);
-			a := u;
-			b := x;
-			u := a - q * u;
+		var n, t : int := 1;
+		while n < 1000 do
+			t := mod(x * n, m);
+			if t = 1 then
+				return n;
+			else
+				n := n + 1;
+			endif;
 		enddo;
-		if b = 1 then
-			a := mod(a, m);
-			return a;
-		else
-			return 0;
-		endif;
+		return 0;
 	end;
 end;
 
@@ -78,7 +88,7 @@ begin
 		if e = 1 then
 			return 0;
 		else
-			if isPrivKey <> 0 then
+			if isPrivKey = 0 then
 				return e;
 			endif;
 		endif;
@@ -90,7 +100,7 @@ end;
 void main()
 begin
 	begin
-		var pub1, pub2, priv1, priv2, n1, n2 : int := 0;
+		var pub1, pub2, priv1, priv2, n1, n2, message, message2, ciphertext : int := 0;
 		var p1 : int := 3;
 		var q1 : int := 11;
 		var p2 : int := 5;
@@ -104,6 +114,16 @@ begin
 		pub2  := genkey(p2, q2, 0);
 		priv2 := genkey(p2, q2, 1);
 		
+		message := 45;
+		ciphertext := modPow(message, pub2, n2);
+		message2 := modPow(ciphertext, priv2, n2);
 		
+		Print_int(message2);
+		
+		message := 61;
+		ciphertext := modPow(message, pub1, n1);
+		message2 := modPow(ciphertext, priv1, n1);
+		
+		Print_int(message2);
 	end;
 end;

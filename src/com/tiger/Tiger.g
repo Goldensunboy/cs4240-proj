@@ -755,7 +755,7 @@ stat[String functionName, String endLoop] returns [Type statReturnType]
     KEY_ENDIF
     {
       goToEnclosingScope();
-      if(ifReturnType.equals(elseReturnType) ){
+      if(ifReturnType.getAliasName().equals(elseReturnType.getAliasName()) ){
         symbolTableManager.setCurrentScopeReturnType(ifReturnType);
       } else {
         symbolTableManager.setCurrentScopeReturnType(previousReturnType);

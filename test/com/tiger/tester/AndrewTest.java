@@ -24,9 +24,17 @@ public class AndrewTest {
 			System.out.println(ir);
 		System.out.println("=================");
 		
-//		RegisterAllocator registerAllocator = new EBBRegisterAllocator(IRList);
-//		RegisterAllocator registerAllocator = new CFGRegisterAllocator(IRList);
-		RegisterAllocator registerAllocator = new NaiveRegisterAllocator(IRList);
+		RegisterAllocator registerAllocator;
+		switch(3) {
+		case 1:
+			registerAllocator = new EBBRegisterAllocator(IRList);
+			break;
+		case 2:
+			registerAllocator = new CFGRegisterAllocator(IRList);
+			break;
+		default:
+			registerAllocator = new NaiveRegisterAllocator(IRList);
+		}
 		List<String> IRIR = registerAllocator.getAnnotatedIRCode();
 		for(int i = 0; i<IRIR.size(); i++)
 			System.out.println(IRIR.get(i));
