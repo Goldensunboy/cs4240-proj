@@ -36,11 +36,16 @@ public class InstructionDetail {
 				for (int i=1; i< splitedInstruction.length; i++) {
 					originalInstruction += ", " + splitedInstruction[i];
 				}
-				originalInstruction += ", " + splitedInstruction[1];
 			}
 		}
 		
 		this.instruction = Instructions.valueOf(instructionName.toUpperCase());
+		
+		if(isAnyOfInstructions(ARRAY_ASSIGN, ARRAY_STORE)) {
+			originalInstruction += ", " + splitedInstruction[1];
+		} else if(isAnyOfInstructions(ARRAY_LOAD)) {
+			originalInstruction += ", " + splitedInstruction[2];
+		}
 		lhsIndex = instruction.getLhsIndex();
 		rhsStartIndex = instruction.getRhsStartIndex();
 		rhsEndIndex = instruction.getRhsEndIndex();

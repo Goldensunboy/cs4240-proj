@@ -66,11 +66,11 @@ public class IRGeneratorForMIPS {
 			Map<String, String> temporaryVariablesRegisterMap, Map<String, String> promotedRegisters) {
 		String[] splitedInstruction = instructionDetail.getOriginalInstruction().split(", ");
 		
-		int arrayNameOffset =  0;
+		int makeRoomForArrayName =  0;
 		if(instructionDetail.isAnyOfInstructions(ARRAY_ASSIGN, ARRAY_LOAD, ARRAY_STORE)) {
-			arrayNameOffset = 1;
+			makeRoomForArrayName = 1;
 		}
-		for(int i=0; i<splitedInstruction.length - arrayNameOffset; i++) {
+		for(int i=0; i<splitedInstruction.length - makeRoomForArrayName; i++) {
 			String variableName = splitedInstruction[i];
 			String replacement = promotedRegisters.get(variableName);
 			if(replacement == null) {				
