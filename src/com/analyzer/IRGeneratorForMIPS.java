@@ -109,7 +109,12 @@ public class IRGeneratorForMIPS {
 				annotatedIR.addAll(getLoadStoreRegisters(variablesRegisterMap, STORE));
 				annotatedIR.add(instructionDetail.getOriginalInstruction());
 				if(instructionDetail.isAnyOfInstructions(CALLR)) {
-					annotatedIR.add(getLoadStoreRegistersWithFilter(instructionDetail.getLHS(), variablesRegisterMap, LOAD));
+					if(variablesRegisterMap.isEmpty()) {
+						Map<String, String> temporaryVariablesRegisterMap = registerFactory.createTemporaryRegisterMap(new String[]{instructionDetail.getLHS()}, null);
+						annotatedIR.add(getLoadStoreRegistersWithFilter(instructionDetail.getLHS(), temporaryVariablesRegisterMap, LOAD));
+					} else {						
+						annotatedIR.add(getLoadStoreRegistersWithFilter(instructionDetail.getLHS(), variablesRegisterMap, LOAD));
+					}
 				}
 				
 			} else if(generateLoad && instructionDetail.isAnyOfInstructions(LABEL, FUNC)){
