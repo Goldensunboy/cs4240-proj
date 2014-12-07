@@ -9,9 +9,9 @@ public class InstructionDetail {
 	private String[] splitedInstruction;
 	private Instructions instruction;
 	private String originalInstruction;	
-	private static Instructions[] branchGotoInstructions = {BREQ, BRGEQ, BRGT, BRLEQ, BRLT, BRNEQ, GOTO};
+	private static Instructions[] branchInstructions = {BREQ, BRGEQ, BRGT, BRLEQ, BRLT, BRNEQ};
 	private static Instructions[] dontNeedStoreAfter = {BREQ, BRGEQ, BRGT, BRLEQ, BRLT, BRNEQ, GOTO, CALL, CALLR, RETURN};
-	private static Instructions[] controlFlowInstructions = {GOTO, BREQ, BRNEQ, BRLT, BRGT, BRGEQ, BRLEQ, FUNC, LABEL};
+	private static Instructions[] branchAndGotoInstructions = {GOTO, BREQ, BRNEQ, BRLT, BRGT, BRGEQ, BRLEQ};
 	private static Instructions[] instructionsWithLabel = {GOTO, BREQ, BRNEQ, BRLT, BRGT, BRGEQ, BRLEQ, CALL, CALLR, LABEL, FUNC};
 	private int lhsIndex, rhsStartIndex, rhsEndIndex, labelIndex;
 		
@@ -34,18 +34,30 @@ public class InstructionDetail {
 		labelIndex = instruction.getLabelIndex();
 	}
 	
+	public boolean isBranchOrGoto() {
+		return isAnyOfInstructions(branchAndGotoInstructions);
+	}
+	
+	public boolean isLabelOrFunc() {
+		return isAnyOfInstructions(LABEL, FUNC);
+	}
+	
+	public boolean isFunction() {
+		return isAnyOfInstructions(FUNC);
+	}
+	
+	public boolean isGoto() {
+		return isAnyOfInstructions(GOTO);
+	}
+	
 	public boolean isBranch() {
-		return isAnyOfInstructions(branchGotoInstructions);
+		return isAnyOfInstructions(branchInstructions);
 	}
 	
 	public boolean doesNeedStoreAfter() {
 		return isAnyOfInstructions(dontNeedStoreAfter);
 	}
 
-	public boolean letsFallThrough() {
-		return !isAnyOfInstructions(GOTO);
-	}
-	
 	public boolean isReturn() {
 		return isAnyOfInstructions(RETURN);
 	}
@@ -56,10 +68,6 @@ public class InstructionDetail {
 	
 	public boolean hasLabel() {
 		return isAnyOfInstructions(instructionsWithLabel);
-	}
-	
-	public boolean isControlFlow() {
-		return isAnyOfInstructions(controlFlowInstructions);
 	}
 	
 	public String getOriginalInstruction() {

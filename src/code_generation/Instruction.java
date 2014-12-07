@@ -152,7 +152,7 @@ public class Instruction {
 				break;
 			case "mtc1":
 			case "cvt.s.w":
-				MIPSInstruction = IRInstruction.replaceFirst(",","");
+				MIPSInstruction += IRInstruction.replaceFirst(",","");
 				break;
 			default:
 				MIPSInstruction += MIPSInstruction;
