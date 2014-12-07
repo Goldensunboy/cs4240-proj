@@ -1,100 +1,98 @@
 .data
 .text
-.ent FUNC_fib
-.globl FUNC_fib
-FUNC_fib:
-addi $sp, $sp, 32
-sw $fp, -24($sp)
-sw $ra, -28($sp)
-li $t7, 0
-move $t8, $t7
-sw $t8, -20($sp)
-li $t7, 0
-move $t8, $t7
-sw $t8, -16($sp)
-li $t8, 0
-lw $t7, -12($sp)
-bne  $t7, $t8, LABEL_ELSE_BEGIN_0
-li $v0, 0
-lw $fp, -24($sp)
-lw $ra, -28($sp)
-addi $sp, $sp, -32
+.ent FUNC_sqrt
+.globl FUNC_sqrt
+FUNC_sqrt:
+addi $sp, $sp, 40
+sw $fp, -32($sp)
+sw $ra, -36($sp)
+li $t7, 1
+mtc1 $t7, $f30
+cvt.s.w $f30, $f30
+mov.s $f29, $f30
+swc1 $f29, -28($sp)
+LABEL_WHILE_TOP_0:
+lwc1 $f30, -28($sp)
+mul.s $f31, $f30, $f30
+swc1 $f31, -24($sp)
+lwc1 $f30, -40($sp)
+lwc1 $f29, -24($sp)
+sub.s $f31, $f29, $f30
+swc1 $f31, -20($sp)
+lwc1 $f30, -20($sp)
+li.s $f29, 0.001
+c.lt.s $f29, $f30
+bc1t LABEL_WHILE_BEGIN_0
+lwc1 $f30, -28($sp)
+mul.s $f31, $f30, $f30
+swc1 $f31, -16($sp)
+lwc1 $f29, -40($sp)
+lwc1 $f30, -16($sp)
+sub.s $f31, $f29, $f30
+swc1 $f31, -12($sp)
+li.s $f29, 0.001
+lwc1 $f30, -12($sp)
+c.ge.s $f29, $f30
+bc1t LABEL_WHILE_END_0
+LABEL_WHILE_BEGIN_0:
+lwc1 $f29, -40($sp)
+lwc1 $f30, -28($sp)
+div.s $f31, $f29, $f30
+swc1 $f31, -8($sp)
+lwc1 $f30, -8($sp)
+lwc1 $f29, -28($sp)
+add.s $f31, $f29, $f30
+swc1 $f31, -4($sp)
+li $t7, 2
+lwc1 $f29, -4($sp)
+mtc1 $t7, $f31
+cvt.s.w $f31, $f31
+div.s $f30, $f29, $f31
+swc1 $f30, 0($sp)
+lwc1 $f29, 0($sp)
+mov.s $f30, $f29
+swc1 $f30, -28($sp)
+j LABEL_WHILE_TOP_0
+LABEL_WHILE_END_0:
+lwc1 $f0, -28($sp)
+lw $fp, -32($sp)
+lw $ra, -36($sp)
+addi $sp, $sp, -40
 jr $ra
-j LABEL_ELSE_END_0
-LABEL_ELSE_BEGIN_0:
-li $t8, 1
-lw $t7, -12($sp)
-bne  $t7, $t8, LABEL_ELSE_BEGIN_1
-li $v0, 0
-lw $fp, -24($sp)
-lw $ra, -28($sp)
-addi $sp, $sp, -32
-jr $ra
-j LABEL_ELSE_END_1
-LABEL_ELSE_BEGIN_1:
-li $t8, 1
-lw $t7, -12($sp)
-sub $t9, $t7, $t8
-sw $t9, -8($sp)
-addi $sp, $sp, 16
-sw $t7, -12($sp)
-sw $t8, -8($sp)
-sw $t9, -4($sp)
-lw $a0, -24($sp)
-sw $a0, 0($sp)
-jal FUNC_fib
-lw $t7, -12($sp)
-lw $t8, -8($sp)
-lw $t9, -4($sp)
-addi $sp, $sp, -16
-sw $v0, -16($sp)
-li $t8, 2
-lw $t7, -12($sp)
-sub $t9, $t7, $t8
-sw $t9, -4($sp)
-addi $sp, $sp, 16
-sw $t7, -12($sp)
-sw $t8, -8($sp)
-sw $t9, -4($sp)
-lw $a0, -20($sp)
-sw $a0, 0($sp)
-jal FUNC_fib
-lw $t7, -12($sp)
-lw $t8, -8($sp)
-lw $t9, -4($sp)
-addi $sp, $sp, -16
-sw $v0, -20($sp)
-lw $t8, -20($sp)
-lw $t7, -16($sp)
-add $t9, $t7, $t8
-sw $t9, 0($sp)
-lw $v0, 0($sp)
-lw $fp, -24($sp)
-lw $ra, -28($sp)
-addi $sp, $sp, -32
-jr $ra
-LABEL_ELSE_END_1:
-LABEL_ELSE_END_0:
 
-.end FUNC_fib
+.end FUNC_sqrt
 .ent main
 .globl main
 main:
 addi $sp, $sp, 12
 sw $fp, -4($sp)
 sw $ra, -8($sp)
-li $t7, 0
-move $t8, $t7
-sw $t8, 0($sp)
-addi $sp, $sp, 16
-sw $t7, -12($sp)
-sw $t8, -8($sp)
-sw $t9, -4($sp)
-li $a0, 6
-sw $a0, 0($sp)
-jal FUNC_fib
-lw $t7, -12($sp)
-lw $t8, -8($sp)
-lw $t9, -4($sp)
-addi $sp, $sp, -16
-sw $v0, 0($sp)
+li $t7, 120
+mtc1 $t7, $f30
+cvt.s.w $f30, $f30
+mov.s $f29, $f30
+swc1 $f29, 0($sp)
+addi $sp, $sp, 20
+sw $t7, -16($sp)
+swc1 $f30, -12($sp)
+swc1 $f29, -8($sp)
+swc1 $f31, -4($sp)
+lwc1 $f12, -20($sp)
+swc1 $f12, 0($sp)
+jal FUNC_sqrt
+lw $t7, -16($sp)
+lwc1 $f30, -12($sp)
+lwc1 $f29, -8($sp)
+lwc1 $f31, -4($sp)
+addi $sp, $sp, -20
+mtc1 $v0, $f0
+cvt.s.w $f0, $f0
+swc1 $f0, 0($sp)
+li $v0, 2
+lwc1 $f12, 0($sp)
+syscall
+lw $fp, -4($sp)
+lw $ra, -8($sp)
+addi $sp, $sp, -12
+jr $ra
+
