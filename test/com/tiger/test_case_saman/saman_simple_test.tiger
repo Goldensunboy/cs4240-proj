@@ -1,10 +1,10 @@
 void main() 
 begin
 	begin
-		type ArrayInt = array [100] of fixedpt;
+		type ArrayInt = array [100] of int;
 		var a : ArrayInt := 9;
-		var b : int := 3;
-		b := 4;
+		var b : int :=1;
+		b:=3;
 	end;
 end;
 

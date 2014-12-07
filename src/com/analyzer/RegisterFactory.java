@@ -7,8 +7,6 @@ import static code_generation.RegisterFile.AVAILABLE_TEMPORARY_INT_REGISTERS;
 import static com.analyzer.InstructionUtility.getConversion;
 import static com.analyzer.InstructionUtility.isFloatIsh;
 import static com.analyzer.InstructionUtility.isIntIsh;
-import static com.analyzer.InstructionUtility.isIntLiteral;
-import static com.analyzer.InstructionUtility.isIntRegister;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -195,10 +193,10 @@ public class RegisterFactory {
 				if(registerMap.containsKey(variableName)) {
 					continue;
 				}
-				if(isIntLiteral(variableName) || isIntRegister(variableName)) { //TODO change them to isIntish(varName)
-					temporaryRegisterMap.put(variableName, getAvailableTemporaryRegister(IS_INT));
-				} else {
+				if(isFloatIsh(variableName)) { //TODO change them to isIntish(varName)
 					temporaryRegisterMap.put(variableName, getAvailableTemporaryRegister(IS_FLOAT));
+				} else {
+					temporaryRegisterMap.put(variableName, getAvailableTemporaryRegister(IS_INT));
 				}
 			}
 		}
@@ -208,10 +206,10 @@ public class RegisterFactory {
 				if(registerMap.containsKey(variableName)) {
 					continue;
 				}
-				if(isIntLiteral(variableName) || isIntRegister(variableName)) {
-					temporaryRegisterMap.put(variableName, getAvailableTemporaryRegister(IS_INT));
-				} else {
+				if(isFloatIsh(variableName)) {
 					temporaryRegisterMap.put(variableName, getAvailableTemporaryRegister(IS_FLOAT));
+				} else {
+					temporaryRegisterMap.put(variableName, getAvailableTemporaryRegister(IS_INT));
 				}
 			}
 		}
