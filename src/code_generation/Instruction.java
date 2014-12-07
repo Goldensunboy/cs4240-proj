@@ -31,7 +31,7 @@ public class Instruction {
 	 * @return
 	 */
 	public static String decodeInstruction(String IRInstruction, SymbolTableManager symbolTableManager, 
-			HashMap<String, List<String>> functionVariables, HashMap<String, List<String>> functionRegisters){
+			HashMap<String, List<String>> functionVariables, HashMap<String, List<String>> functionRegisters,HashMap<String, HashMap<String, Integer>> functionArraySizes){
 		
 		
 		if(Instruction.instruction==null){
@@ -73,7 +73,7 @@ public class Instruction {
 			MIPSInstruction += ".ent "+instruction.currentFunctionName;
 			MIPSInstruction += "\n.globl "+instruction.currentFunctionName;
 			MIPSInstruction += "\n"+instruction.currentFunctionName +":";			
-			MIPSInstruction += "\n"+instruction.enterFunction(instruction.currentFunctionName, symbolTableManager,functionVariables,functionRegisters);
+			MIPSInstruction += "\n"+instruction.enterFunction(instruction.currentFunctionName, symbolTableManager,functionVariables,functionRegisters,functionArraySizes);
 			return MIPSInstruction;
 		}
 		
@@ -84,6 +84,10 @@ public class Instruction {
 		switch(instructionParts[0]){
 			case "assign":
 				MIPSInstruction += assign(instructionParts);
+				break;
+			case "assign_array":
+				MIPSInstruction += assignArray(instructionParts);
+				
 				break;
 			case "add":
 			case "sub":
@@ -166,6 +170,15 @@ public class Instruction {
 		} 
 		return putIntoRegister(instructionParts[2],instructionParts[1],null);
 	}
+	
+	private static String assignArray(String[] instructionParts){
+		if(instructionParts.length != 5){
+			throw new BadIRInstructionException("assign array takes in three operands");
+		} 
+		return StackFrame.initializeArray(instructionParts[4], instructionParts[1], instructionParts[3], Integer.parseInt(instructionParts[2]));
+	}
+	
+	
 	
 	private static String binaryOperands(String[] instructionParts){
 		if(instructionParts.length != 4) {
@@ -315,9 +328,9 @@ public class Instruction {
 	 * @return
 	 */
 	private String enterFunction(String functionName, SymbolTableManager symbolTableManager,HashMap<String, 
-			List<String>> functionVariables, HashMap<String, List<String>> functionRegisters){
+			List<String>> functionVariables, HashMap<String, List<String>> functionRegisters,HashMap<String, HashMap<String, Integer>> functionArraySizes){
 		String MIPSInstruction = "";
-		MIPSInstruction += StackFrame.enterCurrentFrame(functionName, symbolTableManager,functionVariables,functionRegisters);
+		MIPSInstruction += StackFrame.enterCurrentFrame(functionName, symbolTableManager,functionVariables,functionRegisters,functionArraySizes);
 		
 		List<String> usedRegisters = IRParser.getFuncCalleeRegisters(functionName,functionRegisters);
 		for(String register: usedRegisters){

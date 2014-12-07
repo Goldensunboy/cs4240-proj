@@ -25,7 +25,8 @@ public class MarissaTest {
 			System.out.println(IRIR.get(i));
 		HashMap<String, List<String>> functionVariables = RegisterAndVariableDetectionFactory.getFunctionVariables(IRIR);
 		HashMap<String, List<String>> functionRegisters = RegisterAndVariableDetectionFactory.getFunctionRegisters(IRIR);
-		CodeGenerator codeGenerator = new CodeGenerator(parser, IRIR, functionVariables, functionRegisters);
+		HashMap<String, HashMap<String, Integer>> functionArraySizes = RegisterAndVariableDetectionFactory.getFunctionArraySizes(IRIR);
+		CodeGenerator codeGenerator = new CodeGenerator(parser, IRIR, functionVariables, functionRegisters, functionArraySizes);
 		codeGenerator.generateCode();
 //		codeGenerator.test();
 		// Get IR code

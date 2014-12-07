@@ -9,7 +9,7 @@ public class Register {
 
 	public enum RegisterType {UNINITIALIZED, INT, FLOAT};
 
-	public enum Category {UNINITIALIZED, CALLER_SAVED, CALLEE_SAVED, RETURN_ADDRESS, FRAME_POINTER, PARAMETERS, LOCAL_VARIABLES, RETURN_VALUE, STACK_POINTER}; 
+	public enum Category {UNINITIALIZED, CALLER_SAVED, CALLEE_SAVED, RETURN_ADDRESS, FRAME_POINTER, PARAMETERS, LOCAL_VARIABLES, RETURN_VALUE, STACK_POINTER, LOCAL_VARIABLES_ARRAY}; 
 	
 	private String registerName;
 	private String registerNumber; // Yes, this is a string because float register "numbers" contain an f
