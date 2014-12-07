@@ -12,5 +12,6 @@ begin
 			prev1 := temp;
 			n := n - 1;
 		enddo;
+		Print_int(fib);
 	end;
 end;

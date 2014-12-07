@@ -12,5 +12,6 @@ begin
 			product := product * i;
 			i := i + 1;
 		enddo;
+		Print_int(product);
 	end;
 end;
