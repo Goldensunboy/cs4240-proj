@@ -85,7 +85,7 @@ public class Instruction {
 			case "assign":
 				MIPSInstruction += assign(instructionParts);
 				break;
-			case "assign_array":
+			case "array_assign":
 				MIPSInstruction += assignArray(instructionParts);
 				break;
 			case "add":
