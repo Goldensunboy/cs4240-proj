@@ -100,6 +100,9 @@ public class TypeAttribute implements Attribute{
 	}
 	
 	private boolean hasProperDimension() {
+		if(receivedArrayTypeSpecific == null) {
+			return false;
+		}
 		return expectedArrayTypeSpecific.getDim1() == 
 				receivedArrayTypeSpecific.getDim1() && 
 				expectedArrayTypeSpecific.getDim2() == 
@@ -164,7 +167,7 @@ public class TypeAttribute implements Attribute{
 		return assignability(secondTypeAttribute);
 	}
 	
-	public boolean isProperParameter(TypeAttribute secondTypeAttribute) {
+public boolean isProperParameter(TypeAttribute secondTypeAttribute) {
 		
 		if(secondTypeAttribute == null) {
 			return false;
@@ -179,6 +182,23 @@ public class TypeAttribute implements Attribute{
 				
 		return assignableBy(secondTypeAttribute);
 	}
+
+@Deprecated
+public boolean isProperParameter_MaybeWrong(TypeAttribute secondTypeAttribute) {
+	
+	if(secondTypeAttribute == null) {
+		return false;
+	}
+	
+	if(isArray && secondTypeAttribute.isArray() && !hasProperDimension() && !secondTypeAttribute.hasProperDimension()) {
+		if(getExpectedArrayTypeSpecific().getDim1() == secondTypeAttribute.getExpectedArrayTypeSpecific().getDim1()  && 
+				getExpectedArrayTypeSpecific().getDim2() == secondTypeAttribute.getExpectedArrayTypeSpecific().getDim2() ){
+			return true;
+		}
+	}
+			
+	return assignableBy(secondTypeAttribute);
+}
 
 	/**
 	 * Used for determining assignable from functions

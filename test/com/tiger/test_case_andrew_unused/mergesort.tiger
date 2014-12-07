@@ -1,0 +1,61 @@
+type ArrayInt = array [10] of int;
+
+void function mergesort(arr : ArrayInt, len : int)
+begin
+	begin
+		var left, right : ArrayInt := 0;
+		var left_len, right_len, left_idx, right_idx : int := 0;
+		
+		/* Base case, return if len == 1 */
+		if len > 1 then
+		
+			/* Copy contents into left and right arrays */
+			left_len := len / 2;
+			right_len := len - left_len;
+			for i := 0 to left_len - 1 do
+				left[i] := arr[i];
+			enddo;
+			for i := 0 to right_len - 1 do
+				right[i] := arr[i + left_len];
+			enddo;
+			
+			/* Sort left and right */
+			mergesort(left, left_len);
+			mergesort(right, right_len);
+			
+			/* Merge left and right */
+			while left_idx < left_len | right_idx < right_len do
+				if left_idx = left_len | right[right_idx] < left[left_idx] then
+					arr[left_idx + right_idx] := right[right_idx];
+					right_idx := right_idx + 1;
+				else
+					arr[left_idx + right_idx] := left[left_idx];
+					left_idx := left_idx + 1;
+				endif;
+			enddo;
+		endif;
+	end;
+end;
+
+void main()
+begin
+	begin
+		var nums : ArrayInt := 0;
+		nums[0] := 5;
+		nums[1] := 4;
+		nums[2] := 6;
+		nums[3] := 3;
+		nums[4] := 7;
+		nums[5] := 2;
+		nums[6] := 8;
+		nums[7] := 1;
+		nums[8] := 9;
+		nums[9] := 0;
+		
+		mergesort(nums, 10);
+		
+		for i := 0 to 9 do
+			Print_int(arr[i]);
+		enddo;
+	end;
+end;

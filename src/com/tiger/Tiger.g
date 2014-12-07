@@ -1554,6 +1554,18 @@ binOp4[String startLabel, String endLabel] returns [String exp, TypeAttribute ty
         exceptionHandler.handleException(s5, customMessage, expected, actual, InvalidInvocationException.class);
       }
       for(int i = 0; i < params.size(); ++i) {
+        if($s5.b) {
+          System.out.println("Params:");
+          for(TypeAttribute t : params) {
+            System.out.println("\t" + t);
+          }
+          System.out.println("AttrList:");
+          for(TypeAttribute t : attrList) {
+            System.out.println("\t" + t);
+          }
+        }
+	      if($s5.b) System.out.println("thingy: " + attrList);
+//	      if(params.get(i).getType() == Type.ARRAY) params.get(i).setReceivedArrayTypeSpecific(params.get(i).getExpectedArrayTypeSpecific());
         if(!params.get(i).isProperParameter(attrList.get(params.size() - i - 1))) {
           String expected = params.size() == 0 ? "[void]" : FunctionAttribute.getParamListStringRepresentationFactoryInTigerCodeForPhase2ErrorReporting(params);
           List<TypeAttribute> foundList = new ArrayList<TypeAttribute>();
@@ -1863,7 +1875,7 @@ exprList[List<TypeAttribute> attrList] returns [String exp]:
   }
 ;
 
-funcExprList[List<TypeAttribute> attrList] returns [String exp]:
+funcExprList[List<TypeAttribute> attrList] returns [String exp, boolean b]:
   (
     s1=funcExpr[IdType.VARIABLE_NAME] s2=funcExprListTail[attrList]
   )?
@@ -1888,7 +1900,9 @@ funcExprList[List<TypeAttribute> attrList] returns [String exp]:
           exceptionHandler.handleException(s1, customMessage, null, 
                                           null,InvalidTypeException.class);
       }
+      $b = "nums".equals($s1.exp);
       attrList.add($s1.typeAttribute);
+      if($b) System.out.println("blah: " +attrList);
     }
   }
 ;
