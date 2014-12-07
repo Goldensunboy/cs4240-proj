@@ -196,6 +196,9 @@ public class Instruction {
 		if(operation.equals("mult"))
 			operation = "mul";
 		InstructionType type = determineInstructionType(registers);
+		if("mult".equals(operation)) {
+			operation = "mul";
+		}
 		if(type == InstructionType.FLOAT)
 			operation +=".s";
 		return operation+" "+instructionParts[3]+", "+instructionParts[1]+", "+instructionParts[2];

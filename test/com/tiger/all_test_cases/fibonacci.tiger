@@ -3,7 +3,7 @@ begin
 	begin
 		var prev1, prev2, fib, temp, n : int := 0;
 		prev2 := 1;
-		n := 5;
+		n := 6;
 		fib := prev1 + prev2;
 		while n > 0 do
 			temp := fib;
