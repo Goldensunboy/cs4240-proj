@@ -68,7 +68,7 @@ public class StackFrame {
 		pushOnStack(new StackArgument("$fp", RegisterType.INT, false, Category.FRAME_POINTER));
 		
 		/* local variables */
-		List<String> localVariables = IRParser.getFuncVariables(functionName,functionVariables,symbolTableManager);
+		List<String> localVariables = IRParser.getFuncVariables(functionName,functionVariables);
 		for(String var : localVariables){
 			pushOnStack(new StackArgument(IRParser.getVariableName(var), IRParser.getVariableType(var), false, Category.LOCAL_VARIABLES));
 		}

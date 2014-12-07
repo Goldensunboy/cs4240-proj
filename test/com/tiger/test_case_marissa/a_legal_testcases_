@@ -2,7 +2,9 @@ int function func(a:int)
 begin
 	begin
 		var b : int := 10;
-		b := a+b;
+		begin
+			b := a+b;
+		end;
 		return b;
 	end;
 end;
@@ -10,8 +12,9 @@ end;
 void main()
 begin
 	begin
-		var x,y : int:=6;
+		var x : int:=6;
+		var y : fixedpt:=999;
 		y:= func(x);
-		Print_int(y);
+		Print_float(y);
 	end;
 end;

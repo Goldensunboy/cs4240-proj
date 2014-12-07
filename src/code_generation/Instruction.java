@@ -498,7 +498,7 @@ public class Instruction {
 			case "FUNC_Print_float":
 				if(IRParser.getVariableType(instructionParts[2])==RegisterType.INT){
 					MIPSInstruction += "li $v0, 2";
-					MIPSInstruction += "\n"+StackFrame.generateLoad(IRParser.getVariableName(instructionParts[2]),"$a0", false);
+					MIPSInstruction += "\n"+StackFrame.generateLoad(IRParser.getVariableName(instructionParts[2]),"$a0", true);
 					MIPSInstruction += "\nmtc1 $a0, $f12";
 					MIPSInstruction += "\ncvt.s.w $f12, $f12";				
 					MIPSInstruction += "\nsyscall";

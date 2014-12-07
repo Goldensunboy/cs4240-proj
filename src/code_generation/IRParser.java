@@ -61,7 +61,7 @@ public class IRParser {
 		return callerRegisters;
 	}
 	
-	public static List<String> getFuncVariables(String funcName,HashMap<String, List<String>> functionVariables, SymbolTableManager symbolTableManager){
+	public static List<String> getFuncVariables(String funcName,HashMap<String, List<String>> functionVariables){
 		if(funcName.equals("main"))
 			funcName ="FUNC_main";
 		List<String> variables = functionVariables.get(funcName);
@@ -69,12 +69,11 @@ public class IRParser {
 			throw new UndeclaredFunctionException("Function does not exists in the IR");
 		
 		List<String> localVariables = new ArrayList<String>();
-		List<String> parameters = getFuncParams(funcName,symbolTableManager);
 		for(String variable: variables){
-			if(!parameters.contains(variable))
+			if(!variable.contains("$-1%"))
 				localVariables.add(variable);
 		}
-		return variables;
+		return localVariables;
 	}
 
 	public static List<String> getFuncParams(String functionName, SymbolTableManager symbolTableManager){
@@ -83,7 +82,7 @@ public class IRParser {
 		FunctionAttribute functionAttribute = symbolTableManager.getFunctionAttribute(functionName);
 		List<String> parameters = new ArrayList<String>();
 		for(int i = 0;i<functionAttribute.getAcrualtParameters().size();i++){
-			parameters.add(i, functionAttribute.getAcrualtParameters().get(i)+functionAttribute.getParameterTypes().get(i).getType().getSuffix());
+			parameters.add(i, functionAttribute.getAcrualtParameters().get(i)+"$-1"+functionAttribute.getParameterTypes().get(i).getType().getSuffix());
 		}
 		return parameters;
 	}
