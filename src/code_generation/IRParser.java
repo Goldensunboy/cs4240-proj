@@ -8,6 +8,7 @@ import code_generation.Register.RegisterType;
 
 import com.attribute.FunctionAttribute;
 import com.exception.BadIRInstructionException;
+import com.exception.InvalidTypeException;
 import com.exception.UndeclaredFunctionException;
 import com.symbol_table.SymbolTableManager;
 
@@ -96,8 +97,12 @@ public class IRParser {
 		if(!functionName.equals("main"))
 			functionName =functionName.replaceFirst("FUNC_","");
 		FunctionAttribute functionAttribute = symbolTableManager.getFunctionAttribute(functionName);
-		functionAttribute.getReturnTypeName();
-		return RegisterType.INT;
+		String returnType = functionAttribute.getReturnTypeName();
+		if(returnType.equals("int"))
+			return RegisterType.INT;
+		else if(returnType.equals("fixedpt"))
+			return RegisterType.FLOAT;
+		throw new InvalidTypeException("Can only return int or float");
 	}
 	
 
