@@ -1,0 +1,109 @@
+int function mod(u : int, v : int)
+begin
+	begin
+		var t : int := 0;
+		while u >= v do
+			u := u - v;
+		enddo;
+		return u;
+	end;
+end;
+
+int function pow(x : int, n : int)
+begin
+	begin
+		var t : int := 0;
+		if n = 0 then
+			return 1;
+		else
+			t := pow(x, n - 1);
+			return x * t;
+		endif;
+	end;
+end;
+
+int function gcd(a : int, b : int)
+begin
+	begin
+		var t : int := 0;
+		if a = b then
+			return a;
+		else
+			if a > b then
+				t := gcd(a - b, b);
+			else
+				t := gcd(a, b - a);
+			endif;
+			return t;
+		endif;
+	end;
+end;
+
+int function modularInverse(x : int, m : int)
+begin
+	begin
+		var a, b, u, q : int := 0;
+		b := m;
+		u := 1;
+		while x > 0 do
+			q := b / x;
+			x := mod(b, x);
+			a := u;
+			b := x;
+			u := a - q * u;
+		enddo;
+		if b = 1 then
+			a := mod(a, m);
+			return a;
+		else
+			return 0;
+		endif;
+	end;
+end;
+
+int function genkey(p : int, q : int, isPrivKey : int)
+begin
+	begin
+		var phi, e, d, t : int := 0;
+		phi := (p - 1) * (q - 1);
+		e := phi - 1;
+		while e > 1 do
+			t := gcd(e, phi);
+			if t = 1 then
+				break;
+			else
+				e := e - 1;
+			endif;
+		enddo;
+		if e = 1 then
+			return 0;
+		else
+			if isPrivKey <> 0 then
+				return e;
+			endif;
+		endif;
+		d := modularInverse(e, phi);
+		return d;
+	end;
+end;
+
+void main()
+begin
+	begin
+		var pub1, pub2, priv1, priv2, n1, n2 : int := 0;
+		var p1 : int := 3;
+		var q1 : int := 11;
+		var p2 : int := 5;
+		var q2 : int := 7;
+		var t : fixedpt := 0;
+		
+		n1 := p1 * q1;
+		n2 := p2 * q2;
+		pub1  := genkey(p1, q1, 0);
+		priv1 := genkey(p1, q1, 1);
+		pub2  := genkey(p2, q2, 0);
+		priv2 := genkey(p2, q2, 1);
+		
+		
+	end;
+end;

@@ -1,0 +1,26 @@
+int function fib(n : int)
+begin
+	begin
+		var x, y : int := 0;
+		if n = 0 then
+			return 0;
+		else
+			if n = 1 then
+				return 1;
+			else
+				x := fib(n - 1);
+				y := fib(n - 2);
+				return x + y;
+			endif;
+		endif;
+	end;
+end;
+
+void main()
+begin
+	begin
+		var x : int := 0;
+		x := fib(7);
+		Print_int(x);
+	end;
+end;

@@ -94,7 +94,6 @@ lw $t5, -8($sp)
 lw $t7, -4($sp)
 addi $sp, $sp, -32
 sw $v0, 0($sp)
-lw $t5, 0($sp)
 li $t7, 2
 sub $t3, $t4, $t7
 sw $t0, -16($sp)
@@ -125,7 +124,6 @@ lw $t5, -8($sp)
 lw $t7, -4($sp)
 addi $sp, $sp, -32
 sw $v0, -8($sp)
-lw $t2, -8($sp)
 add $t1, $t5, $t2
 sw $t0, -16($sp)
 sw $t1, -12($sp)
@@ -176,7 +174,6 @@ lw $t5, -8($sp)
 lw $t7, -4($sp)
 addi $sp, $sp, -32
 sw $v0, 0($sp)
-lw $t0, 0($sp)
 sw $t0, 0($sp)
 li $v0, 1
 lw $a0, 0($sp)

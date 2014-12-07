@@ -26,6 +26,12 @@ public class IRGeneratorForMIPS {
 		return loadInstructions;
 	}
 	
+	private static String getLoadStoreRegistersWithFilter(String variableName, Map<String, String> annotatedVariablesWithRegister,
+			LOAD_STORE isLoad) {
+		String registerName = annotatedVariablesWithRegister.get(variableName);
+		return generateLoadInstruction(variableName, registerName, isLoad);
+	}
+	
 	private static String generateLoadInstruction(String variableName, String registerName, LOAD_STORE isLoad) {
 		return (isLoad == LOAD_STORE.LOAD ? "load, " : "store, ") + variableName + ", " + registerName;
 	}
@@ -98,12 +104,20 @@ public class IRGeneratorForMIPS {
 		 * naive allocation to turn off loads and store if necessary
 		 */
 		for(InstructionDetail instructionDetail : instructionDetails) {
-//			System.out.println(generateStore );
 			if(generateStore && instructionDetail.isAnyOfInstructions(RETURN, CALL, CALLR)) {
-//				System.out.println("caught return here");
 				//if we see the above instructions we have to store
 				annotatedIR.addAll(getLoadStoreRegisters(variablesRegisterMap, STORE));
 				annotatedIR.add(instructionDetail.getOriginalInstruction());
+				if(instructionDetail.isAnyOfInstructions(CALLR)) {
+					if(variablesRegisterMap.isEmpty()) {
+						Map<String, String> temporaryVariablesRegisterMap = registerFactory.createTemporaryRegisterMap(new String[]{instructionDetail.getLHS()}, null);
+						annotatedIR.add(getLoadStoreRegistersWithFilter(instructionDetail.getLHS(), temporaryVariablesRegisterMap, LOAD));
+						registerFactory.resetAvailableTemporaryRegisterIndex();
+					} else {						
+						annotatedIR.add(getLoadStoreRegistersWithFilter(instructionDetail.getLHS(), variablesRegisterMap, LOAD));
+					}
+				}
+				
 			} else if(generateLoad && instructionDetail.isAnyOfInstructions(LABEL, FUNC)){
 				//else if start a label or a function load whatever needed
 				annotatedIR.add(instructionDetail.getOriginalInstruction());
@@ -117,7 +131,6 @@ public class IRGeneratorForMIPS {
 				if(lhs == null) {
 					variablesNeedStore = null;
 				}
-//				System.out.println(instructionDetail);
 				Map<String, String> temporaryVariablesRegisterMap = registerFactory.createTemporaryRegisterMap(variablesNeedLoad, variablesNeedStore);  
 				
 				annotatedIR.addAll(getTemporaryLoadStoreRegisters(variablesNeedLoad, temporaryVariablesRegisterMap, LOAD));

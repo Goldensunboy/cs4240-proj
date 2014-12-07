@@ -1,13 +1,18 @@
+int function myFunc() 
+begin
+	begin
+		var a : int := 10;
+		return a;
+	end;
+end;
+
 void main() 
 begin
 	begin
 		var x : int:=6;
-		for i := 1 to 2 do
-			x :=x+x;
-		enddo;
+		x := myFunc();
 	end;
 end;
-
 
 
 

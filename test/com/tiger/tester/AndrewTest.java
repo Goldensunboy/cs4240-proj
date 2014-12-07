@@ -8,6 +8,7 @@ import code_generation.CodeGenerator;
 import com.analyzer.RegisterAllocator;
 import com.analyzer.RegisterAndVariableDetectionFactory;
 import com.analyzer.basic_block_approach.cfg.CFGRegisterAllocator;
+import com.analyzer.basic_block_approach.ebb.EBBRegisterAllocator;
 import com.analyzer.naive_approach.NaiveRegisterAllocator;
 import com.analyzer.naive_approach.NaiveRegisterAllocator_deprecated;
 import com.antlr.generated.TigerParser;
@@ -23,9 +24,9 @@ public class AndrewTest {
 			System.out.println(ir);
 		System.out.println("=================");
 		
-//		EBBRegisterAllocator registerAllocator = new EBBRegisterAllocator(IRList);
-//		CFGRegisterAllocator registerAllocator = new CFGRegisterAllocator(IRList);
-		NaiveRegisterAllocator registerAllocator = new NaiveRegisterAllocator(IRList);
+//		RegisterAllocator registerAllocator = new EBBRegisterAllocator(IRList);
+//		RegisterAllocator registerAllocator = new CFGRegisterAllocator(IRList);
+		RegisterAllocator registerAllocator = new NaiveRegisterAllocator(IRList);
 		List<String> IRIR = registerAllocator.getAnnotatedIRCode();
 		for(int i = 0; i<IRIR.size(); i++)
 			System.out.println(IRIR.get(i));

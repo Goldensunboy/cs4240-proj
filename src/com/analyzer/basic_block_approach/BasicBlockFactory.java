@@ -76,7 +76,7 @@ public class BasicBlockFactory {
 			} 
 			
 			if(previousInstructionDetail.isBranchOrGoto()) {
-				BasicBlock labeledBasicBlock = labeledBasicBlocks.get(previousInstructionDetail.getLabel());
+				BasicBlock labeledBasicBlock = getLabeledBasicBlock(labeledBasicBlocks, previousInstructionDetail.getLabel());
 				setPredecessorSuccessor(currentBasicBlock, labeledBasicBlock);
 			}
 		}
