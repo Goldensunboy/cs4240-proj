@@ -1,5 +1,15 @@
 package com.analyzer;
 
+import static code_generation.RegisterFile.AVAILABLE_FLOAT_REGISTERS;
+import static code_generation.RegisterFile.AVAILABLE_INT_REGISTERS;
+import static code_generation.RegisterFile.AVAILABLE_TEMPORARY_FLOAT_REGISTERS;
+import static code_generation.RegisterFile.AVAILABLE_TEMPORARY_INT_REGISTERS;
+import static com.analyzer.InstructionUtility.getConversion;
+import static com.analyzer.InstructionUtility.isFloatIsh;
+import static com.analyzer.InstructionUtility.isIntIsh;
+import static com.analyzer.InstructionUtility.isIntLiteral;
+import static com.analyzer.InstructionUtility.isIntRegister;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Hashtable;
@@ -7,16 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.PriorityQueue;
-
-import static code_generation.RegisterFile.AVAILABLE_FLOAT_REGISTERS;
-import static code_generation.RegisterFile.AVAILABLE_TEMPORARY_FLOAT_REGISTERS;
-import static code_generation.RegisterFile.AVAILABLE_INT_REGISTERS;
-import static code_generation.RegisterFile.AVAILABLE_TEMPORARY_INT_REGISTERS;
-import static com.analyzer.InstructionUtility.isIntLiteral;
-import static com.analyzer.InstructionUtility.isIntRegister;
-import static com.analyzer.InstructionUtility.getConversion;
-import static com.analyzer.InstructionUtility.isIntIsh;
-import static com.analyzer.InstructionUtility.isFloatIsh;
 
 import com.exception.ShouldNotHappenException;
 

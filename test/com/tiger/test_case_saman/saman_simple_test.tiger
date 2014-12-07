@@ -1,19 +1,10 @@
-int function myFunc(k:int, k:int)
-begin
-	begin
-		var a : int := 1;
-		a := 2;
-		return a;
-	end;
-end;
-
 void main() 
 begin
 	begin
-		var b : int := 3;
-		myFunc(b, b);
-		b := myFunc(b, 3);
-		b := b + b;
+		var x : int:=6;
+		for i := 1 to 2 do
+			x :=x+x;
+		enddo;
 	end;
 end;
 
