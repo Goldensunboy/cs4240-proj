@@ -1,11 +1,20 @@
-
+int function func(a:int)
+begin
+	begin
+		var b : int := 10;
+		begin
+			b := a+b;
+		end;
+		return b;
+	end;
+end;
 
 void main()
 begin
 	begin
 		var x : int:=6;
-		for i := 1 to 2 do
-			x :=x+x;
-		enddo;
+		var y : fixedpt:=999;
+		y:= func(x);
+		Print_float(y);
 	end;
 end;

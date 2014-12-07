@@ -59,7 +59,7 @@ public class InstructionUtility {
 	
 	public static List<String> getConversion(String intRegisterName, String floatRegisterName) {
 		List<String> conversion = new ArrayList<>();
-		String mtc = "mtc, " + intRegisterName + ", " + floatRegisterName;
+		String mtc = "mtc1, " + intRegisterName + ", " + floatRegisterName;
 		String cvt = "cvt.s.w, " + floatRegisterName + ", " + floatRegisterName;
 		conversion.add(mtc);
 		conversion.add(cvt);

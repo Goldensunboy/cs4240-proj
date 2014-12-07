@@ -269,7 +269,7 @@ afterBegin[String myFunctionName, String typeName, TypeAttribute returnTypeAttri
   {
     int scopeId = symbolTableManager.getOverallScopeId();
     for(VariableAttribute attribute : $funcDeclaration::parameterValueList) {
-      attribute.setScopeId(scopeId);
+      attribute.setScopeId(-1);
       attributeMap.put(attribute.getVariableName(), attribute);
     }
   }

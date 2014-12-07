@@ -1,10 +1,10 @@
 package code_generation;
 
+import code_generation.Register.Category;
 import code_generation.Register.RegisterType;
 
 public class StackArgument {
 	
-	public enum Category {UNINITIALIZED, CALLER_SAVED, CALLEE_SAVED, RETURN_ADDRESS, FRAME_POINTER, PARAMETERS, LOCAL_VARIABLES}; 
 	
 	private String variableName;
 	private RegisterType variableType;

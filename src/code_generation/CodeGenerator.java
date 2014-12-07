@@ -5,6 +5,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
+import java.util.HashMap;
 import java.util.List;
 
 import com.antlr.generated.TigerParser;
@@ -22,19 +23,21 @@ public class CodeGenerator {
 	private TigerParser parser;
 	private List<String> IRIR;
 	private SymbolTableManager symbolTableManager;
+	private HashMap<String, List<String>> functionVariables;
+	private HashMap<String, List<String>> functionRegisters;
 	
-	public CodeGenerator(TigerParser parser,List<String> IRIR, String fileOutputed){
+	public CodeGenerator(TigerParser parser,List<String> IRIR, HashMap<String, List<String>> functionVariables, HashMap<String, List<String>> functionRegisters, String fileOutputed){
+		this(parser, IRIR, functionVariables, functionRegisters);
 		this.fileOutputed = fileOutputed;
-		this.parser = parser;
-		this.IRIR = IRIR;
-		this.symbolTableManager = parser.getSymbolTableManager();
 	}
 	
-	public CodeGenerator(TigerParser parser,List<String> IRIR){
+	public CodeGenerator(TigerParser parser,List<String> IRIR, HashMap<String, List<String>> functionVariables, HashMap<String, List<String>> functionRegisters){
 		this.parser = parser;
 		this.IRIR = IRIR;
+		this.functionVariables = functionVariables;
+		this.functionRegisters = functionRegisters;
 		this.symbolTableManager = parser.getSymbolTableManager();
-		test();
+		System.out.println(functionVariables);
 	}
 	
 	
@@ -101,13 +104,13 @@ public class CodeGenerator {
 		
 		for(String line: IRIR) {
 			MIPSLine = translateInstruction(line,symbolTableManager)+"\n";
-			System.out.println(MIPSLine);
+			System.out.print(MIPSLine);
 			writeMIPSToFile(MIPSLine);
 		}
 	}
 	
 	private String translateInstruction(String instruction, SymbolTableManager symbolTableManager){
-		return Instruction.decodeInstruction(instruction, symbolTableManager);
+		return Instruction.decodeInstruction(instruction, symbolTableManager, functionVariables, functionRegisters);
 	}
 	
 	/**

@@ -2,6 +2,7 @@ package code_generation;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 import code_generation.Register.RegisterType;
@@ -29,7 +30,9 @@ public class Instruction {
 	 * @param instruction
 	 * @return
 	 */
-	public static String decodeInstruction(String IRInstruction, SymbolTableManager symbolTableManager){
+	public static String decodeInstruction(String IRInstruction, SymbolTableManager symbolTableManager, 
+			HashMap<String, List<String>> functionVariables, HashMap<String, List<String>> functionRegisters){
+		
 		
 		if(Instruction.instruction==null){
 			instruction = new Instruction();
@@ -60,7 +63,7 @@ public class Instruction {
 //				if(oldFunctionName.equals("main"))
 //					MIPSInstruction += "\n.end "+oldFunctionName+"\n";
 //				else
-					MIPSInstruction += "\n.end "+oldFunctionName+"\n";
+				MIPSInstruction += "\n.end "+oldFunctionName+"\n";
 				StackFrame.emptyFrame();
 
 			}
@@ -70,7 +73,7 @@ public class Instruction {
 			MIPSInstruction += ".ent "+instruction.currentFunctionName;
 			MIPSInstruction += "\n.globl "+instruction.currentFunctionName;
 			MIPSInstruction += "\n"+instruction.currentFunctionName +":";			
-			MIPSInstruction += "\n"+instruction.enterFunction(instruction.currentFunctionName, symbolTableManager);
+			MIPSInstruction += "\n"+instruction.enterFunction(instruction.currentFunctionName, symbolTableManager,functionVariables,functionRegisters);
 			return MIPSInstruction;
 		}
 		
@@ -113,7 +116,7 @@ public class Instruction {
 				break;
 				
 			case "return":
-				MIPSInstruction += returnStatement(instructionParts);
+				MIPSInstruction += returnStatement(instructionParts,functionRegisters);
 				break;
 				
 			case "call":
@@ -126,7 +129,7 @@ public class Instruction {
 				if(instruction.isLibraryCall(instructionParts))
 					MIPSInstruction += instruction.callLibraryFunction(instructionParts);
 				else
-					MIPSInstruction += instruction.callFunction(instructionParts[1],parameters, symbolTableManager);
+					MIPSInstruction += instruction.callFunction(instructionParts[1],parameters, symbolTableManager,functionVariables,functionRegisters);
 				break;
 			case "callr":
 				if(instructionParts.length < 3)
@@ -138,7 +141,7 @@ public class Instruction {
 				if(instruction.isLibraryCall(instructionParts))
 					MIPSInstruction += instruction.callLibraryFunction(instructionParts);
 				else {
-					MIPSInstruction += instruction.callFunction(instructionParts[2],parameters, symbolTableManager);
+					MIPSInstruction += instruction.callFunction(instructionParts[2],parameters, symbolTableManager,functionVariables,functionRegisters);
 					MIPSInstruction += "\n"+instruction.getReturnValue(instructionParts[2],instructionParts[1], symbolTableManager);
 				}
 				break;
@@ -151,6 +154,8 @@ public class Instruction {
 			case "cvt.s.w":
 				MIPSInstruction = IRInstruction;
 				break;
+			default:
+				MIPSInstruction += MIPSInstruction;
 		}
 		return MIPSInstruction;
 	}
@@ -188,7 +193,12 @@ public class Instruction {
 		}
 		String[] registers = {instructionParts[1],instructionParts[2],instructionParts[3]};
 		String operation = instructionParts[0];
+		if(operation.equals("mult"))
+			operation = "mul";
 		InstructionType type = determineInstructionType(registers);
+		if("mult".equals(operation)) {
+			operation = "mul";
+		}
 		if(type == InstructionType.FLOAT)
 			operation +=".s";
 		return operation+" "+instructionParts[3]+", "+instructionParts[1]+", "+instructionParts[2];
@@ -262,7 +272,7 @@ public class Instruction {
 		throw new BadDeveloperException("Can only preform operation on all int registers or all float registers");
 	}
 	
-	private static String returnStatement(String[] instructionParts){
+	private static String returnStatement(String[] instructionParts,HashMap<String, List<String>> functionRegisters){
 		if(instructionParts.length > 2) {
 			String message = instructionParts[0] + " cannot take in more than one register";
 			throw new BadIRInstructionException(message);
@@ -278,7 +288,7 @@ public class Instruction {
 				MIPSInstruction += StackFrame.generateLoad(IRParser.getVariableName(instructionParts[1]), (isInt)?"$v0":"$f0", isInt)+"\n";
 			}
 		}
-		MIPSInstruction += instruction.exitFunction(instruction.currentFunctionName);
+		MIPSInstruction += instruction.exitFunction(instruction.currentFunctionName,functionRegisters);
 		return MIPSInstruction;
 	}
 	
@@ -319,16 +329,21 @@ public class Instruction {
 	 * @param functionName
 	 * @return
 	 */
-	private String enterFunction(String functionName, SymbolTableManager symbolTableManager){
+	private String enterFunction(String functionName, SymbolTableManager symbolTableManager,HashMap<String, 
+			List<String>> functionVariables, HashMap<String, List<String>> functionRegisters){
 		String MIPSInstruction = "";
-		MIPSInstruction += StackFrame.enterCurrentFrame(functionName, symbolTableManager);
+		MIPSInstruction += StackFrame.enterCurrentFrame(functionName, symbolTableManager,functionVariables,functionRegisters);
 		
-		for(int i = 0; i < 7; i++){
-			MIPSInstruction += "\n"+StackFrame.generateStore("$s"+i,"$s"+i, true);
+		List<String> usedRegisters = IRParser.getFuncCalleeRegisters(functionName,functionRegisters);
+		for(String register: usedRegisters){
+			MIPSInstruction += "\n"+StackFrame.generateStore(register,register, Register.getRegisterType(register)==RegisterType.INT);
 		}
-		for(int i = 16; i < 31; i++){
-			MIPSInstruction += "\n"+StackFrame.generateStore("$f"+i,"$f"+i, false);
-		}
+//		for(int i = 0; i < 7; i++){
+//			MIPSInstruction += "\n"+StackFrame.generateStore("$s"+i,"$s"+i, true);
+//		}
+//		for(int i = 16; i < 31; i++){
+//			MIPSInstruction += "\n"+StackFrame.generateStore("$f"+i,"$f"+i, false);
+//		}
 		MIPSInstruction += "\n"+StackFrame.generateStore("$fp","$fp", true);
 		MIPSInstruction += "\n"+StackFrame.generateStore("$ra","$ra", true);
 		return MIPSInstruction;
@@ -338,33 +353,43 @@ public class Instruction {
 	 * Generates code for exiting a function
 	 * @return
 	 */
-	private String exitFunction(String functionName){
+	private String exitFunction(String functionName,HashMap<String, List<String>> functionRegisters){
 		String MIPSInstruction = "";
 		MIPSInstruction += StackFrame.generateLoad("$fp","$fp", true);
 		MIPSInstruction += "\n"+StackFrame.generateLoad("$ra","$ra", true);
 		
-		for(int i = 0; i < 7; i++){
-			MIPSInstruction += "\n"+StackFrame.generateLoad("$s"+i,"$s"+i, true);
+		List<String> usedRegisters = IRParser.getFuncCalleeRegisters(functionName,functionRegisters);
+		for(String register: usedRegisters){
+			MIPSInstruction += "\n"+StackFrame.generateLoad(register,register, Register.getRegisterType(register)==RegisterType.INT);
 		}
-		for(int i = 16; i < 31; i++){
-			MIPSInstruction += "\n"+StackFrame.generateLoad("$f"+i,"$f"+i, false);
-		}
+//		for(int i = 0; i < 7; i++){
+//			MIPSInstruction += "\n"+StackFrame.generateLoad("$s"+i,"$s"+i, true);
+//		}
+//		for(int i = 16; i < 31; i++){
+//			MIPSInstruction += "\n"+StackFrame.generateLoad("$f"+i,"$f"+i, false);
+//		}
 		MIPSInstruction += "\n"+StackFrame.exitCurrentFrame();
 		MIPSInstruction += "\njr $ra";
 		
 		return MIPSInstruction;
 	}
 	
-	private String callFunction(String functionName, ArrayList<String> localParameters, SymbolTableManager symbolTableManager){
+	private String callFunction(String functionName, ArrayList<String> localParameters, SymbolTableManager symbolTableManager,
+			HashMap<String, List<String>> functionVariables, HashMap<String, List<String>> functionRegisters){
 //		functionName = (functionName.equals("FUNC_main"))? "main":functionName;
 		
-		String MIPSInstruction = StackFrame.callingFunctionBegin(functionName,symbolTableManager);
-		for(int i = 0; i < 8; i++){
-			MIPSInstruction += "\n"+StackFrame.generateStore("$t"+i,"$t"+i, true);
+		String MIPSInstruction = StackFrame.callingFunctionBegin(functionName,symbolTableManager,functionVariables,functionRegisters);
+		
+		List<String> usedRegisters = IRParser.getFuncCallerRegisters(functionName,functionRegisters);
+		for(String register: usedRegisters){
+			MIPSInstruction += "\n"+StackFrame.generateStore(register,register, Register.getRegisterType(register)==RegisterType.INT);
 		}
-		for(int i = 4; i < 12; i++){
-			MIPSInstruction += "\n"+StackFrame.generateStore("$f"+i,"$f"+i, false);
-		}
+//		for(int i = 0; i < 8; i++){
+//			MIPSInstruction += "\n"+StackFrame.generateStore("$t"+i,"$t"+i, true);
+//		}
+//		for(int i = 4; i < 12; i++){
+//			MIPSInstruction += "\n"+StackFrame.generateStore("$f"+i,"$f"+i, false);
+//		}
 		List<String> actualParameters = IRParser.getFuncParams(functionName,symbolTableManager);
 		if(actualParameters.size()!=localParameters.size())
 			throw new BadDeveloperException("Calling function incorrectly");
@@ -407,12 +432,15 @@ public class Instruction {
 			}
 		}
 		MIPSInstruction += "\njal "+functionName;
-		for(int i = 0; i < 8; i++){
-			MIPSInstruction += "\n"+StackFrame.generateLoad("$t"+i,"$t"+i, true);
+		for(String register: usedRegisters){
+			MIPSInstruction += "\n"+StackFrame.generateLoad(register,register, Register.getRegisterType(register)==RegisterType.INT);
 		}
-		for(int i = 4; i < 12; i++){
-			MIPSInstruction += "\n"+StackFrame.generateLoad("$f"+i,"$f"+i, false);
-		}
+//		for(int i = 0; i < 8; i++){
+//			MIPSInstruction += "\n"+StackFrame.generateLoad("$t"+i,"$t"+i, true);
+//		}
+//		for(int i = 4; i < 12; i++){
+//			MIPSInstruction += "\n"+StackFrame.generateLoad("$f"+i,"$f"+i, false);
+//		}
 		MIPSInstruction += "\n"+StackFrame.callingFunctionEnd(functionName);
 		return MIPSInstruction;
 	}
@@ -448,38 +476,39 @@ public class Instruction {
 		try {
 			callLibraryFunction(instructionParts);
 			return true;
-		} catch (UndeclaredFunctionException e){
+		} catch (UndeclaredFunctionException |InvalidInvocationException e){
 			return false;
 		}
 	}
 	
 	String callLibraryFunction(String[] instructionParts){
 		String MIPSInstruction = "";
-		if(instructionParts.length==3)
+		if(instructionParts.length!=3)
 			throw new InvalidInvocationException();
+		
 		
 		if(instructionParts[0].equals("call")){
 			switch(instructionParts[1]){
-			case "Print_int":
+			case "FUNC_Print_int":
 				if(IRParser.getVariableType(instructionParts[2])==RegisterType.INT){
 					MIPSInstruction += "li $v0, 1";
-					MIPSInstruction += "\n"+StackFrame.generateLoad(instructionParts[2],"$a0", true);
+					MIPSInstruction += "\n"+StackFrame.generateLoad(IRParser.getVariableName(instructionParts[2]),"$a0", true);
 					MIPSInstruction += "\nsyscall";
 					
 				} else
 					throw new InvalidInvocationException();				
 				break;
-			case "Print_float":
+			case "FUNC_Print_float":
 				if(IRParser.getVariableType(instructionParts[2])==RegisterType.INT){
 					MIPSInstruction += "li $v0, 2";
-					MIPSInstruction += "\n"+StackFrame.generateLoad(instructionParts[2],"$a0", false);
+					MIPSInstruction += "\n"+StackFrame.generateLoad(IRParser.getVariableName(instructionParts[2]),"$a0", true);
 					MIPSInstruction += "\nmtc1 $a0, $f12";
 					MIPSInstruction += "\ncvt.s.w $f12, $f12";				
 					MIPSInstruction += "\nsyscall";
 					
 				} else if (IRParser.getVariableType(instructionParts[2])==RegisterType.FLOAT){
 					MIPSInstruction += "li $v0, 2";
-					MIPSInstruction += "\n"+StackFrame.generateLoad(instructionParts[2],"$f12", false);
+					MIPSInstruction += "\n"+StackFrame.generateLoad(IRParser.getVariableName(instructionParts[2]),"$f12", false);
 					MIPSInstruction += "\nsyscall";
 					
 				} else
@@ -492,27 +521,28 @@ public class Instruction {
 		} else if (instructionParts[0].equals("callr")){
 			
 			switch(instructionParts[1]){
-			case "Read_int":
+			case "FUNC_Read_int":
 				if(IRParser.getVariableType(instructionParts[2])==RegisterType.INT){
 					MIPSInstruction += "li $v0, 5";
 					MIPSInstruction += "\nsyscall";
-					MIPSInstruction += "\n"+StackFrame.generateStore(instructionParts[2],"$v0", false);
+					MIPSInstruction += "\n"+StackFrame.generateStore(IRParser.getVariableName(instructionParts[2]),"$v0", false);
 					
 				} else if (IRParser.getVariableType(instructionParts[2])==RegisterType.FLOAT){
 					MIPSInstruction += "li $v0, 5";
-					MIPSInstruction += "\nsyscall";//TODO
-					MIPSInstruction += "\n";
-//					MIPSInstruction += "\n"+StackFrame.generateStore(instructionParts[2],"$v0", false);
+					MIPSInstruction += "\nsyscall";
+					MIPSInstruction += "\nmtc1 $v0, $f0";
+					MIPSInstruction += "\ncvt.s.w $f0, $f0";			
+					MIPSInstruction += "\n"+StackFrame.generateStore(IRParser.getVariableName(instructionParts[2]),"$f0", false);
 					//TODO					
 					
 				} else
 					throw new InvalidInvocationException();
 				break;
-			case "Read_float":
+			case "FUNC_Read_float":
 				if(IRParser.getVariableType(instructionParts[2])==RegisterType.FLOAT){
 					MIPSInstruction += "li $v0, 6";
 					MIPSInstruction += "\nsyscall";
-					MIPSInstruction += "\n"+StackFrame.generateStore(instructionParts[2],"$f0", false);
+					MIPSInstruction += "\n"+StackFrame.generateStore(IRParser.getVariableName(instructionParts[2]),"$f0", false);
 					
 				} else
 					throw new InvalidInvocationException();

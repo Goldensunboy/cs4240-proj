@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 public class RegisterAndVariableDetectionFactory {
+	
 	public static HashMap<String, List<String>> getFunctionVariables(List<String> IRList) {
 		HashMap<String, List<String>> varmap = new HashMap<String, List<String>>();
 		String currFunc = null;
@@ -29,6 +30,8 @@ public class RegisterAndVariableDetectionFactory {
 		}
 		return varmap;
 	}
+	
+	
 	
 	public static HashMap<String, List<String>> getFunctionRegisters(List<String> IRList) {
 		HashMap<String, List<String>> regmap = new HashMap<String, List<String>>();

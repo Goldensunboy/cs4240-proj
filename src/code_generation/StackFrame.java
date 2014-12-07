@@ -1,14 +1,15 @@
 package code_generation;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import com.exception.BadDeveloperException;
 import com.exception.CorruptedStackException;
 import com.symbol_table.SymbolTableManager;
 
+import code_generation.Register.Category;
 import code_generation.Register.RegisterType;
-import code_generation.StackArgument.Category;
 
 public class StackFrame {
 	
@@ -45,7 +46,7 @@ public class StackFrame {
 	 * Builds up the stack for the current function
 	 * @param functionName
 	 */
-	public static String enterCurrentFrame(String functionName, SymbolTableManager symbolTableManager) {		
+	public static String enterCurrentFrame(String functionName, SymbolTableManager symbolTableManager,HashMap<String, List<String>> functionVariables, HashMap<String, List<String>> functionRegisters) {		
 		
 		if(stackFrame == null){
 			stackFrame = new StackFrame();
@@ -67,18 +68,23 @@ public class StackFrame {
 		pushOnStack(new StackArgument("$fp", RegisterType.INT, false, Category.FRAME_POINTER));
 		
 		/* local variables */
-		ArrayList<String> localVariables = IRParser.getFuncVariables(functionName);
+		List<String> localVariables = IRParser.getFuncVariables(functionName,functionVariables);
 		for(String var : localVariables){
 			pushOnStack(new StackArgument(IRParser.getVariableName(var), IRParser.getVariableType(var), false, Category.LOCAL_VARIABLES));
 		}
 		
 		/* callee saved registers */ //TODO do not need to save all registers every time
-		for(int i = 0; i < 7; i++){
-			pushOnStack(new StackArgument("$s"+i, RegisterType.INT, false, Category.CALLEE_SAVED));
+//		for(int i = 0; i < 7; i++){
+//			pushOnStack(new StackArgument("$s"+i, RegisterType.INT, false, Category.CALLEE_SAVED));
+//		}
+//		for(int i = 16; i < 31; i++){
+//			pushOnStack(new StackArgument("$f"+i, RegisterType.FLOAT, false, Category.CALLEE_SAVED));
+//		}
+		List<String> usedRegisters = IRParser.getFuncCalleeRegisters(functionName,functionRegisters);
+		for(String register: usedRegisters){
+			pushOnStack(new StackArgument(register, Register.getRegisterType(register), false, Category.CALLEE_SAVED));
 		}
-		for(int i = 16; i < 31; i++){
-			pushOnStack(new StackArgument("$f"+i, RegisterType.FLOAT, false, Category.CALLEE_SAVED));
-		}
+		
 		
 		MIPSInstruction += "addi $sp, $sp, "+ (4*(stackFrame.stack.size() - stackFrame.beginOfFrame)); //TODO check indexing /* generate the instruction to move the stack pointer at the being of function */
 		return MIPSInstruction;
@@ -105,7 +111,7 @@ public class StackFrame {
 	 * @param functionName
 	 * @return
 	 */
-	public static String callingFunctionBegin(String functionName,SymbolTableManager symbolTableManager){
+	public static String callingFunctionBegin(String functionName,SymbolTableManager symbolTableManager,HashMap<String, List<String>> functionVariables, HashMap<String, List<String>> functionRegisters){
 		if(stackFrame == null){
 			stackFrame = new StackFrame();
 		}
@@ -114,12 +120,16 @@ public class StackFrame {
 		
 		stackFrame.beforeFuncCall = stackFrame.stack.size();
 		/* caller saved registers */
-		for(int i = 0; i < 8; i++){
-			pushOnStack(new StackArgument("$t"+i, RegisterType.INT, false, Category.CALLER_SAVED));
+		List<String> usedRegisters = IRParser.getFuncCallerRegisters(functionName,functionRegisters);
+		for(String register: usedRegisters){
+			pushOnStack(new StackArgument(register,  Register.getRegisterType(register), false, Category.CALLER_SAVED));
 		}
-		for(int i = 4; i < 12; i++){
-			pushOnStack(new StackArgument("$f"+i, RegisterType.FLOAT, false, Category.CALLER_SAVED));
-		}	
+//		for(int i = 0; i < 8; i++){
+//			pushOnStack(new StackArgument("$t"+i, RegisterType.INT, false, Category.CALLER_SAVED));
+//		}
+//		for(int i = 4; i < 12; i++){
+//			pushOnStack(new StackArgument("$f"+i, RegisterType.FLOAT, false, Category.CALLER_SAVED));
+//		}	
 		/* parameters for the next function */
 		List<String> localParameters = IRParser.getFuncParams(functionName, symbolTableManager);
 		for(String parameter : localParameters){

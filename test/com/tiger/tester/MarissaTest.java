@@ -1,10 +1,12 @@
 package com.tiger.tester;
 
+import java.util.HashMap;
 import java.util.List;
 
 import code_generation.CodeGenerator;
 
-import com.analyzer.basic_block_approach.cfg.CFGRegisterAllocator;
+import com.analyzer.RegisterAndVariableDetectionFactory;
+import com.analyzer.naive_approach.NaiveRegisterAllocator;
 import com.antlr.generated.TigerParser;
 
 public class MarissaTest {
@@ -14,12 +16,15 @@ public class MarissaTest {
 		for (String ir : IRList) 
 			System.out.println(ir);
 		System.out.println("=================");
-		CFGRegisterAllocator registerAllocator = new CFGRegisterAllocator(IRList);
-//		NaiveRegisterAllocator registerAllocator = new NaiveRegisterAllocator(parser.getIRCode());
+//		EBBRegisterAllocator registerAllocator = new EBBRegisterAllocator(IRList);
+//		CFGRegisterAllocator registerAllocator = new CFGRegisterAllocator(IRList);
+		NaiveRegisterAllocator registerAllocator = new NaiveRegisterAllocator(IRList);
 		List<String> IRIR = registerAllocator.getAnnotatedIRCode();
 		for(int i = 0; i<IRIR.size(); i++)
 			System.out.println(IRIR.get(i));
-		CodeGenerator codeGenerator = new CodeGenerator(parser, IRIR);
+		HashMap<String, List<String>> functionVariables = RegisterAndVariableDetectionFactory.getFunctionVariables(IRIR);
+		HashMap<String, List<String>> functionRegisters = RegisterAndVariableDetectionFactory.getFunctionRegisters(IRIR);
+		CodeGenerator codeGenerator = new CodeGenerator(parser, IRIR, functionVariables, functionRegisters);
 		codeGenerator.generateCode();
 //		codeGenerator.test();
 		// Get IR code
