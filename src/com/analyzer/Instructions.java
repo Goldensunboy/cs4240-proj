@@ -1,5 +1,7 @@
 package com.analyzer;
 
+import com.exception.BadDeveloperException;
+
 
 
 public enum Instructions {
@@ -21,10 +23,9 @@ public enum Instructions {
 	RETURN ("return", -1, 1, 2, -1),
 	CALL ("call", -1, 1, 2, 1),
 	CALLR ("callr", 1, 3, 6, 2),
-	ARRAY_STORE ("array_store", -1, -1, -1, -1), // NIY
+	ARRAY_STORE ("array_store", 1, 2, 4, -1),
 	ARRAY_LOAD ("array_load", -1, -1, -1, -1), // NIY
 	ARRAY_ASSIGN ("array_assign", 1, 3, 4, -1),
-	// Array Store??? why is it assign??? why Santosh!!! 
 	LABEL("label", -1, -1, -1, 0),
 	FUNC("func", -1, -1, -1, 0),
 	;
@@ -57,5 +58,18 @@ public enum Instructions {
 
 	public String getName() {
 		return name;
+	}
+	
+	// Array specific methods
+	public int getArrayNameIndex() {
+		switch (this) {
+		case ARRAY_ASSIGN:
+			return 1;
+		case ARRAY_STORE:
+			return 1;
+		case ARRAY_LOAD:
+			return 2;
+		}
+		throw new BadDeveloperException("This method is only for arrays, don't use it with any other instruction");
 	}
 }
