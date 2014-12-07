@@ -130,16 +130,14 @@ public class RegisterFactory {
 			}
 			return registersToPromote;
 		} else if(lhsVariables[0].matches(".*%ai")){
-			registersToPromote.remove(rhsVariables[0]);
-			return registersToPromote;
+			return new Hashtable<>();
 		} else if(rhsVariables[0].matches(".*%af")) {
 			if(registersToPromote.size()>0){
 				registersToPromote.remove(rhsVariables[1]);
 			}
 			return registersToPromote;
 		} else if(rhsVariables[0].matches(".*%ai")) {
-			registersToPromote.remove(rhsVariables[1]);
-			return registersToPromote;
+			return new Hashtable<>();
 		}
 		
 		for(String rhsVariable : rhsVariables) {
