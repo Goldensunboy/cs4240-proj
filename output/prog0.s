@@ -7,7 +7,9 @@ addi $sp, $sp, 16
 sw $fp, -8($sp)
 sw $ra, -12($sp)
 li $t7, 0
+
 move $t8, $t7
+
 sw $t8, -4($sp)
 LABEL_WHILE_TOP_0:
 lw $t7, -20($sp)
@@ -18,7 +20,9 @@ lw $t8, -16($sp)
 sub $t9, $t7, $t8
 sw $t9, 0($sp)
 lw $t7, 0($sp)
+
 move $t8, $t7
+
 sw $t8, -20($sp)
 j LABEL_WHILE_TOP_0
 LABEL_WHILE_END_0:
@@ -36,7 +40,9 @@ addi $sp, $sp, 20
 sw $fp, -12($sp)
 sw $ra, -16($sp)
 li $t7, 0
+
 move $t8, $t7
+
 sw $t8, -8($sp)
 li $t8, 0
 lw $t7, -20($sp)
@@ -90,7 +96,9 @@ addi $sp, $sp, 20
 sw $fp, -12($sp)
 sw $ra, -16($sp)
 li $t7, 0
+
 move $t8, $t7
+
 sw $t8, -8($sp)
 li $t8, 0
 lw $t7, -24($sp)
@@ -134,7 +142,9 @@ lw $t8, -8($sp)
 mul $t9, $t7, $t8
 sw $t9, 0($sp)
 lw $t7, 0($sp)
+
 move $t8, $t7
+
 sw $t8, -8($sp)
 addi $sp, $sp, 20
 sw $t7, -16($sp)
@@ -170,7 +180,9 @@ addi $sp, $sp, 20
 sw $fp, -12($sp)
 sw $ra, -16($sp)
 li $t7, 0
+
 move $t8, $t7
+
 sw $t8, -8($sp)
 lw $t7, -24($sp)
 lw $t8, -20($sp)
@@ -254,10 +266,14 @@ addi $sp, $sp, 24
 sw $fp, -16($sp)
 sw $ra, -20($sp)
 li $t7, 1
+
 move $t8, $t7
+
 sw $t8, -12($sp)
 li $t7, 1
+
 move $t8, $t7
+
 sw $t8, -8($sp)
 LABEL_WHILE_TOP_1:
 lw $t7, -8($sp)
@@ -301,7 +317,9 @@ lw $t7, -8($sp)
 add $t9, $t7, $t8
 sw $t9, 0($sp)
 lw $t7, 0($sp)
+
 move $t8, $t7
+
 sw $t8, -8($sp)
 LABEL_ELSE_END_4:
 j LABEL_WHILE_TOP_1
@@ -320,16 +338,24 @@ addi $sp, $sp, 44
 sw $fp, -36($sp)
 sw $ra, -40($sp)
 li $t7, 0
+
 move $t8, $t7
+
 sw $t8, -32($sp)
 li $t7, 0
+
 move $t8, $t7
+
 sw $t8, -28($sp)
 li $t7, 0
+
 move $t8, $t7
+
 sw $t8, -24($sp)
 li $t7, 0
+
 move $t8, $t7
+
 sw $t8, -20($sp)
 lw $t7, -52($sp)
 li $t8, 1
@@ -344,14 +370,18 @@ lw $t7, -16($sp)
 mul $t9, $t7, $t8
 sw $t9, -8($sp)
 lw $t7, -8($sp)
+
 move $t8, $t7
+
 sw $t8, -20($sp)
 li $t8, 1
 lw $t7, -20($sp)
 sub $t9, $t7, $t8
 sw $t9, -4($sp)
 lw $t7, -4($sp)
+
 move $t8, $t7
+
 sw $t8, -24($sp)
 LABEL_WHILE_TOP_2:
 li $t8, 1
@@ -387,7 +417,9 @@ lw $t7, -24($sp)
 sub $t9, $t7, $t8
 sw $t9, 0($sp)
 lw $t7, 0($sp)
+
 move $t8, $t7
+
 sw $t8, -24($sp)
 LABEL_ELSE_END_5:
 j LABEL_WHILE_TOP_2
@@ -447,62 +479,94 @@ addi $sp, $sp, 72
 sw $fp, -64($sp)
 sw $ra, -68($sp)
 li $t7, 0
+
 move $t8, $t7
+
 sw $t8, -60($sp)
 li $t7, 0
+
 move $t8, $t7
+
 sw $t8, -56($sp)
 li $t7, 0
+
 move $t8, $t7
+
 sw $t8, -52($sp)
 li $t7, 0
+
 move $t8, $t7
+
 sw $t8, -48($sp)
 li $t7, 0
+
 move $t8, $t7
+
 sw $t8, -44($sp)
 li $t7, 0
+
 move $t8, $t7
+
 sw $t8, -40($sp)
 li $t7, 0
+
 move $t8, $t7
+
 sw $t8, -36($sp)
 li $t7, 0
+
 move $t8, $t7
+
 sw $t8, -32($sp)
 li $t7, 0
+
 move $t8, $t7
+
 sw $t8, -28($sp)
-li $t7, 3
+li $t7, 5
+
 move $t8, $t7
+
 sw $t8, -24($sp)
 li $t7, 11
+
 move $t8, $t7
+
 sw $t8, -20($sp)
-li $t7, 5
+li $t7, 3
+
 move $t8, $t7
+
 sw $t8, -16($sp)
 li $t7, 7
+
 move $t8, $t7
+
 sw $t8, -12($sp)
 li $t7, 0
 mtc1 $t7, $f30
 cvt.s.w $f30, $f30
+
 mov.s $f29, $f30
+
 swc1 $f29, -8($sp)
 lw $t7, -24($sp)
 lw $t8, -20($sp)
 mul $t9, $t7, $t8
 sw $t9, -4($sp)
 lw $t7, -4($sp)
+
 move $t8, $t7
+
 sw $t8, -44($sp)
 lw $t7, -16($sp)
 lw $t8, -12($sp)
 mul $t9, $t7, $t8
 sw $t9, 0($sp)
 lw $t7, 0($sp)
+
 move $t8, $t7
+
 sw $t8, -48($sp)
 addi $sp, $sp, 24
 sw $t7, -20($sp)
@@ -592,8 +656,10 @@ lw $t9, -12($sp)
 addi $sp, $sp, -24
 sw $v0, -40($sp)
 lw $t7, -40($sp)
-li $t7, 45
+li $t7, 9
+
 move $t8, $t7
+
 sw $t8, -52($sp)
 addi $sp, $sp, 24
 sw $t7, -20($sp)
@@ -645,8 +711,10 @@ li $v0, 1
 lw $a0, -56($sp)
 
 syscall
-li $t7, 61
+li $t7, 4
+
 move $t8, $t7
+
 sw $t8, -52($sp)
 addi $sp, $sp, 24
 sw $t7, -20($sp)

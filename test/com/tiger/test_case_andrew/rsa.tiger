@@ -101,9 +101,9 @@ void main()
 begin
 	begin
 		var pub1, pub2, priv1, priv2, n1, n2, message, message2, ciphertext : int := 0;
-		var p1 : int := 3;
+		var p1 : int := 5;
 		var q1 : int := 11;
-		var p2 : int := 5;
+		var p2 : int := 3;
 		var q2 : int := 7;
 		var t : fixedpt := 0;
 		
@@ -114,13 +114,13 @@ begin
 		pub2  := genkey(p2, q2, 0);
 		priv2 := genkey(p2, q2, 1);
 		
-		message := 45;
+		message := 9;
 		ciphertext := modPow(message, pub2, n2);
 		message2 := modPow(ciphertext, priv2, n2);
 		
 		Print_int(message2);
 		
-		message := 61;
+		message := 4;
 		ciphertext := modPow(message, pub1, n1);
 		message2 := modPow(ciphertext, priv1, n1);
 		

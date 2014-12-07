@@ -56,4 +56,24 @@ public class RegisterAndVariableDetectionFactory {
 		}
 		return regmap;
 	}
+	
+	public static HashMap<String, HashMap<String, Integer>> getFunctionArraySizes(List<String> IRList) {
+		HashMap<String, HashMap<String, Integer>> funcmap = new HashMap<String, HashMap<String, Integer>>();
+		String currFunc = null;
+		for(String s : IRList) {
+			if(Pattern.matches("FUNC_.*:", s)) {
+				currFunc = s.substring(0, s.length() - 1);
+				funcmap.put(currFunc, new HashMap<String, Integer>());
+			} else {
+				String[] parts = s.split(", ");
+				if(parts.length == 4 && "assign".equals(parts[0])) {
+					HashMap<String, Integer> arrmap = funcmap.get(currFunc);
+					if(!arrmap.containsKey(parts[1])) {
+						arrmap.put(parts[1], Integer.parseInt(parts[2]));
+					}
+				}
+			}
+		}
+		return funcmap;
+	}
 }
