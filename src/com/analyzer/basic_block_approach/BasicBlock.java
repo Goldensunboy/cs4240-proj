@@ -16,7 +16,7 @@ import com.analyzer.basic_block_approach.ebb.EBB;
  */
 public class BasicBlock {
 	private List<InstructionDetail> instructionDetails;
-	private List<BasicBlock> predecessors, successors;
+	private Set<BasicBlock> predecessors, successors;
 	private BasicBlock nextBasicBlock, previousBasicBlock;
 	private Map<String, Integer> intVariableOccurances, floatVariableOccurances;
 	private Set<String> returnVariableSet;
@@ -29,13 +29,17 @@ public class BasicBlock {
 	
 	public BasicBlock() {
 		instructionDetails = new ArrayList<>();
-		predecessors = new ArrayList<>();
-		successors = new ArrayList<>();
+		predecessors = new HashSet<>();
+		successors = new HashSet<>();
 		intVariableOccurances = new Hashtable<>();
 		floatVariableOccurances = new Hashtable<>();
 		returnVariableSet = new HashSet<>();
 		overallBlockId++;
 		blockId = overallBlockId;
+	}
+	
+	public boolean hasEnclosingEBB() {
+		return enclosingEBB != null;
 	}
 	
 	public void setEnclosingEBB(EBB enclosingEBB) {
@@ -106,19 +110,19 @@ public class BasicBlock {
 		successors.add(successor);
 	}
 	
-	public List<BasicBlock> getPredecessors() {
+	public Set<BasicBlock> getPredecessors() {
 		return predecessors;
 	}
 
-	public void setPredecessors(List<BasicBlock> predecessors) {
+	public void setPredecessors(Set<BasicBlock> predecessors) {
 		this.predecessors = predecessors;
 	}
 
-	public List<BasicBlock> getSuccessors() {
+	public Set<BasicBlock> getSuccessors() {
 		return successors;
 	}
 
-	public void setsuccessors(List<BasicBlock> successors) {
+	public void setsuccessors(Set<BasicBlock> successors) {
 		this.successors = successors;
 	}
 

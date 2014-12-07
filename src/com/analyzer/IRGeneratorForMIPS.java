@@ -98,7 +98,9 @@ public class IRGeneratorForMIPS {
 		 * naive allocation to turn off loads and store if necessary
 		 */
 		for(InstructionDetail instructionDetail : instructionDetails) {
+//			System.out.println(generateStore );
 			if(generateStore && instructionDetail.isAnyOfInstructions(RETURN, CALL, CALLR)) {
+//				System.out.println("caught return here");
 				//if we see the above instructions we have to store
 				annotatedIR.addAll(getLoadStoreRegisters(variablesRegisterMap, STORE));
 				annotatedIR.add(instructionDetail.getOriginalInstruction());
@@ -115,7 +117,7 @@ public class IRGeneratorForMIPS {
 				if(lhs == null) {
 					variablesNeedStore = null;
 				}
-				
+//				System.out.println(instructionDetail);
 				Map<String, String> temporaryVariablesRegisterMap = registerFactory.createTemporaryRegisterMap(variablesNeedLoad, variablesNeedStore);  
 				
 				annotatedIR.addAll(getTemporaryLoadStoreRegisters(variablesNeedLoad, temporaryVariablesRegisterMap, LOAD));
