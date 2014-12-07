@@ -205,9 +205,11 @@ import com.exception.NameSpaceConflictException;
   }
   
   String varToString(String varName, int scopeId, TypeAttribute ta) {
+//    return varName + (ta == null ? "" :
+//      "$" + scopeId + "\%" + (ta.getType() == Type.INT ? "i" :
+//                             (ta.getType() == Type.FIXPT ? "f" : "a" + ta.getTypeOfArray())));
     return varName + (ta == null ? "" :
-      "$" + scopeId + "\%" + (ta.getType() == Type.INT ? "i" :
-                             (ta.getType() == Type.FIXPT ? "f" : "a")));
+      "$" + scopeId + ta.getType().getSuffix() + (ta.getType() == Type.ARRAY ? ta.getTypeOfArray().getNoPercentSuffix() : ""));
   }
   
   public SymbolTableManager getSymbolTableManager() {

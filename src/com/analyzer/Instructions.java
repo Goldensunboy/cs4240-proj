@@ -23,6 +23,7 @@ public enum Instructions {
 	CALLR ("callr", 1, 3, 6, 2),
 	ARRAY_STORE ("array_store", -1, -1, -1, -1), // NIY
 	ARRAY_LOAD ("array_load", -1, -1, -1, -1), // NIY
+	ARRAY_ASSIGN ("array_assign", 1, 3, 4, -1),
 	// Array Store??? why is it assign??? why Santosh!!! 
 	LABEL("label", -1, -1, -1, 0),
 	FUNC("func", -1, -1, -1, 0),

@@ -27,6 +27,19 @@ public class InstructionDetail {
 		if(instructionName.matches("^FUNC.*")) {			
 			instructionName = Instructions.FUNC.getName();
 		}
+		
+		// array assign case, ugh!
+		if(instructionName.matches("assign")) {
+			if(splitedInstruction.length > 3) {
+				instructionName = "array_assign";
+				originalInstruction =instructionName;
+				for (int i=1; i< splitedInstruction.length; i++) {
+					originalInstruction += ", " + splitedInstruction[i];
+				}
+				originalInstruction += ", " + splitedInstruction[1];
+			}
+		}
+		
 		this.instruction = Instructions.valueOf(instructionName.toUpperCase());
 		lhsIndex = instruction.getLhsIndex();
 		rhsStartIndex = instruction.getRhsStartIndex();
