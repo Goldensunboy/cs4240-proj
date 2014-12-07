@@ -139,8 +139,8 @@ public class IRGeneratorForMIPS {
 				if(lhs == null) {
 					variablesNeedStore = null;
 				}
+
 				Map<String, String> temporaryVariablesRegisterMap = registerFactory.createTemporaryRegisterMap(variablesNeedLoad, variablesNeedStore);  
-				
 				annotatedIR.addAll(getTemporaryLoadStoreRegisters(variablesNeedLoad, temporaryVariablesRegisterMap, LOAD));
 				
 				if(instructionDetail.isAnyOfInstructions(ARRAY_ASSIGN, ARRAY_LOAD, ARRAY_STORE)) {
@@ -150,18 +150,24 @@ public class IRGeneratorForMIPS {
 					 *  to be loaded. Therefore, the variablesNeedStore are the ones needed to be loaded.
 					 */
 					
-					// See if the type of the array is fixedpt
+					// See if the type of the array is fixedpt (only applicable to array_store and array_assign)
 					String[] variablesNeedPromotion = null;
-					if(instructionDetail.getLHS().matches(".*"+Type.ARRAY.getSuffix() + Type.FIXPT.getNoPercentSuffix())) {
-						if(InstructionUtility.isIntIsh(instructionDetail.getRHS()[0])) {
-							variablesNeedPromotion = new String[]{instructionDetail.getRHS()[0]};
+					String arrayName = instructionDetail.getArrayName();
+					boolean isFloatArray = arrayName.matches(".*"+Type.ARRAY.getSuffix() + Type.FIXPT.getNoPercentSuffix());
+					if(isFloatArray && instructionDetail.isAnyOfInstructions(ARRAY_STORE, ARRAY_ASSIGN)) {
+						String variableOrLiteralForPermotion = instructionDetail.getVariableOrLiteralForPermotion();
+						if(InstructionUtility.isIntIsh(variableOrLiteralForPermotion)) {
+							variablesNeedPromotion = new String[]{variableOrLiteralForPermotion};
 						}
 					}
+					
 					String[] fakeLHS = {"fakeLHSToForcePromotionOfInt%f"};
 					Map<String, String> registersToPromote = registerFactory.getRegistersToPromotion(variablesNeedPromotion, fakeLHS, temporaryVariablesRegisterMap);
 					Map<String, String> promotedRegisters = registerFactory.getPromotedRegisters(registersToPromote);
 					annotatedIR.addAll(registerFactory.getPromotions(registersToPromote, promotedRegisters));
-					annotatedIR.addAll(getTemporaryLoadStoreRegisters(variablesNeedStore, temporaryVariablesRegisterMap, LOAD));
+					if(instructionDetail.isAnyOfInstructions(ARRAY_LOAD, ARRAY_STORE)) {
+						annotatedIR.addAll(getTemporaryLoadStoreRegisters(new String[]{instructionDetail.getArrayName()}, temporaryVariablesRegisterMap, LOAD));
+					}
 					annotatedIR.add(manageRegisters(instructionDetail, variablesRegisterMap, temporaryVariablesRegisterMap, promotedRegisters));
 
 				} else {

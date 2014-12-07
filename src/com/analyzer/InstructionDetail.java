@@ -41,15 +41,22 @@ public class InstructionDetail {
 		
 		this.instruction = Instructions.valueOf(instructionName.toUpperCase());
 		
-		if(isAnyOfInstructions(ARRAY_ASSIGN, ARRAY_STORE)) {
-			originalInstruction += ", " + splitedInstruction[1];
-		} else if(isAnyOfInstructions(ARRAY_LOAD)) {
-			originalInstruction += ", " + splitedInstruction[2];
+		if(isAnyOfInstructions(ARRAY_ASSIGN, ARRAY_STORE, ARRAY_LOAD)) {
+			originalInstruction += ", " + splitedInstruction[instruction.getArrayNameIndex()];
 		}
+		
 		lhsIndex = instruction.getLhsIndex();
 		rhsStartIndex = instruction.getRhsStartIndex();
 		rhsEndIndex = instruction.getRhsEndIndex();
 		labelIndex = instruction.getLabelIndex();
+	}
+	
+	public String getArrayName() {
+		return splitedInstruction[instruction.getArrayNameIndex()];
+	}
+	
+	public String getVariableOrLiteralForPermotion() {
+		return splitedInstruction[3];
 	}
 	
 	public boolean isBranchOrGoto() {

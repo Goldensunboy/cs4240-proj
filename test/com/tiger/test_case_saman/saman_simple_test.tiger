@@ -3,8 +3,7 @@ begin
 	begin
 		type ArrayInt = array [100] of int;
 		var a : ArrayInt := 9;
-		var b : int :=1;
-		b:=3;
+		a[0] := 5;
 	end;
 end;
 
