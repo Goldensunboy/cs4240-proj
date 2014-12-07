@@ -291,28 +291,16 @@ public class StackFrame {
 		}
 		throw new BadDeveloperException("Variable is not in the stack");
 	}
-	
+
+	public static boolean isOnStack(String variableName){
+		if(stackFrame == null){
+			stackFrame = new StackFrame();
+		}
+		for(int i = 0; i <stackFrame.stack.size(); i++){
+			if(stackFrame.stack.get(i).getVariableName().equals(variableName)){
+				return true;
+			}
+		}
+		return false;
+	}
 }
-
-//	Local Variables
-//	Saved Registers
-//	Frame Pointer
-//	RA
-//	Arguments in reverse order
-//	private StackArgument[] argumentsToCurrentFunction;		//Parameters that were passed into the current function but not in registers
-//	private StackArgument[] returnAddress;
-//	private StackArgument[] oldFramePointer;
-//	private StackArgument[] calleeSavedRegisters;			//Saved when function is first called
-//	private StackArgument[] localVariables;
-//	private StackArgument[] callerSavedRegisters;			//Saved before calling new function
-//	private StackArgument[] argumentsToNextFunction;		//Parameters that are being passed into another function we are calling
-
-//	private int stackPointer = -1;
-//	private int framePointer = -1;
-
-//	private int argumentsToCurrentFunctionIndex = -1;
-//	private int returnAddressIndex = -1;
-//	private int calleeSavedRegistersIndex = -1;
-//	private int localVariablesIndex = -1;
-//	private int callerSavedRegistersIndex = -1;
-//	private int argumentsToNextFunctionIndex = -1;

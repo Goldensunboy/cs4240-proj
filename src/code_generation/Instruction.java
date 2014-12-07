@@ -152,7 +152,7 @@ public class Instruction {
 				break;
 			case "mtc1":
 			case "cvt.s.w":
-				MIPSInstruction = IRInstruction;
+				MIPSInstruction = IRInstruction.replaceFirst(",","");
 				break;
 			default:
 				MIPSInstruction += MIPSInstruction;
@@ -247,26 +247,30 @@ public class Instruction {
 		} else if (type == InstructionType.FLOAT){
 			switch(operation) {
 			case "breq":
-				MIPSInstruction += "c.eq.s ";
-				break;
-			case "brneq":
-				MIPSInstruction += "c.ne.s ";
-				break;
-			case "brlt":
-				MIPSInstruction += "c.lt.s ";
-				break;
-			case "brgt":
-				MIPSInstruction += "c.negt.s ";
-				break;
-			case "brgeq":
-				MIPSInstruction += "c.ge.s ";
+				MIPSInstruction += "c.eq.s "+instructionParts[1]+ ", "+ instructionParts[2];
+				MIPSInstruction += "\nbc1t "+ instructionParts[3];
 				break;
 			case "brleq":
-				MIPSInstruction += "c.le.s ";
+				MIPSInstruction += "c.le.s "+instructionParts[1]+ ", "+ instructionParts[2];
+				MIPSInstruction += "\nbc1t "+ instructionParts[3];
+				break;
+			case "brlt":
+				MIPSInstruction += "c.lt.s "+instructionParts[1]+ ", "+ instructionParts[2];
+				MIPSInstruction += "\nbc1t "+ instructionParts[3];
+				break;
+			case "brgt":
+				MIPSInstruction += "c.le.s "+instructionParts[1]+ ", "+ instructionParts[2];
+				MIPSInstruction += "\nbc1f "+ instructionParts[3];
+				break;
+			case "brgeq":
+				MIPSInstruction += "c.lt.s "+instructionParts[1]+ ", "+ instructionParts[2];
+				MIPSInstruction += "\nbc1f "+ instructionParts[3];
+				break;
+			case "brneq":
+				MIPSInstruction += "c.eq.s "+instructionParts[1]+ ", "+ instructionParts[2];
+				MIPSInstruction += "\nbc1f "+ instructionParts[3];
 				break;
 			}
-			MIPSInstruction +=  " "+instructionParts[1]+ ", "+ instructionParts[2];
-			MIPSInstruction += "\nbc1t "+ instructionParts[3];
 			return MIPSInstruction;
 		}
 		throw new BadDeveloperException("Can only preform operation on all int registers or all float registers");
@@ -338,12 +342,6 @@ public class Instruction {
 		for(String register: usedRegisters){
 			MIPSInstruction += "\n"+StackFrame.generateStore(register,register, Register.getRegisterType(register)==RegisterType.INT);
 		}
-//		for(int i = 0; i < 7; i++){
-//			MIPSInstruction += "\n"+StackFrame.generateStore("$s"+i,"$s"+i, true);
-//		}
-//		for(int i = 16; i < 31; i++){
-//			MIPSInstruction += "\n"+StackFrame.generateStore("$f"+i,"$f"+i, false);
-//		}
 		MIPSInstruction += "\n"+StackFrame.generateStore("$fp","$fp", true);
 		MIPSInstruction += "\n"+StackFrame.generateStore("$ra","$ra", true);
 		return MIPSInstruction;
@@ -362,12 +360,6 @@ public class Instruction {
 		for(String register: usedRegisters){
 			MIPSInstruction += "\n"+StackFrame.generateLoad(register,register, Register.getRegisterType(register)==RegisterType.INT);
 		}
-//		for(int i = 0; i < 7; i++){
-//			MIPSInstruction += "\n"+StackFrame.generateLoad("$s"+i,"$s"+i, true);
-//		}
-//		for(int i = 16; i < 31; i++){
-//			MIPSInstruction += "\n"+StackFrame.generateLoad("$f"+i,"$f"+i, false);
-//		}
 		MIPSInstruction += "\n"+StackFrame.exitCurrentFrame();
 		MIPSInstruction += "\njr $ra";
 		
@@ -376,7 +368,6 @@ public class Instruction {
 	
 	private String callFunction(String functionName, ArrayList<String> localParameters, SymbolTableManager symbolTableManager,
 			HashMap<String, List<String>> functionVariables, HashMap<String, List<String>> functionRegisters){
-//		functionName = (functionName.equals("FUNC_main"))? "main":functionName;
 		
 		String MIPSInstruction = StackFrame.callingFunctionBegin(functionName,symbolTableManager,functionVariables,functionRegisters);
 		
@@ -384,49 +375,18 @@ public class Instruction {
 		for(String register: usedRegisters){
 			MIPSInstruction += "\n"+StackFrame.generateStore(register,register, Register.getRegisterType(register)==RegisterType.INT);
 		}
-//		for(int i = 0; i < 8; i++){
-//			MIPSInstruction += "\n"+StackFrame.generateStore("$t"+i,"$t"+i, true);
-//		}
-//		for(int i = 4; i < 12; i++){
-//			MIPSInstruction += "\n"+StackFrame.generateStore("$f"+i,"$f"+i, false);
-//		}
 		List<String> actualParameters = IRParser.getFuncParams(functionName,symbolTableManager);
 		if(actualParameters.size()!=localParameters.size())
 			throw new BadDeveloperException("Calling function incorrectly");
 		for(int i = 0; i<actualParameters.size(); i++){
 			if(IRParser.getVariableType(actualParameters.get(i))==RegisterType.INT){
-				if(localParameters.get(i).matches("[0-9]+")){
-					MIPSInstruction += "\nli $a0, "+localParameters.get(i);
-					MIPSInstruction += "\n"+StackFrame.generateStore(IRParser.getVariableName(actualParameters.get(i))+"_param","$a0", true);
-					
-				} else if(StackFrame.getVariableType(IRParser.getVariableName(localParameters.get(i)))==RegisterType.INT){
-					MIPSInstruction += "\n"+StackFrame.generateLoad(IRParser.getVariableName(localParameters.get(i)),"$a0", true);
-					MIPSInstruction += "\n"+StackFrame.generateStore(IRParser.getVariableName(actualParameters.get(i))+"_param","$a0", true);
-				} else{
-					throw new InvalidTypeException("Can only pass ints for int parameters");
-				}
-				//get from stack, check if need to convert
+				MIPSInstruction += "\n"+putIntoRegister(localParameters.get(i),"$a0",null);
+				MIPSInstruction += "\n"+StackFrame.generateStore(IRParser.getVariableName(actualParameters.get(i))+"_param","$a0", true);
+
 			} else if (IRParser.getVariableType(actualParameters.get(i))==RegisterType.FLOAT){
-				if(localParameters.get(i).matches("[0-9]+")){
-					MIPSInstruction += "\nli $a0, "+localParameters.get(i);
-					MIPSInstruction += "\nmtc1 $a0, $f12\ncvt.s.w $f12, $f12";
-					MIPSInstruction += "\n"+StackFrame.generateStore(IRParser.getVariableName(actualParameters.get(i))+"_param","$f12", false);
-					
-				} else if (localParameters.get(i).matches("[0-9]+\\.[0-9]+")){
-					MIPSInstruction += "\nli.s $f0, "+localParameters.get(i);
-					MIPSInstruction += "\n"+StackFrame.generateStore(IRParser.getVariableName(actualParameters.get(i))+"_param","$f12", false);
-					
-				} else if(StackFrame.getVariableType(IRParser.getVariableName(localParameters.get(i)))==RegisterType.INT){
-					MIPSInstruction += "\n"+StackFrame.generateLoad(IRParser.getVariableName(localParameters.get(i)),"$a0", true);
-					MIPSInstruction += "\nmtc1 $a0, $f12\ncvt.s.w $f12, $f12";
-					MIPSInstruction += "\n"+StackFrame.generateStore(IRParser.getVariableName(actualParameters.get(i))+"_param","$f12", false);
-					
-				} else if (StackFrame.getVariableType(IRParser.getVariableName(localParameters.get(i)))==RegisterType.FLOAT){
-					MIPSInstruction += "\n"+StackFrame.generateLoad(IRParser.getVariableName(localParameters.get(i)),"$f12", false);
-					MIPSInstruction += "\n"+StackFrame.generateStore(IRParser.getVariableName(actualParameters.get(i))+"_param","$f12", false);
-				} else {
-					throw new InvalidTypeException("Can only pass ints and floats for float parameters");
-				}
+				MIPSInstruction += "\n"+putIntoRegister(localParameters.get(i),"$f12","$a0");
+				MIPSInstruction += "\n"+StackFrame.generateStore(IRParser.getVariableName(actualParameters.get(i))+"_param","$f12", false);
+				
 			} else {
 				throw new InvalidTypeException("Types can only be int or float. Arrays have not been implmented yet");
 			}
@@ -435,12 +395,6 @@ public class Instruction {
 		for(String register: usedRegisters){
 			MIPSInstruction += "\n"+StackFrame.generateLoad(register,register, Register.getRegisterType(register)==RegisterType.INT);
 		}
-//		for(int i = 0; i < 8; i++){
-//			MIPSInstruction += "\n"+StackFrame.generateLoad("$t"+i,"$t"+i, true);
-//		}
-//		for(int i = 4; i < 12; i++){
-//			MIPSInstruction += "\n"+StackFrame.generateLoad("$f"+i,"$f"+i, false);
-//		}
 		MIPSInstruction += "\n"+StackFrame.callingFunctionEnd(functionName);
 		return MIPSInstruction;
 	}
@@ -454,7 +408,7 @@ public class Instruction {
 				MIPSInstruction += StackFrame.generateStore(IRParser.getVariableName(returnVariable),"$v0", true);
 				
 			} else if (IRParser.getVariableType(returnVariable) == RegisterType.FLOAT){
-				MIPSInstruction += "mtc1 $v0, $f0\ncvt.s.w $f0, $f0";
+				MIPSInstruction += "\n"+putIntoRegister("$v0","$f0",null);
 				MIPSInstruction += "\n"+StackFrame.generateStore(IRParser.getVariableName(returnVariable),"$f0", false);
 				
 			} else
@@ -492,27 +446,16 @@ public class Instruction {
 			case "FUNC_Print_int":
 				if(IRParser.getVariableType(instructionParts[2])==RegisterType.INT){
 					MIPSInstruction += "li $v0, 1";
-					MIPSInstruction += "\n"+StackFrame.generateLoad(IRParser.getVariableName(instructionParts[2]),"$a0", true);
+					MIPSInstruction += putIntoRegister(instructionParts[2],"$a0",null);
 					MIPSInstruction += "\nsyscall";
 					
 				} else
 					throw new InvalidInvocationException();				
 				break;
 			case "FUNC_Print_float":
-				if(IRParser.getVariableType(instructionParts[2])==RegisterType.INT){
-					MIPSInstruction += "li $v0, 2";
-					MIPSInstruction += "\n"+StackFrame.generateLoad(IRParser.getVariableName(instructionParts[2]),"$a0", true);
-					MIPSInstruction += "\nmtc1 $a0, $f12";
-					MIPSInstruction += "\ncvt.s.w $f12, $f12";				
-					MIPSInstruction += "\nsyscall";
-					
-				} else if (IRParser.getVariableType(instructionParts[2])==RegisterType.FLOAT){
-					MIPSInstruction += "li $v0, 2";
-					MIPSInstruction += "\n"+StackFrame.generateLoad(IRParser.getVariableName(instructionParts[2]),"$f12", false);
-					MIPSInstruction += "\nsyscall";
-					
-				} else
-					throw new InvalidInvocationException();
+					MIPSInstruction += "li $v0, 2\n";
+					MIPSInstruction += putIntoRegister(instructionParts[2],"$f12","$a0");			
+					MIPSInstruction += "syscall\n";
 				break;
 			default:
 				throw new UndeclaredFunctionException("Not a library function");
@@ -520,29 +463,26 @@ public class Instruction {
 			
 		} else if (instructionParts[0].equals("callr")){
 			
-			switch(instructionParts[1]){
+			switch(instructionParts[2]){
 			case "FUNC_Read_int":
-				if(IRParser.getVariableType(instructionParts[2])==RegisterType.INT){
+				if(IRParser.getVariableType(instructionParts[1])==RegisterType.INT){
 					MIPSInstruction += "li $v0, 5";
 					MIPSInstruction += "\nsyscall";
-					MIPSInstruction += "\n"+StackFrame.generateStore(IRParser.getVariableName(instructionParts[2]),"$v0", false);
+					MIPSInstruction += "\n"+StackFrame.generateStore(IRParser.getVariableName(instructionParts[1]),"$v0", true);
 					
-				} else if (IRParser.getVariableType(instructionParts[2])==RegisterType.FLOAT){
+				} else if (IRParser.getVariableType(instructionParts[1])==RegisterType.FLOAT){
 					MIPSInstruction += "li $v0, 5";
 					MIPSInstruction += "\nsyscall";
-					MIPSInstruction += "\nmtc1 $v0, $f0";
-					MIPSInstruction += "\ncvt.s.w $f0, $f0";			
-					MIPSInstruction += "\n"+StackFrame.generateStore(IRParser.getVariableName(instructionParts[2]),"$f0", false);
-					//TODO					
-					
+					MIPSInstruction += putIntoRegister("$f0","$v0",null);			
+					MIPSInstruction += "\n"+StackFrame.generateStore(IRParser.getVariableName(instructionParts[1]),"$f0", false);
 				} else
 					throw new InvalidInvocationException();
 				break;
 			case "FUNC_Read_float":
-				if(IRParser.getVariableType(instructionParts[2])==RegisterType.FLOAT){
+				if(IRParser.getVariableType(instructionParts[1])==RegisterType.FLOAT){
 					MIPSInstruction += "li $v0, 6";
 					MIPSInstruction += "\nsyscall";
-					MIPSInstruction += "\n"+StackFrame.generateStore(IRParser.getVariableName(instructionParts[2]),"$f0", false);
+					MIPSInstruction += "\n"+StackFrame.generateStore(IRParser.getVariableName(instructionParts[1]),"$f0", false);
 					
 				} else
 					throw new InvalidInvocationException();
@@ -554,6 +494,89 @@ public class Instruction {
 		if(MIPSInstruction.equals(""))
 			throw new UndeclaredFunctionException("Not a library function");
 			
+		return MIPSInstruction;
+	}
+	
+	/**
+	 * Takes in a literal, register, local variable or parameter and loads it into the requested register (registerFinal). 
+	 * If the operation requires an intermediate reigster, the register of the appropriate type should be provided in the 
+	 * reigsterIntermediate parameter.
+	 * @param argument
+	 * @param registerFinal
+	 * @param registerIntermediate
+	 * @return
+	 */
+	private static String putIntoRegister(String argument, String registerFinal, String registerIntermediate){
+		if(argument==null||registerFinal==null)
+			throw new InvalidInvocationException("Cannot call put into reigster with either a null argument or a null final register");
+		if(!(RegisterFile.isIntRegister(registerFinal)||RegisterFile.isFloatRegister(registerFinal)))
+			throw new InvalidInvocationException("The requested final register is not a register in either register file");
+		
+		String MIPSInstruction = "\n";
+		/* Argument is a literal */
+		if(argument.matches("[0-9]+")){
+			if(RegisterFile.isIntRegister(registerFinal)){							/* Int literal into int register */
+				MIPSInstruction += "li "+registerFinal+", "+argument;
+			}
+			else if(RegisterFile.isFloatRegister(registerFinal)&&registerIntermediate!=null&&RegisterFile.isIntRegister(registerIntermediate)){
+																					/* Int literal into float register */
+				MIPSInstruction += "li "+registerIntermediate+", "+argument+"\n";
+				MIPSInstruction += "mtc1 "+registerIntermediate+", "+registerFinal+"\n";
+				MIPSInstruction += "cvt.s.w "+registerFinal+", "+registerFinal+"\n";				
+			} else 
+				throw new InvalidTypeException("Cannot transfer the int literal the requested register");
+			
+		} else if(argument.matches("[0-9]+\\.[0-9]+")){
+			if(RegisterFile.isFloatRegister(registerFinal))							/* Float literal into float register */
+				MIPSInstruction += "li.s "+registerFinal+", "+argument+"\n";
+			else
+				throw new InvalidTypeException("Cannot transfer the float literal into the requested register");
+		}
+		/* Argument is a register */
+		else if(RegisterFile.isIntRegister(argument)){
+			if(RegisterFile.isIntRegister(registerFinal)){							/* Int register into int register */
+				MIPSInstruction += "move "+registerFinal+", "+argument+"\n";
+				
+			} else if(RegisterFile.isFloatRegister(registerFinal)){					/* Int register into Float register */
+				MIPSInstruction += "mtc1 "+argument+", "+registerFinal+"\n";
+				MIPSInstruction += "cvt.s.w "+registerFinal+", "+registerFinal+"\n";	
+				
+			} else
+				throw new InvalidTypeException("Cannot transfer the int register into the requested register");
+			
+		} else if(RegisterFile.isFloatRegister(argument)){
+			if(RegisterFile.isFloatRegister(registerFinal)){						/* Float register into Float register */
+				MIPSInstruction += "mov.s "+registerFinal+", "+argument+"\n";
+				
+			} else 
+				throw new InvalidTypeException("Cannot transfer the int register into the requested register");
+		}
+		/* Argument is a local variable or parameter */
+		else if(StackFrame.isOnStack(IRParser.getVariableName(argument)) && StackFrame.getVariableType(IRParser.getVariableName(argument))==RegisterType.INT
+				&& IRParser.getVariableType(argument)==RegisterType.INT){
+			if(RegisterFile.isIntRegister(registerFinal)){							/* Int variable/parameter into int register */
+				MIPSInstruction += StackFrame.generateLoad(IRParser.getVariableName(argument),registerFinal, true)+"\n";
+				
+			} else if (RegisterFile.isFloatRegister(registerFinal)&&registerIntermediate!=null&&RegisterFile.isIntRegister(registerIntermediate)){
+																					/* int variable/parameter into float register */
+				MIPSInstruction += StackFrame.generateLoad(IRParser.getVariableName(argument),registerIntermediate, true)+"\n";
+				MIPSInstruction += "mtc1 "+registerIntermediate+", "+registerFinal+"\n";
+				MIPSInstruction += "cvt.s.w "+registerFinal+", "+registerFinal+"\n";	
+				
+			} else
+				throw new InvalidTypeException("Cannot transfer the int variable into the requested register");
+				
+		} else if(StackFrame.isOnStack(IRParser.getVariableName(argument)) && StackFrame.getVariableType(IRParser.getVariableName(argument))==RegisterType.FLOAT
+				&& IRParser.getVariableType(argument)==RegisterType.FLOAT) { 
+			if(RegisterFile.isFloatRegister(registerFinal)){						/* float variable/parameter into float register */
+				MIPSInstruction += StackFrame.generateLoad(IRParser.getVariableName(argument),registerFinal, false)+"\n";
+					
+			} else
+				throw new InvalidTypeException("Cannot transfer the float variable into the requested register");
+			
+		} else 
+			throw new InvalidTypeException("The argument is neither a literal, register or a variable/parameter currently on the stack");
+		
 		return MIPSInstruction;
 	}
 	
