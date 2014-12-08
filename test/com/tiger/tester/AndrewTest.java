@@ -19,8 +19,8 @@ public class AndrewTest {
 		
 		List<String> IRList = parser.getIRCode();
 
-		boolean all_allocs = false;
-		int which_alloc = 3;
+		boolean all_allocs = true;
+		int which_alloc = 1;
 		
 		for(int j = 1; !all_allocs && j == 1 || all_allocs && j <= 3; ++j) {
 			

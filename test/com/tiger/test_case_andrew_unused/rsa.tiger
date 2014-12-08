@@ -101,10 +101,10 @@ void main()
 begin
 	begin
 		var pub1, pub2, priv1, priv2, n1, n2, message, message2, ciphertext : int := 0;
-		var p1 : int := 5;
-		var q1 : int := 11;
-		var p2 : int := 3;
-		var q2 : int := 7;
+		var p1 : int := 3;
+		var q1 : int := 7;
+		var p2 : int := 5;
+		var q2 : int := 3;
 		var t : fixedpt := 0;
 		
 		n1 := p1 * q1;

@@ -525,22 +525,22 @@ li $t7, 0
 move $t8, $t7
 
 sw $t8, -28($sp)
-li $t7, 5
-
-move $t8, $t7
-
-sw $t8, -24($sp)
-li $t7, 11
-
-move $t8, $t7
-
-sw $t8, -20($sp)
 li $t7, 3
 
 move $t8, $t7
 
-sw $t8, -16($sp)
+sw $t8, -24($sp)
 li $t7, 7
+
+move $t8, $t7
+
+sw $t8, -20($sp)
+li $t7, 5
+
+move $t8, $t7
+
+sw $t8, -16($sp)
+li $t7, 3
 
 move $t8, $t7
 
