@@ -469,7 +469,7 @@ public class Instruction {
 		if(instructionParts[0].equals("call")){
 			switch(instructionParts[1]){
 			case "FUNC_Print_int":
-				if(IRParser.getVariableType(instructionParts[2])==RegisterType.INT){
+				if(instructionParts[2].matches("[0-9]+")||IRParser.getVariableType(instructionParts[2])==RegisterType.INT){
 					MIPSInstruction += "li $v0, 1";
 					MIPSInstruction += putIntoRegister(instructionParts[2],"$a0",null);
 					MIPSInstruction += "\nsyscall";
