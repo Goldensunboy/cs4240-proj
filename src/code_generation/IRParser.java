@@ -7,6 +7,7 @@ import java.util.List;
 import code_generation.Register.RegisterType;
 
 import com.attribute.FunctionAttribute;
+import com.compiler.Type;
 import com.exception.BadIRInstructionException;
 import com.exception.InvalidInvocationException;
 import com.exception.InvalidTypeException;
@@ -84,7 +85,7 @@ public class IRParser {
 		FunctionAttribute functionAttribute = symbolTableManager.getFunctionAttribute(functionName);
 		List<String> parameters = new ArrayList<String>();
 		for(int i = 0;i<functionAttribute.getAcrualtParameters().size();i++){
-			parameters.add(i, functionAttribute.getAcrualtParameters().get(i)+"$-1"+functionAttribute.getParameterTypes().get(i).getType().getSuffix());
+			parameters.add(i, functionAttribute.getAcrualtParameters().get(i)+"$-1"+functionAttribute.getParameterTypes().get(i).getType().getSuffix() + (functionAttribute.getParameterTypes().get(i).getType() == Type.ARRAY ?  functionAttribute.getParameterTypes().get(i).getTypeOfArray().getNoPercentSuffix() : ""));
 		}
 		return parameters;
 	}
@@ -135,6 +136,10 @@ public class IRParser {
 				return RegisterType.INT;
 			else if(names[1].equals("f"))
 				return RegisterType.FLOAT;
+			else if(names[1].equals("ai"))
+				return RegisterType.INT;
+			else if(names[1].equals("af"))
+				return RegisterType.INT;
 		}
 		throw new BadIRInstructionException("Not a valid variable");
 	}

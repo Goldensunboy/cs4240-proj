@@ -18,8 +18,8 @@ public class MarissaTest {
 		for (String ir : IRList) 
 			System.out.println(ir);
 		System.out.println("=================");
-//		EBBRegisterAllocator registerAllocator = new EBBRegisterAllocator(IRList);
-		CFGRegisterAllocator registerAllocator = new CFGRegisterAllocator(IRList);
+		EBBRegisterAllocator registerAllocator = new EBBRegisterAllocator(IRList);
+//		CFGRegisterAllocator registerAllocator = new CFGRegisterAllocator(IRList);
 //		NaiveRegisterAllocator registerAllocator = new NaiveRegisterAllocator(IRList);
 		List<String> IRIR = registerAllocator.getAnnotatedIRCode();
 		for(int i = 0; i<IRIR.size(); i++)
