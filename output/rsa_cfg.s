@@ -150,48 +150,44 @@ lw $t0, -4($sp)
 lw $t1, -8($sp)
 lw $t2, 0($sp)
 lw $t3, -24($sp)
-lw $t5, -28($sp)
-lw $t4, -20($sp)
+lw $t4, -28($sp)
 li $t7, 1
 sub $t0, $t3, $t7
 sw $t0, -4($sp)
 sw $t1, -8($sp)
 sw $t2, 0($sp)
 sw $t3, -24($sp)
-sw $t5, -28($sp)
-sw $t4, -20($sp)
-addi $sp, $sp, 40
-sw $t0, -36($sp)
-sw $t1, -32($sp)
-sw $t7, -28($sp)
-sw $t2, -24($sp)
-sw $t3, -20($sp)
-sw $t5, -16($sp)
+sw $t4, -28($sp)
+addi $sp, $sp, 36
+sw $t0, -32($sp)
+sw $t1, -28($sp)
+sw $t7, -24($sp)
+sw $t2, -20($sp)
+sw $t3, -16($sp)
 sw $t4, -12($sp)
 
-lw $a0, -68($sp)
+lw $a0, -64($sp)
 
 sw $a0, -8($sp)
 
-lw $a0, -44($sp)
+lw $a0, -40($sp)
 
 sw $a0, -4($sp)
 
-lw $a0, -60($sp)
+lw $a0, -56($sp)
 
 sw $a0, 0($sp)
 jal FUNC_modPow
-lw $t0, -36($sp)
-lw $t1, -32($sp)
-lw $t7, -28($sp)
-lw $t2, -24($sp)
-lw $t3, -20($sp)
-lw $t5, -16($sp)
+lw $t0, -32($sp)
+lw $t1, -28($sp)
+lw $t7, -24($sp)
+lw $t2, -20($sp)
+lw $t3, -16($sp)
 lw $t4, -12($sp)
-addi $sp, $sp, -40
+addi $sp, $sp, -36
 sw $v0, -8($sp)
 lw $t1, -8($sp)
-mul $t2, $t5, $t1
+mul $t2, $t4, $t1
 
 move $t1, $t2
 
@@ -199,8 +195,7 @@ sw $t0, -4($sp)
 sw $t1, -8($sp)
 sw $t2, 0($sp)
 sw $t3, -24($sp)
-sw $t5, -28($sp)
-sw $t4, -20($sp)
+sw $t4, -28($sp)
 addi $sp, $sp, 24
 sw $t0, -20($sp)
 sw $t7, -16($sp)
@@ -226,8 +221,7 @@ sw $t0, -4($sp)
 sw $t1, -8($sp)
 sw $t2, 0($sp)
 sw $t3, -24($sp)
-sw $t5, -28($sp)
-sw $t4, -20($sp)
+sw $t4, -28($sp)
 lw $v0, -8($sp)
 lw $fp, -12($sp)
 lw $ra, -16($sp)
@@ -386,14 +380,12 @@ bge  $t0, $t7, LABEL_WHILE_END_1
 lw $t0, -12($sp)
 lw $t1, -4($sp)
 lw $t2, -8($sp)
-lw $t4, -28($sp)
-lw $t3, -24($sp)
-mul $t1, $t4, $t0
+lw $t3, -28($sp)
+mul $t1, $t3, $t0
 sw $t0, -12($sp)
 sw $t1, -4($sp)
 sw $t2, -8($sp)
-sw $t4, -28($sp)
-sw $t3, -24($sp)
+sw $t3, -28($sp)
 addi $sp, $sp, 24
 sw $t0, -20($sp)
 sw $t7, -16($sp)
@@ -419,8 +411,7 @@ li $t7, 1
 sw $t0, -12($sp)
 sw $t1, -4($sp)
 sw $t2, -8($sp)
-sw $t4, -28($sp)
-sw $t3, -24($sp)
+sw $t3, -28($sp)
 bne  $t2, $t7, LABEL_ELSE_BEGIN_4
 
 lw $v0, -12($sp)
@@ -518,12 +509,8 @@ li $t7, 1
 sw $t0, -32($sp)
 ble  $t0, $t7, LABEL_WHILE_END_2
 
-lw $t0, -40($sp)
-lw $t1, -44($sp)
-lw $t2, -32($sp)
-sw $t0, -40($sp)
-sw $t1, -44($sp)
-sw $t2, -32($sp)
+lw $t0, -44($sp)
+sw $t0, -44($sp)
 addi $sp, $sp, 28
 sw $t0, -24($sp)
 sw $t1, -20($sp)
@@ -546,12 +533,10 @@ lw $t7, -12($sp)
 lw $t3, -8($sp)
 addi $sp, $sp, -28
 sw $v0, -44($sp)
-lw $t1, -44($sp)
+lw $t0, -44($sp)
 li $t7, 1
-sw $t0, -40($sp)
-sw $t1, -44($sp)
-sw $t2, -32($sp)
-bne  $t1, $t7, LABEL_ELSE_BEGIN_5
+sw $t0, -44($sp)
+bne  $t0, $t7, LABEL_ELSE_BEGIN_5
 
 j LABEL_WHILE_END_2
 
@@ -608,40 +593,32 @@ LABEL_ELSE_BEGIN_7:
 LABEL_ELSE_END_7:
 
 LABEL_ELSE_END_6:
-lw $t0, -40($sp)
-lw $t1, -32($sp)
-lw $t2, -36($sp)
-sw $t0, -40($sp)
-sw $t1, -32($sp)
-sw $t2, -36($sp)
-addi $sp, $sp, 32
-sw $t0, -28($sp)
-sw $t1, -24($sp)
-sw $t7, -20($sp)
-sw $t2, -16($sp)
-sw $t4, -12($sp)
+lw $t0, -36($sp)
+sw $t0, -36($sp)
+addi $sp, $sp, 28
+sw $t0, -24($sp)
+sw $t1, -20($sp)
+sw $t7, -16($sp)
+sw $t2, -12($sp)
 sw $t3, -8($sp)
 
-lw $a0, -64($sp)
+lw $a0, -60($sp)
 
 sw $a0, -4($sp)
 
-lw $a0, -72($sp)
+lw $a0, -68($sp)
 
 sw $a0, 0($sp)
 jal FUNC_modularInverse
-lw $t0, -28($sp)
-lw $t1, -24($sp)
-lw $t7, -20($sp)
-lw $t2, -16($sp)
-lw $t4, -12($sp)
+lw $t0, -24($sp)
+lw $t1, -20($sp)
+lw $t7, -16($sp)
+lw $t2, -12($sp)
 lw $t3, -8($sp)
-addi $sp, $sp, -32
+addi $sp, $sp, -28
 sw $v0, -36($sp)
-lw $t2, -36($sp)
-sw $t0, -40($sp)
-sw $t1, -32($sp)
-sw $t2, -36($sp)
+lw $t0, -36($sp)
+sw $t0, -36($sp)
 lw $v0, -36($sp)
 lw $fp, -48($sp)
 lw $ra, -52($sp)
@@ -720,19 +697,19 @@ li $t7, 0
 
 move $t2, $t7
 
-li $t7, 5
+li $t7, 3
 
 move $t6, $t7
 
-li $t7, 11
+li $t7, 7
 
 move $t1, $t7
 
-li $t7, 3
+li $t7, 5
 
 move $s5, $t7
 
-li $t7, 7
+li $t7, 3
 
 move $t5, $t7
 
@@ -962,35 +939,33 @@ sw $s4, -48($sp)
 sw $s6, -44($sp)
 sw $s5, -40($sp)
 sw $s7, -36($sp)
-addi $sp, $sp, 40
-sw $t0, -36($sp)
-sw $t1, -32($sp)
-sw $t7, -28($sp)
-sw $t2, -24($sp)
-sw $t3, -20($sp)
-sw $t5, -16($sp)
+addi $sp, $sp, 36
+sw $t0, -32($sp)
+sw $t1, -28($sp)
+sw $t7, -24($sp)
+sw $t2, -20($sp)
+sw $t3, -16($sp)
 sw $t4, -12($sp)
 
-lw $a0, -120($sp)
+lw $a0, -116($sp)
 
 sw $a0, -8($sp)
 
-lw $a0, -92($sp)
+lw $a0, -88($sp)
 
 sw $a0, -4($sp)
 
-lw $a0, -76($sp)
+lw $a0, -72($sp)
 
 sw $a0, 0($sp)
 jal FUNC_modPow
-lw $t0, -36($sp)
-lw $t1, -32($sp)
-lw $t7, -28($sp)
-lw $t2, -24($sp)
-lw $t3, -20($sp)
-lw $t5, -16($sp)
+lw $t0, -32($sp)
+lw $t1, -28($sp)
+lw $t7, -24($sp)
+lw $t2, -20($sp)
+lw $t3, -16($sp)
 lw $t4, -12($sp)
-addi $sp, $sp, -40
+addi $sp, $sp, -36
 sw $v0, -44($sp)
 lw $s6, -44($sp)
 sw $t0, -96($sp)
@@ -1009,35 +984,33 @@ sw $s4, -48($sp)
 sw $s6, -44($sp)
 sw $s5, -40($sp)
 sw $s7, -36($sp)
-addi $sp, $sp, 40
-sw $t0, -36($sp)
-sw $t1, -32($sp)
-sw $t7, -28($sp)
-sw $t2, -24($sp)
-sw $t3, -20($sp)
-sw $t5, -16($sp)
+addi $sp, $sp, 36
+sw $t0, -32($sp)
+sw $t1, -28($sp)
+sw $t7, -24($sp)
+sw $t2, -20($sp)
+sw $t3, -16($sp)
 sw $t4, -12($sp)
 
-lw $a0, -84($sp)
+lw $a0, -80($sp)
 
 sw $a0, -8($sp)
 
-lw $a0, -96($sp)
+lw $a0, -92($sp)
 
 sw $a0, -4($sp)
 
-lw $a0, -76($sp)
+lw $a0, -72($sp)
 
 sw $a0, 0($sp)
 jal FUNC_modPow
-lw $t0, -36($sp)
-lw $t1, -32($sp)
-lw $t7, -28($sp)
-lw $t2, -24($sp)
-lw $t3, -20($sp)
-lw $t5, -16($sp)
+lw $t0, -32($sp)
+lw $t1, -28($sp)
+lw $t7, -24($sp)
+lw $t2, -20($sp)
+lw $t3, -16($sp)
 lw $t4, -12($sp)
-addi $sp, $sp, -40
+addi $sp, $sp, -36
 sw $v0, -96($sp)
 lw $t0, -96($sp)
 sw $t0, -96($sp)
@@ -1080,35 +1053,33 @@ sw $s4, -48($sp)
 sw $s6, -44($sp)
 sw $s5, -40($sp)
 sw $s7, -36($sp)
-addi $sp, $sp, 40
-sw $t0, -36($sp)
-sw $t1, -32($sp)
-sw $t7, -28($sp)
-sw $t2, -24($sp)
-sw $t3, -20($sp)
-sw $t5, -16($sp)
+addi $sp, $sp, 36
+sw $t0, -32($sp)
+sw $t1, -28($sp)
+sw $t7, -24($sp)
+sw $t2, -20($sp)
+sw $t3, -16($sp)
 sw $t4, -12($sp)
 
-lw $a0, -120($sp)
+lw $a0, -116($sp)
 
 sw $a0, -8($sp)
 
-lw $a0, -128($sp)
+lw $a0, -124($sp)
 
 sw $a0, -4($sp)
 
-lw $a0, -100($sp)
+lw $a0, -96($sp)
 
 sw $a0, 0($sp)
 jal FUNC_modPow
-lw $t0, -36($sp)
-lw $t1, -32($sp)
-lw $t7, -28($sp)
-lw $t2, -24($sp)
-lw $t3, -20($sp)
-lw $t5, -16($sp)
+lw $t0, -32($sp)
+lw $t1, -28($sp)
+lw $t7, -24($sp)
+lw $t2, -20($sp)
+lw $t3, -16($sp)
 lw $t4, -12($sp)
-addi $sp, $sp, -40
+addi $sp, $sp, -36
 sw $v0, -44($sp)
 lw $s6, -44($sp)
 sw $t0, -96($sp)
@@ -1127,35 +1098,33 @@ sw $s4, -48($sp)
 sw $s6, -44($sp)
 sw $s5, -40($sp)
 sw $s7, -36($sp)
-addi $sp, $sp, 40
-sw $t0, -36($sp)
-sw $t1, -32($sp)
-sw $t7, -28($sp)
-sw $t2, -24($sp)
-sw $t3, -20($sp)
-sw $t5, -16($sp)
+addi $sp, $sp, 36
+sw $t0, -32($sp)
+sw $t1, -28($sp)
+sw $t7, -24($sp)
+sw $t2, -20($sp)
+sw $t3, -16($sp)
 sw $t4, -12($sp)
 
-lw $a0, -84($sp)
+lw $a0, -80($sp)
 
 sw $a0, -8($sp)
 
-lw $a0, -124($sp)
+lw $a0, -120($sp)
 
 sw $a0, -4($sp)
 
-lw $a0, -100($sp)
+lw $a0, -96($sp)
 
 sw $a0, 0($sp)
 jal FUNC_modPow
-lw $t0, -36($sp)
-lw $t1, -32($sp)
-lw $t7, -28($sp)
-lw $t2, -24($sp)
-lw $t3, -20($sp)
-lw $t5, -16($sp)
+lw $t0, -32($sp)
+lw $t1, -28($sp)
+lw $t7, -24($sp)
+lw $t2, -20($sp)
+lw $t3, -16($sp)
 lw $t4, -12($sp)
-addi $sp, $sp, -40
+addi $sp, $sp, -36
 sw $v0, -96($sp)
 lw $t0, -96($sp)
 sw $t0, -96($sp)

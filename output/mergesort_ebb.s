@@ -651,4 +651,4 @@ lw $t2, -8($sp)
 lw $t3, 0($sp)
 bgt  $t2, $t1, LABEL_FOR_END_2
 
-li $t7, arr
+li $t7, nums
