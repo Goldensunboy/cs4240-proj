@@ -129,6 +129,11 @@ public class RegisterFactory {
 				registersToPromote.remove(rhsVariables[0]);
 			}
 			return registersToPromote;
+		} else if(rhsVariables[0].matches(".*%af")) {
+			if(registersToPromote.size()>0){
+				registersToPromote.remove(rhsVariables[1]);
+			}
+			return registersToPromote;
 		}
 		
 		for(String rhsVariable : rhsVariables) {
