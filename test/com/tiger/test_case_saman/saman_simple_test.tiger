@@ -1,12 +1,11 @@
 void main()
 begin
 	begin
-		type ArrayF = array [100] of fixedpt;
-		var arr : ArrayF := 10;
-		var a : int := 666;
-		var b : fixedpt := 1;
-		arr[0] := b;
-		b := arr[0];
+		var x,y : int := 0;
+		y := 9;
+		for i := x to y do
+			x := 1;
+		enddo;
 	end;
 end;
 
