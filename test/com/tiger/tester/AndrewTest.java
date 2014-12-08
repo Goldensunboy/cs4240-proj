@@ -18,11 +18,12 @@ public class AndrewTest {
 	public static void test(TigerParser parser, String filename) {
 		
 		List<String> IRList = parser.getIRCode();
-		
+
 		boolean all_allocs = false;
-		int which_alloc = 1;
+		int which_alloc = 3;
 		
 		for(int j = 1; !all_allocs && j == 1 || all_allocs && j <= 3; ++j) {
+			
 			// Get IR code
 			RegisterAllocator registerAllocator;
 			String alloc = "naive";

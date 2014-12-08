@@ -1,0 +1,25 @@
+int function mod(u : int, v : int, k :fixedpt)
+begin
+	begin
+		var t : int := 0;
+		t := t - t;
+		return t;
+	end;
+end;
+
+
+void main()
+begin
+	begin
+		var myVar : int := 3;
+		var something, anotherthing : int := 4;
+		myVar := mod (3,something*anotherthing,4.0);
+		/*while myVar = 7 do
+			myVar := 10;
+		enddo;*/
+		if myVar = 9 then
+			myVar :=10;
+		endif;
+		/*Print_int(myVar);*/
+	end;
+end;

@@ -145,6 +145,7 @@ public class Instruction {
 					MIPSInstruction += instruction.callLibraryFunction(instructionParts);
 				else {
 					MIPSInstruction += instruction.callFunction(instructionParts[2],parameters, symbolTableManager,functionVariables,functionRegisters);
+					System.out.println(Arrays.toString(instructionParts));
 					MIPSInstruction += "\n"+instruction.getReturnValue(instructionParts[2],instructionParts[1], symbolTableManager);
 				}
 				break;
