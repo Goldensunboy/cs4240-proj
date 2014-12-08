@@ -3,10 +3,10 @@ begin
 	begin
 		type ArrayF = array [100] of fixedpt;
 		var arr : ArrayF := 10;
-		var x : fixedpt := 88.8;
-		arr[4] := 999.1;
-		x := arr[4];
-		Print_float(x);
+		var a : int := 666;
+		var b : fixedpt := 1;
+		arr[0] := b;
+		b := arr[0];
 	end;
 end;
 
