@@ -116,6 +116,20 @@ public class RegisterFactory {
 				registersToPromote.put(variableName, registerName);
 			}
 		}			
+
+		if(lhsVariables == null) {
+			return new Hashtable<>();
+		}
+		
+		/*
+		 * TODO this deals with promotions for arrays 
+		 */
+		if(lhsVariables[0].matches(".*%af")) {
+			if(registersToPromote.size()>1){
+				registersToPromote.remove(rhsVariables[0]);
+			}
+			return registersToPromote;
+		}
 		
 		for(String rhsVariable : rhsVariables) {
 			if(!registersToPromote.containsKey(rhsVariable)) {				
@@ -123,9 +137,6 @@ public class RegisterFactory {
 			}
 		}
 
-		if(lhsVariables == null) {
-			return new Hashtable<>();
-		}
 		if(isFloatIsh(lhsVariables[0])) {
 			return registersToPromote;
 		}
@@ -173,11 +184,10 @@ public class RegisterFactory {
 	}
 
 	private String getNextAvailableRegister(String variableName) {
-		boolean isInt = variableName.split("%")[1].equals("i");
-		if(isInt) {
-			return AVAILABLE_INT_REGISTERS[availableIntRegisterIndex++];
+		if(InstructionUtility.isFloatIsh(variableName)) {
+			return AVAILABLE_FLOAT_REGISTERS[availableFloatRegisterIndex++];
 		}
-		return AVAILABLE_FLOAT_REGISTERS[availableFloatRegisterIndex++];
+		return AVAILABLE_INT_REGISTERS[availableIntRegisterIndex++];
 	}
 	
 	public void resetAvailableTemporaryRegisterIndex() {

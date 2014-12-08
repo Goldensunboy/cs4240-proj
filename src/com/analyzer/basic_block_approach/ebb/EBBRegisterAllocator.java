@@ -21,7 +21,6 @@ public class EBBRegisterAllocator implements RegisterAllocator{
 
 	@Override
 	public List<String> getAnnotatedIRCode() {
-		System.out.println("started");
 		List<String> annotateIR = new ArrayList<>();
 		boolean generateLoad = false;
 		boolean generateStore = false;

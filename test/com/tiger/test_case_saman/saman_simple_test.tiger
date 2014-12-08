@@ -1,9 +1,11 @@
 void main() 
 begin
 	begin
-		type ArrayInt = array [100] of int;
+		type ArrayInt = array [100] of fixedpt;
 		var a : ArrayInt := 9;
-		a[0] := 5;
+		var b : fixedpt := 5;
+		a[0] := b;
+		b := a[2];
 	end;
 end;
 

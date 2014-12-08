@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.analyzer.InstructionDetail;
+import com.analyzer.InstructionUtility;
 import com.analyzer.Instructions;
 import com.analyzer.basic_block_approach.ebb.EBB;
 /**
@@ -205,12 +206,10 @@ public class BasicBlock {
 	
 	private Map<String, Integer> whichVariableOccuranceMap(String variableName) {
 
-		boolean isInt = variableName.split("%")[1].equals("i");
-		if(isInt) {
-			return intVariableOccurances;
-		} 
-		
-		return floatVariableOccurances;
+		if(InstructionUtility.isFloatIsh(variableName)) {
+			return floatVariableOccurances;
+		} 		
+		return intVariableOccurances;
 	}
 
 	private boolean isVariable(String variableName) {
