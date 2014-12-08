@@ -7,9 +7,10 @@ begin
 		var arrF : ArrayF := 22.2;
 		var i : int := 33;
 		var i1,i2,i3,i4,i5 : int := 0;
+		var f1,f2,f3,f4,f5 : fixedpt := 0;
 		var f : fixedpt := 44.4;
 		
-		var delimiter := 88888;
+		var delimiter : int := 9999;
 		
 		arrI[1] := 55;
 		arrI[2] := i;
@@ -30,6 +31,29 @@ begin
 		f4 := arrF[3];
 		i4 := 7;
 		f5 := arrF[i4];
+
+
+		Print_int(i1);
+		Print_int(delimiter);
+		Print_int(i2);
+		Print_int(delimiter);
+		Print_int(i3);
+		Print_int(delimiter);
+		Print_int(i4);
+		Print_int(delimiter);
+		Print_int(i5);
+		Print_int(delimiter);
 		
+		Print_float(f1);
+		Print_int(delimiter);
+		Print_float(f2);
+		Print_int(delimiter);
+		Print_float(f3);
+		Print_int(delimiter);
+		Print_float(f4);
+		Print_int(delimiter);
+		Print_float(f5);
+		Print_int(delimiter);
+	
 	end;
 end;

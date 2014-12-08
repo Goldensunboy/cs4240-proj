@@ -11,7 +11,6 @@ public class RegisterAndVariableDetectionFactory {
 		HashMap<String, List<String>> varmap = new HashMap<String, List<String>>();
 		String currFunc = null;
 		for(String s : IRList) {
-			System.out.println("\t" + s);
 			if(Pattern.matches("FUNC_.*:", s)) {
 				currFunc = s.substring(0, s.length() - 1);
 				varmap.put(currFunc, new ArrayList<String>());
@@ -21,8 +20,6 @@ public class RegisterAndVariableDetectionFactory {
 					for(String p : parts) {
 						if(p.contains("$") && p.contains("%")) {
 							String put = p;
-							System.out.println(s);
-							System.out.println(currFunc);
 							if(!varmap.get(currFunc).contains(put)) {
 								varmap.get(currFunc).add(put);
 							}

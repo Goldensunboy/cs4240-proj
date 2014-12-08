@@ -150,10 +150,10 @@ public class Instruction {
 				break;
 				
 			case "array_store":
-				MIPSInstruction += arrayStore(instructionParts);
+				MIPSInstruction += instruction.arrayStore(instructionParts);
 				break;
 			case "array_load":
-				MIPSInstruction += arrayLoad(instructionParts);
+				MIPSInstruction += instruction.arrayLoad(instructionParts);
 				break;
 			case "mtc1":
 			case "cvt.s.w":
@@ -421,26 +421,28 @@ public class Instruction {
 		return MIPSInstruction;
 	}
 	
-	private static String arrayStore(String[] instructionParts){
+	private String arrayStore(String[] instructionParts){
 		if(instructionParts.length != 5)
 			throw new BadIRInstructionException("Calling store array with an invalid number of operands");
 		String MIPSInstruction = "";
 		boolean isInt = RegisterFile.isIntRegister(instructionParts[3]);
-		MIPSInstruction += "\nadd "+instructionParts[2]+", "+ instructionParts[2]+", "+instructionParts[2];
-		MIPSInstruction += "\nadd "+instructionParts[2]+", "+ instructionParts[2]+", "+instructionParts[2];
+		MIPSInstruction += "\nadd "+ instructionParts[1]+", "+ instructionParts[1]+", "+instructionParts[2];
+		MIPSInstruction += "\nadd "+ instructionParts[1]+", "+ instructionParts[1]+", "+instructionParts[2];
+		MIPSInstruction += "\nadd "+ instructionParts[1]+", "+ instructionParts[1]+", "+instructionParts[2];
 		MIPSInstruction += "\nadd "+ instructionParts[1]+", "+ instructionParts[1]+", "+instructionParts[2];
 		MIPSInstruction += "\n"+((isInt)?"sw ":"swc1 ")+instructionParts[3]+", 0("+instructionParts[1]+")";
 		MIPSInstruction += "\n"+StackFrame.generateLoad(IRParser.getVariableName(instructionParts[4]),instructionParts[1],true);
 		return MIPSInstruction;
 	}
 	
-	private static String arrayLoad(String[] instructionParts){
+	private String arrayLoad(String[] instructionParts){
 		if(instructionParts.length != 5)
 			throw new BadIRInstructionException("Calling store array with an invalid number of operands");
 		String MIPSInstruction = "";
 		boolean isInt = RegisterFile.isIntRegister(instructionParts[1]);
-		MIPSInstruction += "\nadd "+instructionParts[3]+", "+ instructionParts[3]+", "+instructionParts[3];
-		MIPSInstruction += "\nadd "+instructionParts[3]+", "+ instructionParts[3]+", "+instructionParts[3];
+		MIPSInstruction += "\nadd "+ instructionParts[2]+", "+ instructionParts[2]+", "+instructionParts[3];
+		MIPSInstruction += "\nadd "+ instructionParts[2]+", "+ instructionParts[2]+", "+instructionParts[3];
+		MIPSInstruction += "\nadd "+ instructionParts[2]+", "+ instructionParts[2]+", "+instructionParts[3];
 		MIPSInstruction += "\nadd "+ instructionParts[2]+", "+ instructionParts[2]+", "+instructionParts[3];
 		MIPSInstruction += "\n"+((isInt)?"lw ":"lwc1 ")+instructionParts[1]+", 0("+instructionParts[2]+")";
 		MIPSInstruction += "\n"+StackFrame.generateLoad(IRParser.getVariableName(instructionParts[4]),instructionParts[2],true);
@@ -448,7 +450,7 @@ public class Instruction {
 	}
 	
 	
-	private static boolean isLibraryCall(String[] instructionParts){
+	private boolean isLibraryCall(String[] instructionParts){
 		try {
 			callLibraryFunction(instructionParts);
 			return true;
@@ -457,7 +459,7 @@ public class Instruction {
 		}
 	}
 	
-	private static String callLibraryFunction(String[] instructionParts){
+	private String callLibraryFunction(String[] instructionParts){
 		String MIPSInstruction = "";
 		if(instructionParts.length!=3)
 			throw new InvalidInvocationException();
