@@ -430,6 +430,7 @@ public class Instruction {
 		MIPSInstruction += "\nadd "+instructionParts[2]+", "+ instructionParts[2]+", "+instructionParts[2];
 		MIPSInstruction += "\nadd "+ instructionParts[1]+", "+ instructionParts[1]+", "+instructionParts[2];
 		MIPSInstruction += "\n"+((isInt)?"sw ":"swc1 ")+instructionParts[3]+", 0("+instructionParts[1]+")";
+		MIPSInstruction += "\n"+StackFrame.generateLoad(IRParser.getVariableName(instructionParts[4]),instructionParts[1],true);
 		return MIPSInstruction;
 	}
 	
@@ -437,11 +438,12 @@ public class Instruction {
 		if(instructionParts.length != 5)
 			throw new BadIRInstructionException("Calling store array with an invalid number of operands");
 		String MIPSInstruction = "";
-		boolean isInt = RegisterFile.isIntRegister(instructionParts[2]);
+		boolean isInt = RegisterFile.isIntRegister(instructionParts[1]);
 		MIPSInstruction += "\nadd "+instructionParts[3]+", "+ instructionParts[3]+", "+instructionParts[3];
 		MIPSInstruction += "\nadd "+instructionParts[3]+", "+ instructionParts[3]+", "+instructionParts[3];
 		MIPSInstruction += "\nadd "+ instructionParts[2]+", "+ instructionParts[2]+", "+instructionParts[3];
 		MIPSInstruction += "\n"+((isInt)?"lw ":"lwc1 ")+instructionParts[1]+", 0("+instructionParts[2]+")";
+		MIPSInstruction += "\n"+StackFrame.generateLoad(IRParser.getVariableName(instructionParts[4]),instructionParts[2],true);
 		return MIPSInstruction;
 	}
 	
