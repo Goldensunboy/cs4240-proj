@@ -1,11 +1,35 @@
 void main()
 begin
 	begin
-		type ArrayF = array [100] of int;
-		var arr : ArrayF := 10;
-		var x : int := 88;
-		arr[4] := 999;
-	/*	x := arr[3];
-		Print_int(x);*/
+		type ArrayI = array [8] of int;
+		type ArrayF = array [8] of fixedpt;
+		var arrI : ArrayI := 11;
+		var arrF : ArrayF := 22.2;
+		var i : int := 33;
+		var i1,i2,i3,i4,i5 : int := 0;
+		var f : fixedpt := 44.4;
+		
+		var delimiter := 88888;
+		
+		arrI[1] := 55;
+		arrI[2] := i;
+		
+		arrF[1] := 66.6;
+		arrF[2] := f;
+		arrF[3] := i;
+		
+		i1 := arrI[3];
+		i2 := arrI[1];
+		i3 := arrI[2];
+		i4 := 7;
+		i5 := arrI[i4];
+				
+		f1 := arrF[4];
+		f2 := arrF[1];
+		f3 := arrF[2];
+		f4 := arrF[3];
+		i4 := 7;
+		f5 := arrF[i4];
+		
 	end;
 end;
