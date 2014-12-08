@@ -88,7 +88,8 @@ public class TigerTest {
 			break;
 			
 		case VINCENT:
-			VincentTest.test(parser);
+			//VincentTest.test(parser);
+			AndrewTest.test(parser, filename);
 			break;
 		}
 	}

@@ -1,0 +1,63 @@
+type ArrayInt = array [6] of int;
+type ArrayFloat = array[6] of fixedpt;
+type
+
+int function sum1(arr : ArrayInt)
+begin
+	begin
+		var sum : int := 0;
+		for i := 0 to 5 do
+			sum := sum + arr[i];
+		enddo;
+		return sum;
+	end;
+end;
+
+fixedpt function sum2(arr : ArrayFloat)
+begin
+	begin
+		var sum : fixedpt := 0;
+		for i := 0 to 5 do
+			sum := sum + arr[i];
+		enddo;
+		return sum;
+	end;
+end;
+
+void main()
+begin
+	begin
+		var int_arr : ArrayInt := 3;
+		var float_arr : ArrayFloat := 5.1;
+		var x : int := 1;
+		var y : fixedpt := 0;
+		
+		int_arr[0] := 1;
+		int_arr[x] := 2;
+		int_arr[x + 1] := x * 3;
+		int_arr[3] := int_arr[x] * 2;
+		int_arr[4] := int_arr[1 + 2] + 1;
+		int_arr[5] := int_arr[4] + 1;
+		
+		float_arr[0] := 1;
+		float_arr[x] := 1.0;
+		float_arr[x + 1] := 2;
+		float_arr[3] := int_arr[1];
+		float_arr[4] := float_arr[1] + 2;
+		float_arr[5] := float_arr[x - 1] * 3.0;
+		
+		/* 11.0000000021.0000000032.0000000042.0000000053.0000000063.00000000 */
+		for i := 0 to 5 do
+			x := int_arr[i];
+			y := float_arr[i];
+			Print_int(x);
+			Print_float(y);
+		enddo;
+		
+		/* 2112.00000000 */
+		x := sum1(int_arr);
+		y := sum2(float_arr);
+		Print_int(x);
+		Print_float(y);
+	end;
+end;
