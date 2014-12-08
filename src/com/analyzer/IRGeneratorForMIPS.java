@@ -112,7 +112,7 @@ public class IRGeneratorForMIPS {
 		 * naive allocation to turn off loads and store if necessary
 		 */
 		for(InstructionDetail instructionDetail : instructionDetails) {
-			if(generateStore && instructionDetail.isAnyOfInstructions(RETURN, CALL, CALLR)) {
+			if(instructionDetail.isAnyOfInstructions(RETURN, CALL, CALLR)) {
 				//if we see the above instructions we have to store
 				annotatedIR.addAll(getLoadStoreRegisters(variablesRegisterMap, STORE));
 				annotatedIR.add(instructionDetail.getOriginalInstruction());

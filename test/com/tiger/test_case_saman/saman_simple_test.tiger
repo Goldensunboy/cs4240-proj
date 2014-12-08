@@ -1,11 +1,19 @@
+int function myFunc(a : int)
+begin
+	begin
+		var b : int := 2;
+		b := 4;
+		return a;
+	end;
+end;
 void main()
 begin
 	begin
-		var x,y : int := 0;
-		y := 9;
-		for i := x to y do
-			x := 1;
-		enddo;
+		var x : int := 0;
+		x := myFunc(x*x);
+		if x = 3 then
+			x := 4;
+		endif;
 	end;
 end;
 
