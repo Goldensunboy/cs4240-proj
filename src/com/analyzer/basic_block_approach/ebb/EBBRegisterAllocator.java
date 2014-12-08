@@ -110,8 +110,8 @@ public class EBBRegisterAllocator implements RegisterAllocator{
 				enclosingEBB.addToBasicBlocks(currentBasicBlock);
 				for(BasicBlock successor : currentBasicBlock.getSuccessors()) {
 					if(successor.getPredecessors().size() > 1) {
+						currentBasicBlock.setAsEndOfEBB();
 						if(!successor.isStartOfEBB()) {
-							currentBasicBlock.setAsEndOfEBB();
 							leaders.add(successor);
 						}
 					} else {
