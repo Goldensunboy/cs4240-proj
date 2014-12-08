@@ -1,5 +1,7 @@
 .data
 .text
+
+.end main
 .ent main
 .globl main
 main:

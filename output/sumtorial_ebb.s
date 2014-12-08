@@ -51,6 +51,11 @@ add $t3, $t0, $t7
 
 move $t0, $t3
 
+sw $t0, -20($sp)
+sw $t2, -16($sp)
+sw $t1, -12($sp)
+sw $t3, -4($sp)
+sw $t4, 0($sp)
 j LABEL_FOR_START_0
 
 LABEL_FOR_END_0:

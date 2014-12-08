@@ -1,5 +1,7 @@
 .data
 .text
+
+.end main
 .ent main
 .globl main
 main:
@@ -80,6 +82,13 @@ sub $t1, $t2, $t7
 
 move $t2, $t1
 
+sw $t0, -24($sp)
+sw $t1, -4($sp)
+sw $t2, -20($sp)
+sw $t5, -16($sp)
+sw $t4, 0($sp)
+sw $t3, -12($sp)
+sw $t6, -8($sp)
 j LABEL_WHILE_TOP_0
 
 LABEL_WHILE_END_0:
