@@ -1,0 +1,7 @@
+void main()
+begin
+	begin
+		var z : int := 0;
+		Print_float(9.0);
+	end;
+end;
