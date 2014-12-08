@@ -205,11 +205,9 @@ import com.exception.NameSpaceConflictException;
   }
   
   String varToString(String varName, int scopeId, TypeAttribute ta) {
-//    return varName + (ta == null ? "" :
-//      "$" + scopeId + "\%" + (ta.getType() == Type.INT ? "i" :
-//                             (ta.getType() == Type.FIXPT ? "f" : "a" + ta.getTypeOfArray())));
     return varName + (ta == null ? "" :
-      "$" + scopeId + ta.getType().getSuffix() + (ta.getType() == Type.ARRAY ? ta.getTypeOfArray().getNoPercentSuffix() : ""));
+      "$" + scopeId + ta.getType().getSuffix() +
+      (ta.getType() == Type.ARRAY ? ta.getTypeOfArray().getNoPercentSuffix() : ""));
   }
   
   public SymbolTableManager getSymbolTableManager() {
@@ -1607,7 +1605,7 @@ funcBinOp4[IdType idType] returns [String exp, TypeAttribute typeAttribute, bool
       VariableAttribute s3varAttr = null;
       try {
         s3varAttr = (VariableAttribute)symbolTableManager
-          .getAttributeInCurrentScope($s1.exp, attributeMap);
+          .getAttributeInCurrentScope($s3.exp, attributeMap);
       } catch (ClassCastException e) {
         String customMessage = $s3.exp + " can't be used as a variable";
         exceptionHandler.handleException(s3, customMessage, null, null, AttributeCastException.class);
