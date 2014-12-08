@@ -1,0 +1,25 @@
+void main()
+begin
+	begin
+		var n,m : int := 0;
+		n := 6;
+		m := 7;
+		
+	/*	if 4 < n then
+			m := 9;		
+		endif;
+		*/
+		
+		if 4 >= n then
+			m := 9;		
+		endif;
+		
+/*		for i := 1 to 5 do
+			n := 1;
+		enddo;*/
+		
+/*		while n > 0 do
+			n := n - 1;
+		enddo;*/
+	end;
+end;

@@ -1,12 +1,26 @@
+
+type ArrayI = array [8] of int;
+
+void function fib(n : ArrayI)
+begin
+	begin
+		var i : int := 4545;
+		i := n[1];
+		Print_int(i);
+	end;
+end;
+
+
 void main()
 begin
 	begin
-		type ArrayI = array [8] of int;
 		type ArrayF = array [8] of fixedpt;
+		type ArrayI2 = array [8][8] of int;
 		var arrI : ArrayI := 11;
 		var arrF : ArrayF := 22.2;
+		var arrI2 : ArrayI2 := 8888;
 		var i : int := 33;
-		var i1,i2,i3,i4,i5 : int := 0;
+		var i1,i2,i3,i4,i5,i6 : int := 0;
 		var f1,f2,f3,f4,f5 : fixedpt := 0;
 		var f : fixedpt := 44.4;
 		
@@ -32,6 +46,8 @@ begin
 		i4 := 7;
 		f5 := arrF[i4];
 
+		arrI2[2][2] := 6666;
+		
 
 		Print_int(i1);
 		Print_int(delimiter);
@@ -54,6 +70,14 @@ begin
 		Print_int(delimiter);
 		Print_float(f5);
 		Print_int(delimiter);
+	
+		
+		i6 := arrI2[2][2];
+		Print_int(i6);
+		Print_int(delimiter);
+		
+		
+		fib(arrI);
 	
 	end;
 end;
