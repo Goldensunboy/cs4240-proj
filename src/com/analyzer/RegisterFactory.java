@@ -125,16 +125,12 @@ public class RegisterFactory {
 		 * TODO this deals with promotions for arrays 
 		 */
 		if(lhsVariables[0].matches(".*%af")) {
-			if(registersToPromote.size()>1){
-				registersToPromote.remove(rhsVariables[0]);
-			}
+			registersToPromote.remove(rhsVariables[0]);
 			return registersToPromote;
 		} else if(lhsVariables[0].matches(".*%ai")){
 			return new Hashtable<>();
 		} else if(rhsVariables[0].matches(".*%af")) {
-			if(registersToPromote.size()>0){
-				registersToPromote.remove(rhsVariables[1]);
-			}
+			registersToPromote.remove(rhsVariables[1]);
 			return registersToPromote;
 		} else if(rhsVariables[0].matches(".*%ai")) {
 			return new Hashtable<>();

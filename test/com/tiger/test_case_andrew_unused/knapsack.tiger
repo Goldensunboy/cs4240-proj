@@ -1,0 +1,54 @@
+type ArrayInt = array [10] of int;
+type ArrayInt2D = array [10][100] of int;
+
+int function max(a : int, b : int)
+begin
+	begin
+		var t : int := 0;
+		if a > b then
+			return a;
+		else
+			return b;
+		endif;
+	end;
+end;
+
+int function knapsack(nums : ArrayInt, count : int, maxsum : int)
+begin
+	begin
+		var M : ArrayInt2D := 0;
+		var t : int := 0;
+		for i := 1 to count - 1 do
+			for j := 0 to maxsum do
+				if nums[i] <= j then
+					t := nums[i];
+					M[i][j] := max(M[i - 1][j], M[i - 1][j - t] + t);
+				else
+					M[i][j] := M[i - 1][j];
+				endif;
+			enddo;
+		enddo;
+		return M[count - 1][maxsum];
+	end;
+end;
+
+void main()
+begin
+	begin
+		var nums : ArrayInt := 0;
+		var t : int := 0;
+		nums[0] := 23;
+		nums[1] := 17;
+		nums[2] := 52;
+		nums[3] := 45;
+		nums[4] := 31;
+		nums[5] := 62;
+		nums[6] := 40;
+		nums[7] := 28;
+		nums[8] := 36;
+		nums[9] := 52;
+		
+		t := knapsack(nums, 10, 90);
+		Print_int(t);
+	end;
+end;

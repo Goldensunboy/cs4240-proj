@@ -15,33 +15,43 @@ import com.antlr.generated.TigerParser;
 
 public class AndrewTest {
 	static int idx = 0;
-	public static void test(TigerParser parser) {
+	public static void test(TigerParser parser, String filename) {
 		
-		// Get IR code
 		List<String> IRList = parser.getIRCode();
-		System.out.println("==== IR Code ====");
-		for (String ir : IRList) 
-			System.out.println(ir);
-		System.out.println("=================");
 		
-		RegisterAllocator registerAllocator;
-		switch(3) {
-		case 1:
-			registerAllocator = new EBBRegisterAllocator(IRList);
-			break;
-		case 2:
-			registerAllocator = new CFGRegisterAllocator(IRList);
-			break;
-		default:
-			registerAllocator = new NaiveRegisterAllocator(IRList);
+		boolean all_allocs = false;
+		int which_alloc = 1;
+		
+		for(int j = 1; !all_allocs && j == 1 || all_allocs && j <= 3; ++j) {
+			// Get IR code
+			RegisterAllocator registerAllocator;
+			String alloc = "naive";
+			switch(all_allocs ? j : which_alloc) {
+			case 1:
+				alloc = "ebb";
+				registerAllocator = new EBBRegisterAllocator(IRList);
+				break;
+			case 2:
+				alloc = "cfg";
+				registerAllocator = new CFGRegisterAllocator(IRList);
+				break;
+			default:
+				registerAllocator = new NaiveRegisterAllocator(IRList);
+			}
+			System.out.println("===============================================");
+			System.out.println("Compiling " + filename + " using " + alloc + ":");
+			System.out.println("===============================================");
+			List<String> IRIR = registerAllocator.getAnnotatedIRCode();
+			for(int i = 0; i<IRIR.size(); i++)
+				System.out.println(IRIR.get(i));
+			for(String s : IRIR)
+				System.out.println("\t\t" + s);
+			HashMap<String, List<String>> functionVariables = RegisterAndVariableDetectionFactory.getFunctionVariables(IRIR);
+			HashMap<String, List<String>> functionRegisters = RegisterAndVariableDetectionFactory.getFunctionRegisters(IRIR);
+			HashMap<String, HashMap<String, Integer>> functionArraySizes = RegisterAndVariableDetectionFactory.getFunctionArraySizes(IRIR);
+			CodeGenerator codeGenerator = new CodeGenerator(parser, IRIR, functionVariables, functionRegisters, functionArraySizes,
+					"output/" + filename.replaceFirst(".tiger", "_") + alloc + ".s");
+			codeGenerator.generateCode();
 		}
-		List<String> IRIR = registerAllocator.getAnnotatedIRCode();
-		for(int i = 0; i<IRIR.size(); i++)
-			System.out.println(IRIR.get(i));
-		HashMap<String, List<String>> functionVariables = RegisterAndVariableDetectionFactory.getFunctionVariables(IRIR);
-		HashMap<String, List<String>> functionRegisters = RegisterAndVariableDetectionFactory.getFunctionRegisters(IRIR);
-		HashMap<String, HashMap<String, Integer>> functionArraySizes = RegisterAndVariableDetectionFactory.getFunctionArraySizes(IRIR);
-		CodeGenerator codeGenerator = new CodeGenerator(parser, IRIR, functionVariables, functionRegisters, functionArraySizes, "output/prog" + idx++ + ".s");
-		codeGenerator.generateCode();
 	}
 }

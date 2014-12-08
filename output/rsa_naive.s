@@ -1,5 +1,7 @@
 .data
 .text
+
+.end main
 .ent FUNC_mod
 .globl FUNC_mod
 FUNC_mod:

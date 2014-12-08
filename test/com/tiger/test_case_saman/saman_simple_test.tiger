@@ -1,13 +1,15 @@
-void main() 
+void main()
 begin
 	begin
-		type ArrayInt = array [100] of fixedpt;
-		var a : ArrayInt := 10;
-		var b : int :=88;
-		a[0] := b;
-		/*b := a[3];*/
+		type ArrayF = array [100] of fixedpt;
+		var arr : ArrayF := 10;
+		var x : fixedpt := 88.8;
+		arr[4] := 999.1;
+		x := arr[4];
+		Print_float(x);
 	end;
 end;
+
 
 
 
